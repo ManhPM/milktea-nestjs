@@ -1,0 +1,16 @@
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "root",
+  "password": "15092001",
+  "database": "tour-nestjs",
+  "entities": ["src/**/entities/*.entity{.ts,.js}"],
+  "migrations": ["src/migrations/*.ts", "dist/migrations/*{.ts,.js}"],
+  "seeds": ["db/seeds/*{.ts,.js}"],
+  "factories": ["src/factories/**/*{.ts,.js}"],
+  "cli": {
+    "migrationsDir": "src/migrations"
+  },
+  "synchronize": true
+}
