@@ -32,7 +32,7 @@ export class Tour {
 
   @IsOptional()
   @Column()
-  duration: string;
+  duration: number;
 
   @IsOptional()
   @Column()

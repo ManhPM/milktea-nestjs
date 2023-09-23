@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
+import { FilterBookingDto } from './dto/filter-booking.dto';
 
 @Controller('bookings')
 export class BookingsController {
@@ -12,9 +22,9 @@ export class BookingsController {
     return this.bookingsService.create(createBookingDto);
   }
 
-  @Get()
-  findAll() {
-    return this.bookingsService.findAll();
+  @Get('/admin')
+  findAll(@Query() query: FilterBookingDto) {
+    return this.bookingsService.findAll(query);
   }
 
   @Get(':id')

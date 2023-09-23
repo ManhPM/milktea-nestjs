@@ -19,8 +19,10 @@ export class RolesService {
     return await this.roleRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  async findOne(id: number): Promise<Role> {
+    return await this.roleRepository.findOne({
+      where: { id },
+    });
   }
 
   update(id: number, updateRoleDto: UpdateRoleDto) {
