@@ -1,4 +1,8 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateGuideDto } from './create-guide.dto';
-
-export class UpdateGuideDto extends PartialType(CreateGuideDto) {}
+export class UpdateGuideDto {
+  name: string;
+  photo: string;
+  email: string;
+  languages: string;
+  phoneNumber: string;
+  description: string;
+}

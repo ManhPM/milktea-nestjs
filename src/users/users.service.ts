@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,25 +9,34 @@ import { User } from './entities/user.entity';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User) readonly userRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto) {
+    const salt = bcrypt.genSaltSync(10);
+    const hashPassword = await bcrypt.hash(createUserDto.password, salt);
+    createUserDto.password = hashPassword;
+    await this.userRepository.save(createUserDto);
+    return {
+      message: 'Đăng ký thành công',
+    };
   }
 
   findAll() {
     return `This action returns all users`;
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(username: string): Promise<User> {
     return await this.userRepository.findOne({
-      where: { id },
+      where: { username },
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    await this.userRepository.update(id, updateUserDto);
+    return {
+      message: 'Cập nhật thành công',
+    };
   }
 
   remove(id: number) {

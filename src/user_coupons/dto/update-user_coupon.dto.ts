@@ -1,4 +1,6 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserCouponDto } from './create-user_coupon.dto';
-
-export class UpdateUserCouponDto extends PartialType(CreateUserCouponDto) {}
+export class UpdateUserCouponDto {
+  quantity: number;
+  expireDate: Date;
+  couponId: number;
+  userId: number;
+}

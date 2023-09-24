@@ -1,52 +1,57 @@
-import { Injectable } from '@nestjs/common';
-import { CreateWishlistDto } from './dto/create-wishlist.dto';
+import { Injectable, Request, Body } from '@nestjs/common';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wishlist } from './entities/wishlist.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 
 @Injectable()
 export class WishlistsService {
   constructor(
-    @InjectRepository(Wishlist) private tourRepository: Repository<Wishlist>,
+    @InjectRepository(Wishlist)
+    private wishlistRepository: Repository<Wishlist>,
   ) {}
 
-  create(createWishlistDto: CreateWishlistDto) {
-    return 'This action adds a new wishlist';
+  async create(id: number, @Body() req) {
+    const item = await this.wishlistRepository.findOne({
+      where: {
+        tour: Like('%' + id + '%'),
+        user: req.user.userInfo.id,
+      },
+    });
+    if (!item) {
+      await this.wishlistRepository.save({
+        user: req.user.userInfo.id,
+        tourId: id,
+      });
+    } else {
+      await this.wishlistRepository
+        .createQueryBuilder()
+        .delete()
+        .from(Wishlist)
+        .where('user = :user', { user: req.user.userInfo.id })
+        .andWhere('tourId = :tourId', { tourId: id })
+        .execute();
+    }
+
+    return {
+      message: '',
+    };
   }
 
-  // async findAll(query: FilterTourDto): Promise<any> {
-  //   const availableSeats = Number(query.availableSeats) || 1;
-  //   const page = Number(query.page) || 1;
-
-  //   const skip = (page - 1) * 8;
-
-  //   let res = [];
-  //   let total = 0;
-
-  //   [res, total] = await this.tourRepository.findAndCount({
-  //     where: [
-  //       {
-  //         availableSeats: MoreThanOrEqual(availableSeats),
-  //       },
-  //     ],
-  //     order: { price: 'ASC' },
-  //     take: 8,
-  //     skip: skip,
-  //   });
-  //   return {
-  //     data: res,
-  //     total,
-  //   };
-  //   return 'getall';
-  // }
+  async findAll(userId: number): Promise<any> {
+    const data = await this.wishlistRepository.find({
+      where: {
+        user: Like('%' + userId + '%'),
+      },
+      relations: ['user', 'tour'],
+    });
+    return {
+      data: data,
+    };
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} wishlist`;
-  }
-
-  update(id: number, updateWishlistDto: UpdateWishlistDto) {
-    return `This action updates a #${id} wishlist`;
   }
 
   remove(id: number) {

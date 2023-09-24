@@ -16,6 +16,8 @@ import { FeedbacksModule } from './feedbacks/feedbacks.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
 import { UserCouponsModule } from './user_coupons/user_coupons.module';
 import { RolesModule } from './roles/roles.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -33,6 +35,12 @@ import { RolesModule } from './roles/roles.module';
     ConfigModule.forRoot(),
     UserCouponsModule,
     RolesModule,
+    AuthModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.SECRET,
+      signOptions: { expiresIn: `${process.env.EXP_IN_ACCESS_TOKEN}` },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

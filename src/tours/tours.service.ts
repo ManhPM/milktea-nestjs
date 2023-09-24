@@ -3,6 +3,8 @@ import { Between, Like, Repository, MoreThanOrEqual } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterTourDto } from './dto/filter-tour.dto';
 import { Tour } from './entities/tour.entity';
+import { CreateTourDto } from './dto/create-tour.dto';
+import { UpdateTourDto } from './dto/update-tour.dto';
 
 @Injectable()
 export class ToursService {
@@ -176,5 +178,12 @@ export class ToursService {
 
   remove(id: number) {
     return `This action removes a #${id} tour`;
+  }
+
+  create(createTourDto: CreateTourDto) {
+    return 'This action adds a new wishlist';
+  }
+  update(id: number, updateTourDto: UpdateTourDto) {
+    return `This action updates a #${id} wishlist`;
   }
 }
