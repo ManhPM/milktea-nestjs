@@ -5,13 +5,15 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Patch,
   Post,
   Res,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { AuthService } from './auth.service';
+import { CreateAccountDto } from 'src/account/dto/create-account.dto';
+import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,23 +24,23 @@ export class AuthController {
 
   @Post('login')
   async login(
-    @Body('username') username: string,
+    @Body('phone') phone: string,
     @Body('password') loginPassword: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = await this.authService.findOne(`${username}`);
+    const account = await this.authService.findOne(`${phone}`);
 
-    if (!user) {
+    if (!account) {
       throw new BadRequestException('Sai thông tin đăng nhập');
     }
 
-    if (!(await bcrypt.compare(loginPassword, user.password))) {
+    if (!(await bcrypt.compare(loginPassword, account.password))) {
       throw new BadRequestException('Sai thông tin đăng nhập');
     }
 
-    delete user.password;
+    delete account.password;
 
-    const token = await this.jwtService.signAsync({ userInfo: user });
+    const token = await this.jwtService.signAsync({ account });
 
     response.cookie('token', token, {
       httpOnly: true,
@@ -47,7 +49,7 @@ export class AuthController {
     });
 
     return {
-      userInfo: user,
+      userInfo: account,
       message: 'Login success',
     };
   }
@@ -63,7 +65,13 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(ValidationPipe)
-  async register(@Body() createUserDto: CreateUserDto): Promise<any> {
-    return this.authService.create(createUserDto);
+  async register(@Body() item: CreateAccountDto): Promise<any> {
+    return this.authService.create(item);
+  }
+
+  @Patch()
+  @UsePipes(ValidationPipe)
+  async update(@Body() item: UpdateAccountDto): Promise<any> {
+    return this.authService.create(item);
   }
 }
