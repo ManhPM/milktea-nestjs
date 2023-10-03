@@ -1,9 +1,9 @@
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
 import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { Injectable, Request, HttpStatus } from '@nestjs/common';
+import { Injectable, Request, HttpStatus, Res } from '@nestjs/common';
 import { CreateCartProductDto } from './dto/create-cart_product.dto';
 import { UpdateCartProductDto } from './dto/update-cart_product.dto';
-import { Like, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -22,12 +22,17 @@ export class CartProductService {
     readonly userRepository: Repository<User>,
     @InjectRepository(Recipe)
     readonly recipeRepository: Repository<Recipe>,
+    private dataSource: DataSource,
   ) {}
 
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
     const productString = createCartProductDto.productString;
     const splitMain = productString.substring(2);
     const recipeString = splitMain.split(',');
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -86,13 +91,18 @@ export class CartProductService {
           user,
         });
       }
+      await queryRunner.commitTransaction();
       return {
         message: 'Đã thêm sản phẩm vào giỏ hàng',
       };
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       return {
         message: error.message,
       };
+    } finally {
+      // Đảm bảo rằng kết nối luôn được giải phóng
+      await queryRunner.release();
     }
   }
 
@@ -118,35 +128,47 @@ export class CartProductService {
     id: number,
     updateCartProductDto: UpdateCartProductDto,
   ): Promise<any> {
-    const item = await this.cartProductRepository.findOne({
-      where: {
-        user: Like('%' + req.user[0].id + '%'),
-        product: Like('%' + id + '%'),
-      },
-    });
-    await this.cartProductRepository.update(item.id, {
-      size: updateCartProductDto.size,
-      quantity: updateCartProductDto.quantity,
-      product: item.product,
-      user: item.user,
-    });
-    return {
-      message: 'Cập nhật thành công',
-    };
+    try {
+      const item = await this.cartProductRepository.findOne({
+        where: {
+          user: Like('%' + req.user[0].id + '%'),
+          product: Like('%' + id + '%'),
+        },
+      });
+      await this.cartProductRepository.update(item.id, {
+        size: updateCartProductDto.size,
+        quantity: updateCartProductDto.quantity,
+        product: item.product,
+        user: item.user,
+      });
+      return {
+        message: 'Cập nhật thành công',
+      };
+    } catch (error) {
+      return {
+        message: error.message,
+      };
+    }
   }
 
   async remove(id: number, @Request() req) {
     try {
+      const item = await this.cartProductRepository.findOne({
+        where: {
+          user: req.user[0].id,
+          product: Like('%' + id + '%'),
+        },
+        relations: ['user', 'product'],
+      });
       await this.cartProductRepository.delete({
-        user: Like('%' + req.user.id + '%'),
-        product: Like('%' + id + '%'),
+        user: item.user,
+        product: item.product,
       });
       return {
         message: 'Đã xoá khỏi giỏ hàng',
       };
     } catch (error) {
       return {
-        HttpStatus: 500,
         message: error.message,
       };
     }

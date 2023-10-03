@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -12,6 +17,11 @@ export class RolesGuard implements CanActivate {
     if (roles.includes(role.toString())) {
       return true;
     }
-    return false;
+    throw new HttpException(
+      {
+        message: 'Bạn không có quyền sử dụng chức năng',
+      },
+      403,
+    );
   }
 }

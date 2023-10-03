@@ -5,13 +5,16 @@ export class CreateStaffDto {
   name: string;
   @IsNotEmpty({ message: 'Số điện thoại không được để trống' })
   phone: string;
-  @IsNotEmpty({ message: 'Email không được để trống' })
-  email: string;
+  @IsNotEmpty({ message: 'Địa chỉ không được để trống' })
+  address: string;
   @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
   password: string;
-  role: number;
+  @IsNotEmpty({ message: 'Giới tính không được để trống' })
   gender: string;
+  @IsNotEmpty({ message: 'Ngày sinh không được để trống' })
   birthday: Date;
-  hireDate: Date;
-  forgot: number;
+  @IsNotEmpty({ message: 'Ngày vào làm không được để trống' })
+  hiredate: Date;
+  role: number;
+  isActive: number;
 }

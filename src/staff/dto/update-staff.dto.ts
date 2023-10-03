@@ -1,11 +1,12 @@
 export class UpdateStaffDto {
   name: string;
   phone: string;
-  email: string;
+  address: string;
   password: string;
   role: number;
   gender: string;
   birthday: Date;
-  hireDate: Date;
+  hiredate: Date;
   forgot: number;
+  isActive: number;
 }

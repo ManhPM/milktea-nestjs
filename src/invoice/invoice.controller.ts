@@ -22,10 +22,11 @@ import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
-  @UseGuards(AuthGuard)
-  @Post()
-  create(@Body() createInvoiceDto: CreateInvoiceDto) {
-    return this.invoiceService.create(createInvoiceDto);
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('0')
+  @Post('checkout')
+  create(@Body() createInvoiceDto: CreateInvoiceDto, @Request() req) {
+    return this.invoiceService.checkout(createInvoiceDto, req);
   }
 
   @UseGuards(AuthGuard)
@@ -55,21 +56,21 @@ export class InvoiceController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('1')
-  @Get('/confirm/:id')
+  @Get('/receive/:id')
   receive(@Param('id') id: number) {
     return this.invoiceService.receiveInvoice(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('1', '2')
-  @Get('/confirm/:id')
-  cancel(@Param('id') id: number) {
-    return this.invoiceService.cancelInvoice(id);
+  @Get('/cancel/:id')
+  cancel(@Param('id') id: number, @Request() req) {
+    return this.invoiceService.cancelInvoice(id, req);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('1', '2')
-  @Get('/confirm/:id')
+  @Get('/complete/:id')
   complete(@Param('id') id: number) {
     return this.invoiceService.completeInvoice(id);
   }

@@ -11,7 +11,7 @@ export class ExportIngredient {
   quantity: number;
 
   @Column()
-  unitPrice: number;
+  price: number;
 
   @ManyToOne(() => Export, (item) => item.export_ingredients)
   export: Export;

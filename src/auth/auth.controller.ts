@@ -2,7 +2,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import {
-  BadRequestException,
   Body,
   Controller,
   Patch,
@@ -10,10 +9,25 @@ import {
   Res,
   UsePipes,
   ValidationPipe,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  HttpException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
+import { v2 as cloudinary } from 'cloudinary';
+import { AuthGuard } from './auth.guard';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
+
+cloudinary.config({
+  cloud_name: 'dgsumh8ih',
+  api_key: '726416339718441',
+  api_secret: 'n9z2-8LwGN8MPhbDadWYuMGN78U',
+});
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +35,28 @@ export class AuthController {
     private readonly authService: AuthService,
     private jwtService: JwtService,
   ) {}
+
+  @Post('upload')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('0', '2')
+  @UseInterceptors(FileInterceptor('my_file'))
+  async uploadFile(@UploadedFile() file) {
+    try {
+      const b64 = Buffer.from(file.buffer).toString('base64');
+      const dataURI = 'data:' + file.mimetype + ';base64,' + b64;
+      const cldRes = await cloudinary.uploader.upload(dataURI, {
+        resource_type: 'auto',
+      });
+      return {
+        url: cldRes.url,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        message: error.message,
+      };
+    }
+  }
 
   @Post('login')
   async login(
@@ -31,11 +67,33 @@ export class AuthController {
     const account = await this.authService.findOne(`${phone}`);
 
     if (!account) {
-      throw new BadRequestException('Sai thông tin đăng nhập');
+      throw new HttpException(
+        {
+          message: 'Sai thông tin đăng nhập',
+        },
+        401,
+      );
     }
 
     if (!(await bcrypt.compare(loginPassword, account.password))) {
-      throw new BadRequestException('Sai thông tin đăng nhập');
+      throw new HttpException(
+        {
+          message: 'Sai thông tin đăng nhập',
+        },
+        401,
+      );
+    }
+
+    if (account.role != 0) {
+      if (!account.staff[0].isActive) {
+        throw new HttpException(
+          {
+            message:
+              'Bạn đã nghỉ việc tại hệ thống của chúng tôi, không thể đăng nhập',
+          },
+          400,
+        );
+      }
     }
 
     delete account.password;

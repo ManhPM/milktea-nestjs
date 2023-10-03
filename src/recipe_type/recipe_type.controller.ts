@@ -12,9 +12,9 @@ export class RecipeTypeController {
     return this.recipeTypeService.create(createRecipeTypeDto);
   }
 
-  @Get()
-  findAll() {
-    return this.recipeTypeService.findAll();
+  @Get(':id')
+  findAll(@Param('id') id: number) {
+    return this.recipeTypeService.findAll(id);
   }
 
   @Get(':id')

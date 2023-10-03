@@ -1,4 +1,4 @@
-import { Injectable, Request } from '@nestjs/common';
+import { HttpException, Injectable, Request } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -16,30 +16,48 @@ export class UserService {
   }
 
   async findAll(): Promise<any> {
-    const [res, total] = await this.userRepository.findAndCount({
-      relations: ['account'],
-      select: {
-        account: {
-          phone: true,
+    try {
+      const [res, total] = await this.userRepository.findAndCount({
+        relations: ['account'],
+        select: {
+          account: {
+            phone: true,
+          },
         },
-      },
-    });
-    return {
-      data: res,
-      total,
-    };
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách khách hàng',
+        },
+        500,
+      );
+    }
   }
 
   async getProfile(@Request() req) {
-    const user = await this.userRepository.findOne({
-      where: {
-        account: req.user.id,
-      },
-      relations: ['account'],
-    });
-    delete user.account.password;
-    delete user.account.role;
-    return user;
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          account: req.user.id,
+        },
+        relations: ['account'],
+      });
+      delete user.account.password;
+      delete user.account.role;
+      return user;
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy thông tin khách hàng',
+        },
+        500,
+      );
+    }
   }
 
   async findOne(id: number) {

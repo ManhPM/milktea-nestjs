@@ -1,5 +1,5 @@
 export class UpdateImportIngredientDto {
-  unitPrice: number;
+  price: number;
   quantity: number;
   importId: number;
   ingredientId: number;

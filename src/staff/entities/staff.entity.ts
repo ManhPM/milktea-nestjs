@@ -19,6 +19,9 @@ export class Staff {
   name: string;
 
   @Column()
+  address: string;
+
+  @Column()
   gender: string;
 
   @Column()
@@ -26,6 +29,9 @@ export class Staff {
 
   @Column()
   hiredate: Date;
+
+  @Column()
+  isActive: number;
 
   @ManyToOne(() => Account, (item) => item.staff)
   account: Account;

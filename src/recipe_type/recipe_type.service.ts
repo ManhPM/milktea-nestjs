@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateRecipeTypeDto } from './dto/create-recipe_type.dto';
 import { DeleteRecipeTypeDto } from './dto/delete-recipe_type.dto';
 import { RecipeType } from './entities/recipe_type.entity';
@@ -39,9 +39,12 @@ export class RecipeTypeService {
         message: 'Tạo mới thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới topping theo loại hàng',
+        },
+        500,
+      );
     }
   }
 
@@ -57,15 +60,21 @@ export class RecipeTypeService {
         message: 'Xoá thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá topping theo loại hàng',
+        },
+        500,
+      );
     }
   }
 
-  async findAll(): Promise<any> {
+  async findAll(id: number): Promise<any> {
     try {
       const [res, total] = await this.recipeTypeRepository.findAndCount({
+        where: {
+          type: Like('%' + id + '%'),
+        },
         relations: ['recipe', 'type'],
       });
       return {
@@ -73,9 +82,12 @@ export class RecipeTypeService {
         total,
       };
     } catch (error) {
-      return {
-        message: error,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách topping theo loại hàng',
+        },
+        500,
+      );
     }
   }
 

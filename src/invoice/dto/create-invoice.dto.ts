@@ -4,7 +4,5 @@ export class CreateInvoiceDto {
   date: Date;
   status: number;
   isPaid: number;
-  userId: number;
   shippingCompanyId: number;
-  staffId: number;
 }

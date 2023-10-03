@@ -1,9 +1,9 @@
-import { Injectable, Request } from '@nestjs/common';
+import { HttpException, Injectable, Request } from '@nestjs/common';
 import { CreateImportDto } from './dto/create-import.dto';
 import { UpdateImportDto } from './dto/update-import.dto';
 import { Import } from './entities/import.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, MoreThan, Repository } from 'typeorm';
+import { DataSource, Like, MoreThan, Repository } from 'typeorm';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
 
@@ -16,82 +16,141 @@ export class ImportService {
     readonly ingredientRepository: Repository<Ingredient>,
     @InjectRepository(ImportIngredient)
     readonly importIngredientRepository: Repository<ImportIngredient>,
+    private dataSource: DataSource,
   ) {}
 
   async findAll(): Promise<any> {
-    const [res, total] = await this.importRepository.findAndCount({
-      relations: ['staff'],
-      where: {
-        isCompleted: MoreThan(0),
-      },
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.importRepository.findAndCount({
+        relations: ['staff'],
+        where: {
+          isCompleted: MoreThan(0),
+        },
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách hoá đơn nhập',
+        },
+        500,
+      );
+    }
+  }
+
+  async checkCreate(@Request() req) {
+    try {
+      return await this.importRepository.find({
+        where: {
+          staff: req.user[0].id,
+          isCompleted: 0,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra khi tạo hoá đơn nhập',
+        },
+        500,
+      );
+    }
   }
 
   async findIngredientImport(id: number): Promise<any> {
-    const ingredients = await this.ingredientRepository.find({});
-    const importedIngredients = await this.importIngredientRepository.find({
-      where: {
-        import: Like('%' + id + '%'),
-      },
-    });
-    const nonImportedIngredients = ingredients.filter(
-      (ingredient) =>
-        !importedIngredients.some(
-          (importedIngredient) => importedIngredient.id === ingredient.id,
-        ),
-    );
-    return {
-      data: nonImportedIngredients,
-    };
+    try {
+      const ingredients = await this.ingredientRepository.find({});
+      const importedIngredients = await this.importIngredientRepository.find({
+        where: {
+          import: Like('%' + id + '%'),
+        },
+      });
+      const nonImportedIngredients = ingredients.filter(
+        (ingredient) =>
+          !importedIngredients.some(
+            (importedIngredient) => importedIngredient.id === ingredient.id,
+          ),
+      );
+      return {
+        data: nonImportedIngredients,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách nguyên liệu để nhập',
+        },
+        500,
+      );
+    }
   }
 
   async findOne(id: number) {
-    const [res, total] = await this.importRepository.findAndCount({
-      where: {
-        id: id,
-      },
-      relations: ['staff', 'import_ingredients.ingredient'],
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.importRepository.findAndCount({
+        where: {
+          id: id,
+        },
+        relations: ['staff', 'import_ingredients.ingredient'],
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy thông tin hoá đơn nhập',
+        },
+        500,
+      );
+    }
   }
 
   async completeImport(id: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      const importIngredients = await this.importIngredientRepository.find({
+      const exportIngredients = await this.importIngredientRepository.find({
         where: {
           import: Like('%' + id + '%'),
         },
         relations: ['ingredient'],
       });
       let totalAmount = 0;
-      for (const importIngredient of importIngredients) {
-        totalAmount += importIngredient.quantity * importIngredient.unitPrice;
-        await this.ingredientRepository
+      for (const exportIngredient of exportIngredients) {
+        totalAmount += exportIngredient.price;
+        await queryRunner.manager
           .createQueryBuilder()
           .update(Ingredient)
-          .set({ quantity: () => '`quantity` + :newQuantity' })
-          .where('id = :id', { id: importIngredient.ingredient.id })
-          .setParameter('newQuantity', importIngredient.quantity)
+          .set({ quantity: () => '`quantity` - :newQuantity' })
+          .where('id = :id', { id: exportIngredient.ingredient.id })
+          .setParameter('newQuantity', exportIngredient.quantity)
           .execute();
       }
-      await this.importRepository.update(id, {
+      await queryRunner.manager.update(Import, id, {
         total: totalAmount,
         isCompleted: 1,
       });
+
+      await queryRunner.commitTransaction();
+
       return {
         message: 'Hoàn thành hoá đơn nhập',
       };
     } catch (error) {
-      return {
-        message: 'Hoàn thành hoá đơn nhập thất bại',
-      };
+      await queryRunner.rollbackTransaction();
+      throw new HttpException(
+        {
+          message: 'Lỗi hoàn thành hoá đơn nhập',
+        },
+        500,
+      );
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -100,17 +159,21 @@ export class ImportService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       createImportDto.date = date;
-      await this.importRepository.save({
+      const res = await this.importRepository.save({
         ...createImportDto,
         staff: req.user[0].id,
       });
       return {
+        data: res,
         message: 'Tạo mới thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới hoá đơn nhập',
+        },
+        500,
+      );
     }
   }
 
@@ -123,9 +186,12 @@ export class ImportService {
         message: 'Cập nhật thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật hoá đơn nhập',
+        },
+        500,
+      );
     }
   }
 
@@ -138,9 +204,27 @@ export class ImportService {
         message: 'Xoá thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá hoá đơn nhập',
+        },
+        500,
+      );
+    }
+  }
+
+  async checkExist(id: number): Promise<any> {
+    try {
+      return await this.importRepository.findOne({
+        where: { id },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra tồn tại hoá đơn nhập',
+        },
+        500,
+      );
     }
   }
 }

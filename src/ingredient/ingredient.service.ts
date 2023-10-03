@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
 import { Ingredient } from './entities/ingredient.entity';
@@ -11,7 +11,25 @@ export class IngredientService {
   constructor(
     @InjectRepository(Ingredient)
     readonly ingredientRepository: Repository<Ingredient>,
-  ) {}
+  ) { }
+  
+    async checkCreate(name: string, unitName: string) {
+    try {
+      return await this.ingredientRepository.find({
+        where: {
+          name: name,
+          unitName: unitName,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra khi tạo mới nguyên liệu',
+        },
+        500,
+      );
+    }
+  }
 
   async create(item: CreateIngredientDto) {
     try {
@@ -24,9 +42,12 @@ export class IngredientService {
         message: 'Tạo mới thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới nguyên liệu',
+        },
+        500,
+      );
     }
   }
 
@@ -39,9 +60,12 @@ export class IngredientService {
         message: 'Cập nhật thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật nguyên liệu,
+        },
+        500,
+      );
     }
   }
 
@@ -54,39 +78,75 @@ export class IngredientService {
         message: 'Xoá thành công',
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá nguyên liệu',
+        },
+        500,
+      );
     }
   }
 
   async findAll(query: FilterIngredientDto) {
-    const name = query.name;
-    let res = [];
-    let total = 0;
-    if (name) {
-      [res, total] = await this.ingredientRepository.findAndCount({
-        where: {
-          name,
+    try {
+      const name = query.name;
+      let res = [];
+      let total = 0;
+      if (name) {
+        [res, total] = await this.ingredientRepository.findAndCount({
+          where: {
+            name,
+          },
+        });
+      } else {
+        [res, total] = await this.ingredientRepository.findAndCount({});
+      }
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách nguyên liệu',
         },
-      });
-    } else {
-      [res, total] = await this.ingredientRepository.findAndCount({});
+        500,
+      );
     }
-    return {
-      data: res,
-      total,
-    };
   }
 
   async findOne(id: number) {
-    const res = await this.ingredientRepository.findOne({
-      where: {
-        id: id,
-      },
-    });
-    return {
-      data: res,
-    };
+    try {
+      const res = await this.ingredientRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      return {
+        data: res,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy thông tin nguyên liệu',
+        },
+        500,
+      );
+    }
+  }
+
+  async checkExist(id: number): Promise<any> {
+    try {
+      return await this.ingredientRepository.findOne({
+        where: { id },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra tồn tại nguyên liệu',
+        },
+        500,
+      );
+    }
   }
 }

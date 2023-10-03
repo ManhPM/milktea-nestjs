@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { Recipe } from './entities/recipe.entity';
@@ -26,77 +26,137 @@ export class RecipeService {
   }
 
   async getAllRecipe(query: FilterRecipeDto): Promise<any> {
-    const keyword = query.keyword || undefined;
-    let res = [];
-    if (keyword) {
-      res = await this.recipeRepository.find({
-        where: {
-          type: Not(5),
-          name: Like('%' + keyword + '%'),
+    try {
+      const keyword = query.keyword || undefined;
+      let res = [];
+      if (keyword) {
+        res = await this.recipeRepository.find({
+          where: {
+            type: Not(5),
+            name: Like('%' + keyword + '%'),
+          },
+          relations: ['type'],
+        });
+      } else {
+        res = await this.recipeRepository.find({
+          where: {
+            type: Not(5),
+          },
+          relations: ['type'],
+        });
+      }
+      return {
+        data: res,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách công thức',
         },
-        relations: ['type'],
-      });
-    } else {
-      res = await this.recipeRepository.find({
-        where: {
-          type: Not(5),
-        },
-        relations: ['type'],
-      });
+        500,
+      );
     }
-    return {
-      data: res,
-    };
   }
 
   async getRecipeByType(id: number) {
-    const [res, total] = await this.recipeRepository.findAndCount({
-      where: {
-        type: Like('%' + id + '%'),
-      },
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.recipeRepository.findAndCount({
+        where: {
+          type: Like('%' + id + '%'),
+        },
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách công thức theo loại hàng',
+        },
+        500,
+      );
+    }
   }
 
   async getToppingOfType(id: number) {
-    const [res, total] = await this.recipeTypeRepository.findAndCount({
-      where: {
-        type: Like('%' + id + '%'),
-      },
-      relations: ['recipe'],
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.recipeTypeRepository.findAndCount({
+        where: {
+          type: Like('%' + id + '%'),
+        },
+        relations: ['recipe'],
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách topping theo loại hàng',
+        },
+        500,
+      );
+    }
   }
 
   async getAllTopping() {
-    const [res, total] = await this.recipeRepository.findAndCount({
-      where: {
-        type: Like('%' + 5 + '%'),
-      },
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.recipeRepository.findAndCount({
+        where: {
+          type: Like('%' + 5 + '%'),
+        },
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách topping',
+        },
+        500,
+      );
+    }
   }
 
   async getToppingByRecipe(id: number) {
-    const [res, total] = await this.productRecipeRepository.findAndCount({
-      where: {
-        product: Like('%' + id + '%'),
-      },
-      relations: ['recipe', 'product'],
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.productRecipeRepository.findAndCount({
+        where: {
+          product: Like('%' + id + '%'),
+        },
+        relations: ['recipe', 'product'],
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách topping theo công thức',
+        },
+        500,
+      );
+    }
+  }
+
+  async checkExist(id: number): Promise<any> {
+    try {
+      return await this.recipeRepository.findOne({
+        where: { id },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra tồn tại công thức',
+        },
+        500,
+      );
+    }
   }
 
   update(id: number, updateRecipeDto: UpdateRecipeDto) {

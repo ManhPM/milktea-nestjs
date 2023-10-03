@@ -10,7 +10,6 @@ import {
   Request,
 } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
-import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -22,9 +21,9 @@ export class WishlistController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('0')
-  @Post()
-  create(@Body() createWishlistDto: CreateWishlistDto) {
-    return this.wishlistService.create(createWishlistDto);
+  @Post(':id')
+  create(@Param('id') id: number, @Request() req) {
+    return this.wishlistService.create(id, req);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

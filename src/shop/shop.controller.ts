@@ -42,9 +42,9 @@ export class ShopController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShopDto: UpdateShopDto) {
-    return this.shopService.update(+id, updateShopDto);
+  @Patch()
+  update(@Body() item: UpdateShopDto) {
+    return this.shopService.update(item);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

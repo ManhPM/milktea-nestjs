@@ -14,6 +14,7 @@ import { UpdateRecipeIngredientDto } from './dto/update-recipe_ingredient.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { DeleteRecipeIngredientDto } from './dto/delete-recipe_ingredient.dto';
 
 @Controller('recipe-ingredient')
 export class RecipeIngredientController {
@@ -30,9 +31,9 @@ export class RecipeIngredientController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Get()
-  findAll() {
-    return this.recipeIngredientService.findAll();
+  @Get(':id')
+  findAll(@Param('id') id: number) {
+    return this.recipeIngredientService.findAll(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -44,18 +45,15 @@ export class RecipeIngredientController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateRecipeIngredientDto: UpdateRecipeIngredientDto,
-  ) {
-    return this.recipeIngredientService.update(+id, updateRecipeIngredientDto);
+  @Patch()
+  update(@Body() updateRecipeIngredientDto: UpdateRecipeIngredientDto) {
+    return this.recipeIngredientService.update(updateRecipeIngredientDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.recipeIngredientService.remove(+id);
+  @Delete()
+  remove(@Body() item: DeleteRecipeIngredientDto) {
+    return this.recipeIngredientService.remove(item);
   }
 }

@@ -43,31 +43,6 @@ export class AuthService {
     }
   }
 
-  // async create(createTempAccountDto: CreateTemporaryAccountDto) {
-  //   const salt = bcrypt.genSaltSync(10);
-  //   const hashPassword = await bcrypt.hash(
-  //     createTempAccountDto.password,
-  //     salt,
-  //   );
-  //   createTempAccountDto.password = hashPassword;
-  //   createTempAccountDto.forgot = 0;
-  //   createTempAccountDto.role = 0;
-  //   if (!createTempAccountDto.photo) {
-  //     createTempAccountDto.photo =
-  //       'https://inkythuatso.com/uploads/thumbnails/800/2022/03/anh-dai-dien-nguoi-giau-mat-ngau-29-10-40-01.jpg';
-  //   }
-  //   const account = await this.accountRepository.save({
-  //     ...createTempAccountDto,
-  //   });
-  //   await this.userRepository.save({
-  //     ...createTempAccountDto,
-  //     account,
-  //   });
-  //   return {
-  //     message: 'Đăng ký thành công',
-  //   };
-  // }
-
   async update(id: number, updateAccountDto: UpdateAccountDto): Promise<any> {
     await this.accountRepository.update(id, updateAccountDto);
     return {
@@ -79,6 +54,12 @@ export class AuthService {
     return await this.accountRepository.findOne({
       where: { phone },
       relations: ['user', 'staff'],
+    });
+  }
+
+  async checkExistPhone(phone: string): Promise<any> {
+    return await this.accountRepository.findOne({
+      where: { phone },
     });
   }
 }

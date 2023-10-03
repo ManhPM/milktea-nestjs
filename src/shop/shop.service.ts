@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,19 +15,57 @@ export class ShopService {
     return 'This action adds a new shop';
   }
 
+  async checkExist(id: number): Promise<any> {
+    try {
+      return await this.shopRepository.findOne({
+        where: { id },
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi kiểm tra tồn tại thông tin cửa hàng',
+        },
+        500,
+      );
+    }
+  }
+
   async findAll(): Promise<any> {
-    const res = await this.shopRepository.find({});
-    return {
-      data: res,
-    };
+    try {
+      const res = await this.shopRepository.find({});
+      return {
+        data: res[0],
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy thông tin cửa hàng',
+        },
+        500,
+      );
+    }
   }
 
   findOne(id: number) {
     return `This action returns a #${id} shop`;
   }
 
-  update(id: number, updateShopDto: UpdateShopDto) {
-    return `This action updates a #${id} shop`;
+  async update(item: UpdateShopDto) {
+    try {
+      await this.shopRepository.update(1, {
+        ...item,
+      });
+      return {
+        message: 'Cập nhật thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật thông tin cửa hàng',
+        },
+        500,
+      );
+    }
   }
 
   remove(id: number) {
