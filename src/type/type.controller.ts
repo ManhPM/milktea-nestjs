@@ -41,10 +41,7 @@ export class TypeController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTypeDto: UpdateTypeDto,
-  ): string {
+  update(@Param('id') id: string, @Body() updateTypeDto: UpdateTypeDto) {
     return this.typeService.update(+id, updateTypeDto);
   }
 

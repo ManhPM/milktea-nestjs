@@ -1,11 +1,13 @@
+import { RefundPaymentDto } from './dto/refund-invoice.dto';
 import {
   Injectable,
-  Request,
   Body,
   Ip,
   HttpException,
   Query,
+  Request,
 } from '@nestjs/common';
+import axios from 'axios';
 import * as querystring from 'qs';
 import vnpayConfig from '../../config/vnpayConfig';
 import * as crypto from 'crypto';
@@ -67,18 +69,13 @@ export class InvoiceService {
     }
   }
 
-  async handlePayment(
-    @Body('id_order') id_order: number,
-    @Body('language') language: string,
-    @Ip() ip,
-  ) {
+  async handlePayment(@Body('id_order') id_order: number, @Ip() ip) {
     try {
       const invoice = await this.invoiceRepository.findOne({
         where: {
           id: id_order,
         },
       });
-
       if (invoice) {
         if (invoice.isPaid != 0) {
           throw new HttpException(
@@ -107,11 +104,7 @@ export class InvoiceService {
           let vnpUrl = vnpayConfig.vnp_Url;
           const returnUrl = vnpayConfig.vnp_ReturnUrl;
           const bankCode = 'NCB';
-
-          let locale = language;
-          if (locale === null || locale === '' || locale === undefined) {
-            locale = 'vn';
-          }
+          const locale = 'vn';
           const currCode = 'VND';
           let vnp_Params = {};
           vnp_Params['vnp_Version'] = '2.1.0';
@@ -123,7 +116,7 @@ export class InvoiceService {
           vnp_Params['vnp_OrderInfo'] =
             'Thanh toán cho mã đơn hàng:' + id_order;
           vnp_Params['vnp_OrderType'] = 'other';
-          vnp_Params['vnp_Amount'] = invoice.total * 80;
+          vnp_Params['vnp_Amount'] = invoice.total * 100;
           vnp_Params['vnp_ReturnUrl'] = returnUrl;
           vnp_Params['vnp_IpAddr'] = ipAddr;
           vnp_Params['vnp_CreateDate'] = createDate;
@@ -146,6 +139,13 @@ export class InvoiceService {
             data: vnpUrl,
           };
         }
+      } else {
+        throw new HttpException(
+          {
+            message: 'Lỗi thanh toán',
+          },
+          400,
+        );
       }
     } catch (error) {
       throw new HttpException(
@@ -157,11 +157,11 @@ export class InvoiceService {
     }
   }
 
-  async handleAccessPayment(@Query() vnp_Params: any) {
+  async handlePaymentReturn(@Query() vnp_Params: any) {
     delete vnp_Params['vnp_SecureHash'];
     delete vnp_Params['vnp_SecureHashType'];
 
-    const id_order = vnp_Params.vnp_TxnRef.slice(0, -1);
+    const id_order = vnp_Params.vnp_TxnRef;
     const amount = vnp_Params.vnp_Amount / 100;
     try {
       const invoice = await this.invoiceRepository.findOne({
@@ -181,7 +181,7 @@ export class InvoiceService {
           {
             message: 'Lỗi thanh toán',
           },
-          500,
+          400,
         );
       }
     } catch (error) {
@@ -192,6 +192,104 @@ export class InvoiceService {
         500,
       );
     }
+  }
+
+  async handleRefund(@Ip() ip, @Body() item: RefundPaymentDto) {
+    process.env.TZ = 'Asia/Ho_Chi_Minh';
+    const date = new Date();
+
+    const vnp_TmnCode = vnpayConfig.vnp_TmnCode;
+    const secretKey = vnpayConfig.vnp_HashSecret;
+    const vnp_Api = vnpayConfig.vnp_Api;
+
+    const vnp_TxnRef = item.id_order;
+    const vnp_TransactionDate = item.transDate;
+    const vnp_Amount = item.amount * 100;
+    const vnp_TransactionType = item.transType;
+    const vnp_CreateBy = item.user;
+
+    const vnp_RequestId = moment(date).format('HHmmss');
+    const vnp_Version = '2.1.0';
+    const vnp_Command = 'refund';
+    const vnp_OrderInfo = 'Hoan tien GD ma:' + vnp_TxnRef;
+
+    const vnp_IpAddr = ip;
+
+    const vnp_CreateDate = moment(date).format('YYYYMMDDHHmmss');
+
+    const vnp_TransactionNo = '0';
+
+    const data =
+      vnp_RequestId +
+      '|' +
+      vnp_Version +
+      '|' +
+      vnp_Command +
+      '|' +
+      vnp_TmnCode +
+      '|' +
+      vnp_TransactionType +
+      '|' +
+      vnp_TxnRef +
+      '|' +
+      vnp_Amount +
+      '|' +
+      vnp_TransactionNo +
+      '|' +
+      vnp_TransactionDate +
+      '|' +
+      vnp_CreateBy +
+      '|' +
+      vnp_CreateDate +
+      '|' +
+      vnp_IpAddr +
+      '|' +
+      vnp_OrderInfo;
+
+    const hmac = crypto.createHmac('sha512', secretKey);
+    const vnp_SecureHash = hmac.update(new Buffer(data, 'utf-8')).digest('hex');
+
+    const dataObj = {
+      vnp_RequestId: vnp_RequestId,
+      vnp_Version: vnp_Version,
+      vnp_Command: vnp_Command,
+      vnp_TmnCode: vnp_TmnCode,
+      vnp_TransactionType: vnp_TransactionType,
+      vnp_TxnRef: vnp_TxnRef,
+      vnp_Amount: vnp_Amount,
+      vnp_TransactionNo: vnp_TransactionNo,
+      vnp_CreateBy: vnp_CreateBy,
+      vnp_OrderInfo: vnp_OrderInfo,
+      vnp_TransactionDate: vnp_TransactionDate,
+      vnp_CreateDate: vnp_CreateDate,
+      vnp_IpAddr: vnp_IpAddr,
+      vnp_SecureHash: vnp_SecureHash,
+    };
+
+    await axios
+      .post(vnp_Api, dataObj, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+        return {
+          message: `Hoàn tiền thành công ${response.data}`,
+        };
+      })
+      .catch((error) => {
+        console.log(error);
+        throw new HttpException(
+          {
+            message: error,
+          },
+          500,
+        );
+      });
+    return {
+      message: `Hoàn tiền thành công`,
+    };
   }
 
   sortObject(obj: { [key: string]: any }): { [key: string]: any } {

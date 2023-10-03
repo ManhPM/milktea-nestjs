@@ -11,9 +11,9 @@ export class IngredientService {
   constructor(
     @InjectRepository(Ingredient)
     readonly ingredientRepository: Repository<Ingredient>,
-  ) { }
-  
-    async checkCreate(name: string, unitName: string) {
+  ) {}
+
+  async checkCreate(name: string, unitName: string) {
     try {
       return await this.ingredientRepository.find({
         where: {
@@ -62,7 +62,7 @@ export class IngredientService {
     } catch (error) {
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật nguyên liệu,
+          message: 'Lỗi cập nhật nguyên liệu',
         },
         500,
       );
