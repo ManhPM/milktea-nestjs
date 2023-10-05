@@ -28,6 +28,10 @@ export class ReviewService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       createReviewDto.date = date;
+      if (!createReviewDto.image) {
+        createReviewDto.image =
+          'https://ipos.vn/wp-content/uploads/2023/04/tra-sua-dam-vi-3.png';
+      }
       const user = await this.userRepository.findOne({
         where: {
           id: req.user.id,
@@ -60,6 +64,7 @@ export class ReviewService {
       throw new HttpException(
         {
           message: 'Lỗi đánh giá',
+          error: error.message,
         },
         500,
       );
@@ -82,17 +87,18 @@ export class ReviewService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách đánh giá của một sản phẩm',
+          error: error.message,
         },
         500,
       );
     }
   }
 
-  async checkCreate(@Request() req, id: number) {
+  async checkCreate(id_order: number, id: number) {
     try {
-      const invoice = await this.invoiceRepository.find({
+      const invoice = await this.invoiceRepository.findOne({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          id: id_order,
           isPaid: 1,
           status: 3,
         },
@@ -119,6 +125,7 @@ export class ReviewService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra khi tạo mới đánh giá',
+          error: error.message,
         },
         500,
       );

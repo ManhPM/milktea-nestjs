@@ -39,16 +39,27 @@ export class RecipeController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2', '1')
+  @Get('/ingredient/:id')
+  getAllIngredientOfRecipe(@Param('id') id: string) {
+    return this.recipeService.getAllIngredientOfRecipe(+id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
   @Get('/topping')
   getAllTopping() {
     return this.recipeService.getAllTopping();
   }
 
-  @Get('/topping/:id')
+  @Get('/type-topping/:id')
   getToppingOfType(@Param('id') id: string) {
-    console.log('cccc');
     return this.recipeService.getToppingOfType(+id);
+  }
+
+  @Get('/recipe-topping/:id')
+  getToppingByRecipe(@Param('id') id: string) {
+    return this.recipeService.getToppingByRecipe(+id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

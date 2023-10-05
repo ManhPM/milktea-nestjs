@@ -15,6 +15,8 @@ import { UpdateImportDto } from './dto/update-import.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
+import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
 
 @Controller('import')
 export class ImportController {
@@ -25,6 +27,20 @@ export class ImportController {
   @Post()
   create(@Body() createImportDto: CreateImportDto, @Request() req) {
     return this.importService.create(createImportDto, req);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2', '1')
+  @Post('ingredient')
+  createIngredientImport(@Body() createImportDto: CreateImportIngredientDto) {
+    return this.importService.createIngredientImport(createImportDto);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2', '1')
+  @Delete('ingredient')
+  deleteIngredientImport(@Body() item: UpdateImportIngredientDto) {
+    return this.importService.deleteIngredientImport(item);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

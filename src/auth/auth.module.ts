@@ -10,7 +10,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from 'src/account/entities/account.entity';
 import { User } from 'src/user/entities/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
-import { CheckExistPhone } from 'src/common/middlewares/middlewares';
+import {
+  CheckExistPhone,
+  CheckRegisterPhone,
+} from 'src/common/middlewares/middlewares';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account, User, MailerService])],
@@ -21,6 +24,9 @@ export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CheckExistPhone)
-      .forRoutes({ path: 'auth/login', method: RequestMethod.POST }); // áp dụng middleware cho tất cả các route trong 'auth'
+      .forRoutes({ path: 'auth/login', method: RequestMethod.POST });
+    consumer
+      .apply(CheckRegisterPhone)
+      .forRoutes({ path: 'auth/register', method: RequestMethod.POST });
   }
 }

@@ -21,8 +21,38 @@ export class RecipeService {
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
   ) {}
-  create(createRecipeDto: CreateRecipeDto) {
-    return 'This action adds a new recipe';
+  async create(createRecipeDto: CreateRecipeDto) {
+    try {
+      createRecipeDto.discount = 0;
+      if (!createRecipeDto.image) {
+        createRecipeDto.image =
+          'https://phuclong.com.vn/uploads/dish/063555c21c4206-trviliphclong.png';
+      }
+      if (!createRecipeDto.info) {
+        createRecipeDto.info = 'Mặc định';
+      }
+      createRecipeDto.isActive = 1;
+      const type = await this.typeRepository.findOne({
+        where: {
+          id: createRecipeDto.typeId,
+        },
+      });
+      await this.recipeRepository.save({
+        ...createRecipeDto,
+        type,
+      });
+      return {
+        message: 'Tạo mới thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới công thức',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 
   async getAllRecipe(query: FilterRecipeDto): Promise<any> {
@@ -34,6 +64,7 @@ export class RecipeService {
           where: {
             type: Not(5),
             name: Like('%' + keyword + '%'),
+            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -41,6 +72,7 @@ export class RecipeService {
         res = await this.recipeRepository.find({
           where: {
             type: Not(5),
+            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -52,6 +84,7 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách công thức',
+          error: error.message,
         },
         500,
       );
@@ -73,6 +106,7 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách công thức theo loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -95,6 +129,7 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách topping theo loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -116,6 +151,29 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách topping',
+          error: error.message,
+        },
+        500,
+      );
+    }
+  }
+
+  async getAllIngredientOfRecipe(id: number) {
+    try {
+      const res = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
+        relations: ['recipe_inredients.ingredient'],
+      });
+      return {
+        data: res,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi lấy danh sách nguyên liệu theo công thức',
+          error: error.message,
         },
         500,
       );
@@ -138,6 +196,7 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách topping theo công thức',
+          error: error.message,
         },
         500,
       );
@@ -153,17 +212,48 @@ export class RecipeService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại công thức',
+          error: error.message,
         },
         500,
       );
     }
   }
 
-  update(id: number, updateRecipeDto: UpdateRecipeDto) {
-    return `This action updates a #${id} recipe`;
+  async update(id: number, updateRecipeDto: UpdateRecipeDto) {
+    try {
+      await this.recipeRepository.update(id, {
+        ...updateRecipeDto,
+      });
+      return {
+        message: 'Cập nhật thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật công thức',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} recipe`;
+  async remove(id: number) {
+    try {
+      await this.recipeRepository.update(id, {
+        isActive: 0,
+      });
+      return {
+        message: 'Xoá thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá công thức',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 }

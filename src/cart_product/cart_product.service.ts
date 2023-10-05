@@ -1,6 +1,12 @@
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
 import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { Injectable, Request, HttpStatus, Res } from '@nestjs/common';
+import {
+  Injectable,
+  Request,
+  HttpStatus,
+  Res,
+  HttpException,
+} from '@nestjs/common';
 import { CreateCartProductDto } from './dto/create-cart_product.dto';
 import { UpdateCartProductDto } from './dto/update-cart_product.dto';
 import { DataSource, Like, Repository } from 'typeorm';
@@ -111,12 +117,24 @@ export class CartProductService {
       where: {
         user: req.user.id,
       },
-      relations: ['product', 'product.recipe'],
+      relations: ['product.product_recipes.recipe'],
     });
     return {
       data: res,
       total,
     };
+  }
+
+  async checkExist(id: number): Promise<any> {
+    try {
+      return await this.productRepository.findOne({
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      return null;
+    }
   }
 
   findOne(id: number) {

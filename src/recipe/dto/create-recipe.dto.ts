@@ -9,8 +9,6 @@ export class CreateRecipeDto {
   @IsPositive({ message: 'Giá phải là số dương' })
   @IsNotEmpty({ message: 'Giá không được để trống' })
   price: number;
-  @IsPositive({ message: 'Giảm giá phải là số dương' })
-  @IsNotEmpty({ message: 'Giảm giá không được để trống' })
   discount: number;
   typeId: number;
 }

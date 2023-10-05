@@ -26,6 +26,8 @@ export class TypeController {
     return this.typeService.create(createTypeDto);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2')
   @Get()
   findAll() {
     return this.typeService.findAll();
@@ -33,22 +35,8 @@ export class TypeController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.typeService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTypeDto: UpdateTypeDto) {
     return this.typeService.update(+id, updateTypeDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.typeService.remove(+id);
   }
 }

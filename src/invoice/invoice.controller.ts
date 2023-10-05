@@ -33,8 +33,8 @@ export class InvoiceController {
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll(@Query() query: FilterInvoiceDto) {
-    return this.invoiceService.findAll(query);
+  findAll(@Query() query: FilterInvoiceDto, @Request() req) {
+    return this.invoiceService.findAll(query, req);
   }
 
   @UseGuards(AuthGuard)
@@ -50,15 +50,22 @@ export class InvoiceController {
     return this.invoiceService.handlePayment(id_order, ip);
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('1', '2')
   @UseGuards(AuthGuard)
-  @Post('/payment/refund')
-  handleRefund(@Ip() ip, @Body() item: RefundPaymentDto) {
-    return this.invoiceService.handleRefund(ip, item);
+  @Post('/refund')
+  handleRefund(@Body('id_order') id_order: number, @Ip() ip) {
+    return this.invoiceService.handleRefund(id_order, ip);
   }
 
   @Get('/payment/return')
   handleAccessPayment(@Query() vnp_Params: any) {
     return this.invoiceService.handlePaymentReturn(vnp_Params);
+  }
+
+  @Get('/refund/return')
+  handleRefundReturn(@Query() vnp_Params: any) {
+    return this.invoiceService.handleRefundReturn(vnp_Params);
   }
 
   @UseGuards(AuthGuard)
@@ -75,7 +82,7 @@ export class InvoiceController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('1')
+  @Roles('1', '2')
   @Get('/receive/:id')
   receive(@Param('id') id: number) {
     return this.invoiceService.receiveInvoice(id);
@@ -93,17 +100,5 @@ export class InvoiceController {
   @Get('/complete/:id')
   complete(@Param('id') id: number) {
     return this.invoiceService.completeInvoice(id);
-  }
-
-  @UseGuards(AuthGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
-    return this.invoiceService.update(+id, updateInvoiceDto);
-  }
-
-  @UseGuards(AuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.invoiceService.remove(+id);
   }
 }

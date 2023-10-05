@@ -15,6 +15,8 @@ import { UpdateExportDto } from './dto/update-export.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { CreateExportIngredientDto } from 'src/export_ingredient/dto/create-export_ingredient.dto';
+import { UpdateExportIngredientDto } from 'src/export_ingredient/dto/update-export_ingredient.dto';
 
 @Controller('export')
 export class ExportController {
@@ -25,6 +27,20 @@ export class ExportController {
   @Post()
   create(@Body() createExportDto: CreateExportDto, @Request() req) {
     return this.exportService.create(createExportDto, req);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2', '1')
+  @Post('ingredient')
+  createIngredientExport(@Body() createExportDto: CreateExportIngredientDto) {
+    return this.exportService.createIngredientExport(createExportDto);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2', '1')
+  @Delete('ingredient')
+  deleteIngredientExport(@Body() item: UpdateExportIngredientDto) {
+    return this.exportService.deleteIngredientExport(item);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

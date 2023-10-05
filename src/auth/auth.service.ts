@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from 'src/account/entities/account.entity';
@@ -36,18 +36,33 @@ export class AuthService {
         message: 'Đăng ký thành công',
       };
     } catch (error) {
-      return {
-        HttpStatus: 500,
-        message: error.message,
-      };
+      throw new HttpException(
+        {
+          message: 'Lỗi đăng ký',
+          error: error.message,
+        },
+        500,
+      );
     }
   }
 
   async update(id: number, updateAccountDto: UpdateAccountDto): Promise<any> {
-    await this.accountRepository.update(id, updateAccountDto);
-    return {
-      message: 'Cập nhật thành công',
-    };
+    try {
+      await this.accountRepository.update(id, {
+        ...updateAccountDto,
+      });
+      return {
+        message: 'Cập nhật thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật tài khoản',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 
   async findOne(phone: string): Promise<any> {

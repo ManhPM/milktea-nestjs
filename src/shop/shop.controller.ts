@@ -21,13 +21,6 @@ export class ShopController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Post()
-  create(@Body() createShopDto: CreateShopDto) {
-    return this.shopService.create(createShopDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Get()
   findAll() {
     return this.shopService.findAll();
@@ -35,22 +28,8 @@ export class ShopController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shopService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Patch()
   update(@Body() item: UpdateShopDto) {
     return this.shopService.update(item);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.shopService.remove(+id);
   }
 }

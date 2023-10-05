@@ -13,6 +13,8 @@ import {
   UseInterceptors,
   UseGuards,
   HttpException,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
@@ -108,16 +110,16 @@ export class AuthController {
 
     return {
       userInfo: account,
-      message: 'Login success',
+      message: 'Đăng nhập thành công',
     };
   }
 
-  @Post('logout')
+  @UseGuards(AuthGuard)
+  @Get('logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('token');
-
     return {
-      message: 'Logout success',
+      message: 'Đăng xuất thành công',
     };
   }
 
@@ -127,9 +129,14 @@ export class AuthController {
     return this.authService.create(item);
   }
 
-  @Patch()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2')
+  @Patch(':id')
   @UsePipes(ValidationPipe)
-  async update(@Body() item: UpdateAccountDto): Promise<any> {
-    return this.authService.create(item);
+  async update(
+    @Param('id') id: number,
+    @Body() item: UpdateAccountDto,
+  ): Promise<any> {
+    return this.authService.update(id, item);
   }
 }

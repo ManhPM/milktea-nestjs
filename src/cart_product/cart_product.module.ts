@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { CartProductService } from './cart_product.service';
 import { CartProductController } from './cart_product.controller';
 import { CartProduct } from './entities/cart_product.entity';
@@ -7,6 +12,8 @@ import { Product } from 'src/product/entities/product.entity';
 import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { CheckExistProduct } from 'src/common/middlewares/middlewares';
+import { ProductService } from 'src/product/product.service';
 
 @Module({
   imports: [
@@ -19,6 +26,12 @@ import { Recipe } from 'src/recipe/entities/recipe.entity';
     ]),
   ],
   controllers: [CartProductController],
-  providers: [CartProductService],
+  providers: [CartProductService, ProductService],
 })
-export class CartProductModule {}
+export class CartProductModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CheckExistProduct)
+      .forRoutes({ path: 'cart-product/:id', method: RequestMethod.ALL });
+  }
+}

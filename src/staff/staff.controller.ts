@@ -35,13 +35,6 @@ export class StaffController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.staffService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStaffDto: UpdateStaffDto) {
     return this.staffService.update(+id, updateStaffDto);

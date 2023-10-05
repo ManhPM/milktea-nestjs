@@ -25,7 +25,7 @@ export class ReviewController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async getAllReviewOfRecipe(@Param('id') id: string) {
     return this.reviewService.findOne(+id);
   }
 }

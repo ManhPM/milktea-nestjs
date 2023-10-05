@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
@@ -23,12 +23,6 @@ export class ProductService {
       data: res,
       total,
     };
-  }
-
-  async checkExist(id: number): Promise<any> {
-    return await this.productRepository.findOne({
-      where: { id },
-    });
   }
 
   findOne(id: number) {

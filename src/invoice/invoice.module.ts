@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './invoice.controller';
 import { Invoice } from './entities/invoice.entity';
@@ -10,6 +10,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
+import { CheckExistInvoice } from 'src/common/middlewares/middlewares';
 
 @Module({
   imports: [
@@ -27,4 +28,13 @@ import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.
   controllers: [InvoiceController],
   providers: [InvoiceService],
 })
-export class InvoiceModule {}
+export class InvoiceModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(CheckExistInvoice)
+      .forRoutes(
+        { path: 'invoice/:id', method: RequestMethod.GET },
+        { path: 'invoice/.*/:id', method: RequestMethod.GET },
+      );
+  }
+}

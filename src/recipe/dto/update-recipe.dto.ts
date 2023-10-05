@@ -5,9 +5,7 @@ export class UpdateRecipeDto {
   info: string;
   image: string;
   isActive: number;
-  @IsPositive({ message: 'Giảm giá phải là số dương' })
   price: number;
-  @IsPositive({ message: 'Giảm giá phải là số dương' })
   discount: number;
   typeId: number;
 }

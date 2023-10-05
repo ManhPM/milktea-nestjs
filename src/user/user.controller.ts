@@ -28,36 +28,15 @@ export class UserController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Get()
   findAll() {
     return this.userService.findAll();
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Roles('0')
+  @Patch('profile')
+  update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(req, updateUserDto);
   }
 }

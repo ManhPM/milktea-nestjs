@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Like, MoreThan, Repository } from 'typeorm';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
+import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
+import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
 
 @Injectable()
 export class ImportService {
@@ -35,6 +37,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -53,6 +56,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra khi tạo hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -80,6 +84,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách nguyên liệu để nhập',
+          error: error.message,
         },
         500,
       );
@@ -102,6 +107,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -114,38 +120,53 @@ export class ImportService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const exportIngredients = await this.importIngredientRepository.find({
+      const check = await this.importRepository.findOne({
         where: {
-          import: Like('%' + id + '%'),
+          id: id,
         },
-        relations: ['ingredient'],
       });
-      let totalAmount = 0;
-      for (const exportIngredient of exportIngredients) {
-        totalAmount += exportIngredient.price;
-        await queryRunner.manager
-          .createQueryBuilder()
-          .update(Ingredient)
-          .set({ quantity: () => '`quantity` - :newQuantity' })
-          .where('id = :id', { id: exportIngredient.ingredient.id })
-          .setParameter('newQuantity', exportIngredient.quantity)
-          .execute();
+      if (check.isCompleted == -1) {
+        throw new HttpException(
+          {
+            message: 'Lỗi hoàn thành hoá đơn nhập',
+          },
+          500,
+        );
+      } else {
+        const exportIngredients = await this.importIngredientRepository.find({
+          where: {
+            import: Like('%' + id + '%'),
+          },
+          relations: ['ingredient'],
+        });
+        let totalAmount = 0;
+        for (const exportIngredient of exportIngredients) {
+          totalAmount += exportIngredient.price;
+          await queryRunner.manager
+            .createQueryBuilder()
+            .update(Ingredient)
+            .set({ quantity: () => '`quantity` - :newQuantity' })
+            .where('id = :id', { id: exportIngredient.ingredient.id })
+            .setParameter('newQuantity', exportIngredient.quantity)
+            .execute();
+        }
+        await queryRunner.manager.update(Import, id, {
+          total: totalAmount,
+          isCompleted: 1,
+        });
+
+        await queryRunner.commitTransaction();
+
+        return {
+          message: 'Hoàn thành hoá đơn nhập',
+        };
       }
-      await queryRunner.manager.update(Import, id, {
-        total: totalAmount,
-        isCompleted: 1,
-      });
-
-      await queryRunner.commitTransaction();
-
-      return {
-        message: 'Hoàn thành hoá đơn nhập',
-      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new HttpException(
         {
           message: 'Lỗi hoàn thành hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -171,6 +192,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -189,6 +211,117 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật hoá đơn nhập',
+          error: error.message,
+        },
+        500,
+      );
+    }
+  }
+
+  async createIngredientImport(item: CreateImportIngredientDto) {
+    try {
+      const importInvoice = await this.importRepository.findOne({
+        where: {
+          id: item.importId,
+        },
+      });
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: item.ingredientId,
+        },
+      });
+      if (!importInvoice) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn không tồn tại',
+          },
+          400,
+        );
+      }
+      if (!ingredient) {
+        throw new HttpException(
+          {
+            message: 'Nguyên liệu không tồn tại',
+          },
+          400,
+        );
+      }
+      if (importInvoice.isCompleted == 1 || importInvoice.isCompleted == -1) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể thêm',
+          },
+          400,
+        );
+      }
+      await this.importIngredientRepository.save({
+        ...item,
+        import: importInvoice,
+        ingredient: ingredient,
+      });
+      return {
+        message: 'Tạo mới thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới hoá đơn nhập',
+          error: error.message,
+        },
+        500,
+      );
+    }
+  }
+
+  async deleteIngredientImport(item: UpdateImportIngredientDto) {
+    try {
+      const importInvoice = await this.importRepository.findOne({
+        where: {
+          id: item.importId,
+        },
+      });
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: item.ingredientId,
+        },
+      });
+      if (!importInvoice) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn không tồn tại',
+          },
+          400,
+        );
+      }
+      if (!ingredient) {
+        throw new HttpException(
+          {
+            message: 'Nguyên liệu không tồn tại',
+          },
+          400,
+        );
+      }
+      if (importInvoice.isCompleted == 1 || importInvoice.isCompleted == -1) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể xoá',
+          },
+          400,
+        );
+      }
+      const res = await this.importIngredientRepository.delete({
+        ingredient: ingredient,
+        import: importInvoice,
+      });
+      return {
+        data: res,
+        message: 'Xoá thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá chi tiết hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -207,6 +340,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi xoá hoá đơn nhập',
+          error: error.message,
         },
         500,
       );
@@ -222,6 +356,7 @@ export class ImportService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại hoá đơn nhập',
+          error: error.message,
         },
         500,
       );

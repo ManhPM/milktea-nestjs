@@ -24,6 +24,7 @@ export class RecipeIngredientService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới nguyên liệu cho công thức',
+          error: error.message,
         },
         500,
       );
@@ -46,6 +47,7 @@ export class RecipeIngredientService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách nguyên liệu cho công thức',
+          error: error.message,
         },
         500,
       );
@@ -74,6 +76,7 @@ export class RecipeIngredientService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật nguyên liệu cho công thức',
+          error: error.message,
         },
         500,
       );
@@ -93,6 +96,7 @@ export class RecipeIngredientService {
       throw new HttpException(
         {
           message: 'Lỗi xoá nguyên liệu cho công thức',
+          error: error.message,
         },
         500,
       );

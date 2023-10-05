@@ -1,4 +1,3 @@
-import { RefundPaymentDto } from './dto/refund-invoice.dto';
 import {
   Injectable,
   Body,
@@ -7,16 +6,16 @@ import {
   Query,
   Request,
 } from '@nestjs/common';
-import axios from 'axios';
+
 import * as querystring from 'qs';
 import vnpayConfig from '../../config/vnpayConfig';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Invoice } from './entities/invoice.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, Like, Repository } from 'typeorm';
+import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
@@ -49,24 +48,6 @@ export class InvoiceService {
   ) {}
   create(createInvoiceDto: CreateInvoiceDto) {
     return 'This action adds a new invoice';
-  }
-
-  async checkCreate(@Request() req) {
-    try {
-      return await this.invoiceRepository.find({
-        where: {
-          user: Like('%' + req.user[0].id + '%'),
-          isPaid: 0,
-        },
-      });
-    } catch (error) {
-      throw new HttpException(
-        {
-          message: 'Lỗi kiểm tra khi tạo mới hoá đơn',
-        },
-        500,
-      );
-    }
   }
 
   async handlePayment(@Body('id_order') id_order: number, @Ip() ip) {
@@ -114,7 +95,7 @@ export class InvoiceService {
           vnp_Params['vnp_CurrCode'] = currCode;
           vnp_Params['vnp_TxnRef'] = id_order;
           vnp_Params['vnp_OrderInfo'] =
-            'Thanh toán cho mã đơn hàng:' + id_order;
+            'Thanh toán cho mã đơn hàng: ' + id_order;
           vnp_Params['vnp_OrderType'] = 'other';
           vnp_Params['vnp_Amount'] = invoice.total * 100;
           vnp_Params['vnp_ReturnUrl'] = returnUrl;
@@ -194,102 +175,94 @@ export class InvoiceService {
     }
   }
 
-  async handleRefund(@Ip() ip, @Body() item: RefundPaymentDto) {
-    process.env.TZ = 'Asia/Ho_Chi_Minh';
-    const date = new Date();
-
-    const vnp_TmnCode = vnpayConfig.vnp_TmnCode;
-    const secretKey = vnpayConfig.vnp_HashSecret;
-    const vnp_Api = vnpayConfig.vnp_Api;
-
-    const vnp_TxnRef = item.id_order;
-    const vnp_TransactionDate = item.transDate;
-    const vnp_Amount = item.amount * 100;
-    const vnp_TransactionType = item.transType;
-    const vnp_CreateBy = item.user;
-
-    const vnp_RequestId = moment(date).format('HHmmss');
-    const vnp_Version = '2.1.0';
-    const vnp_Command = 'refund';
-    const vnp_OrderInfo = 'Hoan tien GD ma:' + vnp_TxnRef;
-
-    const vnp_IpAddr = ip;
-
-    const vnp_CreateDate = moment(date).format('YYYYMMDDHHmmss');
-
-    const vnp_TransactionNo = '0';
-
-    const data =
-      vnp_RequestId +
-      '|' +
-      vnp_Version +
-      '|' +
-      vnp_Command +
-      '|' +
-      vnp_TmnCode +
-      '|' +
-      vnp_TransactionType +
-      '|' +
-      vnp_TxnRef +
-      '|' +
-      vnp_Amount +
-      '|' +
-      vnp_TransactionNo +
-      '|' +
-      vnp_TransactionDate +
-      '|' +
-      vnp_CreateBy +
-      '|' +
-      vnp_CreateDate +
-      '|' +
-      vnp_IpAddr +
-      '|' +
-      vnp_OrderInfo;
-
-    const hmac = crypto.createHmac('sha512', secretKey);
-    const vnp_SecureHash = hmac.update(new Buffer(data, 'utf-8')).digest('hex');
-
-    const dataObj = {
-      vnp_RequestId: vnp_RequestId,
-      vnp_Version: vnp_Version,
-      vnp_Command: vnp_Command,
-      vnp_TmnCode: vnp_TmnCode,
-      vnp_TransactionType: vnp_TransactionType,
-      vnp_TxnRef: vnp_TxnRef,
-      vnp_Amount: vnp_Amount,
-      vnp_TransactionNo: vnp_TransactionNo,
-      vnp_CreateBy: vnp_CreateBy,
-      vnp_OrderInfo: vnp_OrderInfo,
-      vnp_TransactionDate: vnp_TransactionDate,
-      vnp_CreateDate: vnp_CreateDate,
-      vnp_IpAddr: vnp_IpAddr,
-      vnp_SecureHash: vnp_SecureHash,
-    };
-
-    await axios
-      .post(vnp_Api, dataObj, {
-        headers: {
-          'Content-Type': 'application/json',
+  async handleRefund(@Body('id_order') id_order: number, @Ip() ip) {
+    try {
+      const invoice = await this.invoiceRepository.findOne({
+        where: {
+          id: id_order,
+          isPaid: 1,
+          paymentMethod: 'VNPAY',
+          status: 0,
         },
-      })
-      .then((response) => {
-        console.log(response.data);
+      });
+      if (invoice) {
+        process.env.TZ = 'Asia/Ho_Chi_Minh';
+
+        const date = new Date();
+        const createDate = moment(date).format('YYYYMMDDHHmmss');
+
+        const ipAddr = ip;
+
+        const tmnCode = vnpayConfig.vnp_TmnCode;
+        const secretKey = vnpayConfig.vnp_HashSecret;
+        let vnpUrl = vnpayConfig.vnp_Url;
+        const returnUrl = vnpayConfig.vnp_RefundUrl;
+        const bankCode = 'NCB';
+        const locale = 'vn';
+        const currCode = 'VND';
+        let vnp_Params = {};
+        vnp_Params['vnp_Version'] = '2.1.0';
+        vnp_Params['vnp_Command'] = 'pay';
+        vnp_Params['vnp_TmnCode'] = tmnCode;
+        vnp_Params['vnp_Locale'] = locale;
+        vnp_Params['vnp_CurrCode'] = currCode;
+        vnp_Params['vnp_TxnRef'] = id_order;
+        vnp_Params['vnp_OrderInfo'] = 'Hoàn tiền cho mã đơn hàng: ' + id_order;
+        vnp_Params['vnp_OrderType'] = 'other';
+        vnp_Params['vnp_Amount'] = invoice.total * 100;
+        vnp_Params['vnp_ReturnUrl'] = returnUrl;
+        vnp_Params['vnp_IpAddr'] = ipAddr;
+        vnp_Params['vnp_CreateDate'] = createDate;
+        vnp_Params['vnp_BankCode'] = bankCode;
+        // if (bankCode !== null && bankCode !== '') {
+        //   vnp_Params['vnp_BankCode'] = bankCode;
+        // }
+        vnp_Params = this.sortObject(vnp_Params);
+
+        const signData = querystring.stringify(vnp_Params, { encode: false });
+
+        const hmac = crypto.createHmac('sha512', secretKey);
+        const signed = hmac.update(new Buffer(signData, 'utf-8')).digest('hex');
+        vnp_Params['vnp_SecureHash'] = signed;
+        vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+
         return {
-          message: `Hoàn tiền thành công ${response.data}`,
+          data: vnpUrl,
         };
-      })
-      .catch((error) => {
-        console.log(error);
+      } else {
         throw new HttpException(
           {
-            message: error,
+            message: 'Lỗi hoàn tiền',
           },
-          500,
+          400,
         );
-      });
-    return {
-      message: `Hoàn tiền thành công`,
-    };
+      }
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi hoàn tiền',
+        },
+        500,
+      );
+    }
+  }
+
+  async handleRefundReturn(@Query() vnp_Params: any) {
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    try {
+      return {
+        message: 'Hoàn tiền thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi hoàn tiền',
+        },
+        500,
+      );
+    }
   }
 
   sortObject(obj: { [key: string]: any }): { [key: string]: any } {
@@ -308,42 +281,77 @@ export class InvoiceService {
     return sorted;
   }
 
-  async findAll(query: FilterInvoiceDto): Promise<any> {
+  async findAll(query: FilterInvoiceDto, @Request() req): Promise<any> {
+    const status = query.status;
+    const date = query.date;
+    let res = [];
+    let total = 0;
+    const today = new Date(date);
+    today.setHours(today.getHours() + 7);
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
     try {
-      const status = query.status;
-      const date = query.date;
-      let res = [];
-      let total = 0;
-      const today = new Date(date);
-      today.setHours(today.getHours() + 7);
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      if (status) {
-        if (date) {
-          [res, total] = await this.invoiceRepository.findAndCount({
-            where: {
-              status,
-              date: Between(today, tomorrow),
-            },
-          });
+      if (req.user[0].role == 0) {
+        if (status) {
+          if (date) {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                status,
+                user: Like('%' + req.user[0].id + '%'),
+                date: Between(today, tomorrow),
+              },
+            });
+          } else {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                user: Like('%' + req.user[0].id + '%'),
+                status,
+              },
+            });
+          }
         } else {
-          [res, total] = await this.invoiceRepository.findAndCount({
-            where: {
-              status,
-            },
-          });
+          if (date) {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                user: Like('%' + req.user[0].id + '%'),
+                date: Between(today, tomorrow),
+              },
+            });
+          } else {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                user: Like('%' + req.user[0].id + '%'),
+              },
+            });
+          }
         }
       } else {
-        if (date) {
-          [res, total] = await this.invoiceRepository.findAndCount({
-            where: {
-              date: Between(today, tomorrow),
-            },
-          });
+        if (status) {
+          if (date) {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                status,
+                date: Between(today, tomorrow),
+              },
+            });
+          } else {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                status,
+              },
+            });
+          }
         } else {
-          [res, total] = await this.invoiceRepository.findAndCount({});
+          if (date) {
+            [res, total] = await this.invoiceRepository.findAndCount({
+              where: {
+                date: Between(today, tomorrow),
+              },
+            });
+          } else {
+            [res, total] = await this.invoiceRepository.findAndCount({});
+          }
         }
       }
       return {
@@ -354,6 +362,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách đơn hàng',
+          error: error.message,
         },
         500,
       );
@@ -391,6 +400,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin đơn hàng',
+          error: error.message,
         },
         500,
       );
@@ -428,6 +438,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi lấy đơn hàng hiện tại',
+          error: error.message,
         },
         500,
       );
@@ -445,75 +456,85 @@ export class InvoiceService {
     date.setHours(date.getHours() + 7);
     item.date = date;
     try {
-      const shippingCompany = await this.shippingCompanyRepository.findOne({
+      const checkCreate = await this.invoiceRepository.findOne({
         where: {
-          id: item.shippingCompanyId,
+          user: Like('%' + req.user[0].id + '%'),
+          isPaid: 0,
         },
       });
-      const user = await this.userRepository.findOne({
-        where: {
-          id: req.user.id,
-        },
-      });
-      const invoice = await this.invoiceRepository.save({
-        ...item,
-        user,
-        shippingCompany,
-      });
-      const cartProducts = await this.cartProductRepository.find({
-        where: {
-          user: req.user.id,
-        },
-        relations: ['user', 'product.product_recipes.recipe'],
-      });
-      let total = 0;
-      for (const cartProduct of cartProducts) {
-        let price = 0;
-        for (const productRecipe of cartProduct.product.product_recipes) {
-          total += cartProduct.quantity * productRecipe.recipe.price;
-          price += cartProduct.quantity * productRecipe.recipe.price;
-        }
-        const product = await this.productRepository.findOne({
+      if (!checkCreate) {
+        const shippingCompany = await this.shippingCompanyRepository.findOne({
           where: {
-            id: cartProduct.product.id,
+            id: item.shippingCompanyId,
           },
         });
-        if (cartProduct.size != 0) {
-          await this.invoiceProductRepository.save({
-            size: cartProduct.size,
-            quantity: cartProduct.quantity,
-            price: price * 1000,
-            invoice: invoice,
-            product: product,
-            isReviewed: 0,
+        const user = await this.userRepository.findOne({
+          where: {
+            id: req.user[0].id,
+          },
+        });
+        const invoice = await this.invoiceRepository.save({
+          ...item,
+          user,
+          shippingCompany,
+        });
+        const cartProducts = await this.cartProductRepository.find({
+          where: {
+            user: req.user[0].id,
+          },
+          relations: ['user', 'product.product_recipes.recipe'],
+        });
+        const shop = await this.shopRepository.find({});
+        let total = 0;
+        for (const cartProduct of cartProducts) {
+          let price = 0;
+          for (const productRecipe of cartProduct.product.product_recipes) {
+            total += cartProduct.quantity * productRecipe.recipe.price;
+            price += cartProduct.quantity * productRecipe.recipe.price;
+          }
+          const product = await this.productRepository.findOne({
+            where: {
+              id: cartProduct.product.id,
+            },
           });
-        } else {
-          await this.invoiceProductRepository.save({
-            size: 0,
-            quantity: cartProduct.quantity,
-            price: price * 1000,
-            invoice: invoice,
-            product: product,
-            isReviewed: 0,
-          });
+          if (cartProduct.size != 0) {
+            await this.invoiceProductRepository.save({
+              size: cartProduct.size,
+              quantity: cartProduct.quantity,
+              price: (price + shop[0].upSizePrice) * 1000,
+              invoice: invoice,
+              product: product,
+              isReviewed: 0,
+            });
+          } else {
+            await this.invoiceProductRepository.save({
+              size: 0,
+              quantity: cartProduct.quantity,
+              price: price * 1000,
+              invoice: invoice,
+              product: product,
+              isReviewed: 0,
+            });
+          }
+          if (cartProduct.size != 0) {
+            total += shop[0].upSizePrice * cartProduct.quantity;
+          }
+          await this.cartProductRepository.delete(cartProduct.id);
         }
-        if (cartProduct.size != 0) {
-          const shop = await this.shopRepository.find({});
-          total += shop[0].upSizePrice;
-        }
+        await this.invoiceRepository.update(invoice.id, {
+          total: total * 1000,
+        });
+        await queryRunner.commitTransaction();
+        return {
+          message: 'Đặt hàng thành công',
+        };
       }
-      await this.invoiceRepository.update(invoice.id, {
-        total: total * 1000,
-      });
-      await queryRunner.commitTransaction();
-      return {
-        message: 'Đặt hàng thành công',
-      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new HttpException(
         {
-          message: 'Lỗi đặt hàng',
+          message: 'Lỗi đặt hàng: Bạn có đơn chưa thanh toán hoặc chưa giao',
+          error: error.message,
         },
         500,
       );
@@ -551,7 +572,7 @@ export class InvoiceService {
       }
       await this.invoiceRepository.update(id, {
         status: 1,
-        staff: req.user.id,
+        staff: req.user[0].id,
       });
       await queryRunner.commitTransaction();
       return {
@@ -631,6 +652,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi huỷ đơn hàng',
+          error: error.message,
         },
         500,
       );
@@ -662,6 +684,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi nhận đơn hàng để giao',
+          error: error.message,
         },
         500,
       );
@@ -692,6 +715,7 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi hoàn thành đơn hàng',
+          error: error.message,
         },
         500,
       );
@@ -707,17 +731,46 @@ export class InvoiceService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại hoá đơn',
+          error: error.message,
         },
         500,
       );
     }
   }
 
-  update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
-    return `This action updates a #${id} invoice`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} invoice`;
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleAutoDeleteInvoice(): Promise<any> {
+    try {
+      const now = new Date();
+      now.setHours(now.getHours() + 8);
+      const unPaidInvoices = await this.invoiceRepository.find({
+        where: {
+          isPaid: 0,
+          paymentMethod: 'VNPAY',
+          date: LessThan(now),
+        },
+      });
+      if (unPaidInvoices.length) {
+        for (const unPaidInvoice of unPaidInvoices) {
+          const invoiceProducts = await this.invoiceProductRepository.find({
+            where: {
+              invoice: Like('%' + unPaidInvoice.id + '%'),
+            },
+          });
+          for (const invoiceProduct of invoiceProducts) {
+            await this.invoiceProductRepository.delete(invoiceProduct.id);
+          }
+          await this.invoiceRepository.delete(unPaidInvoice.id);
+        }
+      }
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi tự động xoá hoá đơn',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 }

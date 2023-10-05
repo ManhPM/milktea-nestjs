@@ -25,6 +25,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra khi tạo mới nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -45,6 +46,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -63,6 +65,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -81,6 +84,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi xoá nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -109,6 +113,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -129,6 +134,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin nguyên liệu',
+          error: error.message,
         },
         500,
       );
@@ -144,6 +150,7 @@ export class IngredientService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại nguyên liệu',
+          error: error.message,
         },
         500,
       );

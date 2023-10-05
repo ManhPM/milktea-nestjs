@@ -28,6 +28,9 @@ export class Invoice {
   status: number;
 
   @Column()
+  paymentMethod: string;
+
+  @Column()
   isPaid: number;
 
   @ManyToOne(() => User, (item) => item.invoices)

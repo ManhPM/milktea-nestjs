@@ -24,6 +24,7 @@ export class ShopService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại thông tin cửa hàng',
+          error: error.message,
         },
         500,
       );
@@ -40,6 +41,7 @@ export class ShopService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin cửa hàng',
+          error: error.message,
         },
         500,
       );
@@ -62,6 +64,7 @@ export class ShopService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật thông tin cửa hàng',
+          error: error.message,
         },
         500,
       );

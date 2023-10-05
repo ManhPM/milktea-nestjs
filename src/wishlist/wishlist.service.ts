@@ -56,6 +56,7 @@ export class WishlistService {
       throw new HttpException(
         {
           message: 'Lỗi thêm sản phẩm vào danh sách yêu thích',
+          error: error.message,
         },
         500,
       );
@@ -78,6 +79,7 @@ export class WishlistService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách yêu thích của khách hàng',
+          error: error.message,
         },
         500,
       );

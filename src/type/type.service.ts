@@ -11,8 +11,23 @@ export class TypeService {
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
   ) {}
-  create(createTypeDto: CreateTypeDto) {
-    return 'This action adds a new type';
+  async create(createTypeDto: CreateTypeDto) {
+    try {
+      await this.typeRepository.save({
+        ...createTypeDto,
+      });
+      return {
+        message: 'Tạo mới thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới loại hàng',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 
   async checkExist(id: number): Promise<any> {
@@ -24,6 +39,7 @@ export class TypeService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -41,6 +57,7 @@ export class TypeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -53,7 +70,7 @@ export class TypeService {
 
   async checkCreate(name: string) {
     try {
-      return await this.typeRepository.find({
+      return await this.typeRepository.findOne({
         where: {
           name: name,
         },
@@ -61,7 +78,8 @@ export class TypeService {
     } catch (error) {
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra khi tạo mới đánh giá',
+          message: 'Lỗi kiểm tra khi tạo mới loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -73,10 +91,14 @@ export class TypeService {
       await this.typeRepository.update(id, {
         ...updateTypeDto,
       });
+      return {
+        message: 'Cập nhật thành công',
+      };
     } catch (error) {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật loại hàng',
+          error: error.message,
         },
         500,
       );

@@ -28,11 +28,13 @@ import { ReviewModule } from './review/review.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { ProductRecipeModule } from './product_recipe/product_recipe.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     AuthModule,
     AccountModule,
     StaffModule,

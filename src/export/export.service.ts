@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Export } from './entities/export.entity';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
+import { CreateExportIngredientDto } from 'src/export_ingredient/dto/create-export_ingredient.dto';
+import { UpdateExportIngredientDto } from 'src/export_ingredient/dto/update-export_ingredient.dto';
 
 @Injectable()
 export class ExportService {
@@ -32,6 +34,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -54,6 +57,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -72,6 +76,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra khi tạo hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -99,6 +104,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách nguyên liệu để xuất',
+          error: error.message,
         },
         500,
       );
@@ -122,6 +128,117 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới hoá đơn xuất',
+          error: error.message,
+        },
+        500,
+      );
+    }
+  }
+
+  async createIngredientExport(item: CreateExportIngredientDto) {
+    try {
+      const exportInvoice = await this.exportRepository.findOne({
+        where: {
+          id: item.exportId,
+        },
+      });
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: item.ingredientId,
+        },
+      });
+      if (!exportInvoice) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn không tồn tại',
+          },
+          400,
+        );
+      }
+      if (!ingredient) {
+        throw new HttpException(
+          {
+            message: 'Nguyên liệu không tồn tại',
+          },
+          400,
+        );
+      }
+      if (exportInvoice.isCompleted == 1 || exportInvoice.isCompleted == -1) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể thêm',
+          },
+          400,
+        );
+      }
+      await this.exportIngredientRepository.save({
+        ...item,
+        export: exportInvoice,
+        ingredient: ingredient,
+      });
+      return {
+        message: 'Tạo mới thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi tạo mới hoá đơn xuất',
+          error: error.message,
+        },
+        500,
+      );
+    }
+  }
+
+  async deleteIngredientExport(item: UpdateExportIngredientDto) {
+    try {
+      const exportInvoice = await this.exportRepository.findOne({
+        where: {
+          id: item.exportId,
+        },
+      });
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: item.ingredientId,
+        },
+      });
+      if (!exportInvoice) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn không tồn tại',
+          },
+          400,
+        );
+      }
+      if (!ingredient) {
+        throw new HttpException(
+          {
+            message: 'Nguyên liệu không tồn tại',
+          },
+          400,
+        );
+      }
+      if (exportInvoice.isCompleted == 1 || exportInvoice.isCompleted == -1) {
+        throw new HttpException(
+          {
+            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể xoá',
+          },
+          400,
+        );
+      }
+      const res = await this.exportIngredientRepository.delete({
+        ingredient: ingredient,
+        export: exportInvoice,
+      });
+      return {
+        data: res,
+        message: 'Xoá thành công',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi xoá chi tiết hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -166,6 +283,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi hoàn thành hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -186,6 +304,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -204,6 +323,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi xoá hoá đơn xuất',
+          error: error.message,
         },
         500,
       );
@@ -218,6 +338,7 @@ export class ExportService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại hoá đơn xuất',
+          error: error.message,
         },
         500,
       );

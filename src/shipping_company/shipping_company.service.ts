@@ -28,6 +28,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -36,7 +37,7 @@ export class ShippingCompanyService {
 
   async checkCreate(name: string, costPerKm: number) {
     try {
-      return await this.shippingCompanyRepository.find({
+      return await this.shippingCompanyRepository.findOne({
         where: {
           name: name,
           costPerKm: costPerKm,
@@ -46,6 +47,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra khi tạo mới đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -64,6 +66,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -82,6 +85,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi xoá đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -97,6 +101,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -117,6 +122,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -137,6 +143,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin đơn vị vận chuyển',
+          error: error.message,
         },
         500,
       );
@@ -192,6 +199,7 @@ export class ShippingCompanyService {
       throw new HttpException(
         {
           message: 'Lỗi lấy phí vận chuyển',
+          error: error.message,
         },
         500,
       );

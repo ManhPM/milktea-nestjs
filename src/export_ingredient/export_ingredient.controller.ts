@@ -20,41 +20,4 @@ export class ExportIngredientController {
   constructor(
     private readonly exportIngredientService: ExportIngredientService,
   ) {}
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2', '1')
-  @Post()
-  create(@Body() createExportIngredientDto: CreateExportIngredientDto) {
-    return this.exportIngredientService.create(createExportIngredientDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2', '1')
-  @Get()
-  findAll() {
-    return this.exportIngredientService.findAll();
-  }
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2', '1')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.exportIngredientService.findOne(+id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2', '1')
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateExportIngredientDto: UpdateExportIngredientDto,
-  ) {
-    return this.exportIngredientService.update(+id, updateExportIngredientDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2', '1')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.exportIngredientService.remove(+id);
-  }
 }

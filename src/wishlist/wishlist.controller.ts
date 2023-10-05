@@ -32,21 +32,4 @@ export class WishlistController {
   findAll(@Request() req) {
     return this.wishlistService.findAll(req);
   }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('0')
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateWishlistDto: UpdateWishlistDto,
-  ) {
-    return this.wishlistService.update(+id, updateWishlistDto);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('0')
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.wishlistService.remove(+id);
-  }
 }

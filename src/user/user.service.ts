@@ -33,6 +33,7 @@ export class UserService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách khách hàng',
+          error: error.message,
         },
         500,
       );
@@ -54,6 +55,7 @@ export class UserService {
       throw new HttpException(
         {
           message: 'Lỗi lấy thông tin khách hàng',
+          error: error.message,
         },
         500,
       );
@@ -64,8 +66,20 @@ export class UserService {
     return 'user';
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(@Request() req, updateUserDto: UpdateUserDto) {
+    try {
+      await this.userRepository.update(req.user[0].id, {
+        ...updateUserDto,
+      });
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Lỗi cập nhật thông tin khách hàng',
+          error: error.message,
+        },
+        500,
+      );
+    }
   }
 
   remove(id: number) {

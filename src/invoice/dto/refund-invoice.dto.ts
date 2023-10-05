@@ -11,4 +11,5 @@ export class RefundPaymentDto {
   transType: number;
   @IsNotEmpty({ message: 'Người thực hiện không được để trống' })
   user: number;
+  bank_account_number: number;
 }

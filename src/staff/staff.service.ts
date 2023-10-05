@@ -36,6 +36,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới nhân viên',
+          error: error.message,
         },
         500,
       );
@@ -51,6 +52,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi kiểm tra tồn tại nhân viên',
+          error: error.message,
         },
         500,
       );
@@ -75,6 +77,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách nhân viên',
+          error: error.message,
         },
         500,
       );
@@ -97,6 +100,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi tìm kiếm thông tin nhân viên',
+          error: error.message,
         },
         500,
       );
@@ -145,6 +149,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi cập nhật nhân viên',
+          error: error.message,
         },
         500,
       );
@@ -165,6 +170,7 @@ export class StaffService {
       throw new HttpException(
         {
           message: 'Lỗi xoá nhân viên',
+          error: error.message,
         },
         500,
       );

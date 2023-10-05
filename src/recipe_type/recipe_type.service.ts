@@ -42,6 +42,7 @@ export class RecipeTypeService {
       throw new HttpException(
         {
           message: 'Lỗi tạo mới topping theo loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -63,6 +64,7 @@ export class RecipeTypeService {
       throw new HttpException(
         {
           message: 'Lỗi xoá topping theo loại hàng',
+          error: error.message,
         },
         500,
       );
@@ -85,6 +87,7 @@ export class RecipeTypeService {
       throw new HttpException(
         {
           message: 'Lỗi lấy danh sách topping theo loại hàng',
+          error: error.message,
         },
         500,
       );
