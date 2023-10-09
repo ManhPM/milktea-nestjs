@@ -14,6 +14,10 @@ import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
 import { CheckExistProduct } from 'src/common/middlewares/middlewares';
 import { ProductService } from 'src/product/product.service';
+import {
+  validateCreateCartProduct,
+  validateUpdateCartProduct,
+} from 'src/common/middlewares/validate';
 
 @Module({
   imports: [
@@ -33,5 +37,11 @@ export class CartProductModule implements NestModule {
     consumer
       .apply(CheckExistProduct)
       .forRoutes({ path: 'cart-product/:id', method: RequestMethod.ALL });
+    consumer
+      .apply(validateCreateCartProduct)
+      .forRoutes({ path: 'cart-product', method: RequestMethod.POST });
+    consumer
+      .apply(validateUpdateCartProduct)
+      .forRoutes({ path: 'cart-product', method: RequestMethod.PATCH });
   }
 }

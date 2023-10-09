@@ -2,9 +2,11 @@ import {
   CanActivate,
   ExecutionContext,
   HttpException,
+  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -17,11 +19,12 @@ export class RolesGuard implements CanActivate {
     if (roles.includes(role.toString())) {
       return true;
     }
+    const message = await getMessage('FORBIDDEN');
     throw new HttpException(
       {
-        message: 'Bạn không có quyền sử dụng chức năng',
+        message: message,
       },
-      403,
+      HttpStatus.FORBIDDEN,
     );
   }
 }

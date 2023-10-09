@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { RecipeService } from './recipe.service';
 import { RecipeController } from './recipe.controller';
 import { Recipe } from './entities/recipe.entity';
@@ -11,6 +16,10 @@ import {
   CheckExistType,
 } from 'src/common/middlewares/middlewares';
 import { TypeService } from 'src/type/type.service';
+import {
+  validateCreateRecipe,
+  validateUpdateRecipe,
+} from 'src/common/middlewares/validate';
 
 @Module({
   imports: [
@@ -19,7 +28,7 @@ import { TypeService } from 'src/type/type.service';
   controllers: [RecipeController],
   providers: [RecipeService, TypeService],
 })
-export class RecipeModule {
+export class RecipeModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CheckExistRecipe)
@@ -35,7 +44,10 @@ export class RecipeModule {
         { path: 'recipe/type-topping/:id', method: RequestMethod.GET },
       );
     consumer
-      .apply(CheckExistType)
-      .forRoutes({ path: 'recipe/ingredient/:id', method: RequestMethod.GET });
+      .apply(validateCreateRecipe)
+      .forRoutes({ path: 'recipe', method: RequestMethod.POST });
+    consumer
+      .apply(validateUpdateRecipe)
+      .forRoutes({ path: 'recipe', method: RequestMethod.PATCH });
   }
 }

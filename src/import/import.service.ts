@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Request } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { CreateImportDto } from './dto/create-import.dto';
 import { UpdateImportDto } from './dto/update-import.dto';
 import { Import } from './entities/import.entity';
@@ -8,6 +8,7 @@ import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
 import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
 import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class ImportService {
@@ -34,12 +35,12 @@ export class ImportService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -53,12 +54,12 @@ export class ImportService {
         },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra khi tạo hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -81,35 +82,31 @@ export class ImportService {
         data: nonImportedIngredients,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách nguyên liệu để nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findOne(id: number) {
     try {
-      const [res, total] = await this.importRepository.findAndCount({
+      return await this.importRepository.findOne({
         where: {
           id: id,
         },
         relations: ['staff', 'import_ingredients.ingredient'],
       });
-      return {
-        data: res,
-        total,
-      };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy thông tin hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -120,55 +117,42 @@ export class ImportService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const check = await this.importRepository.findOne({
+      const importIngredients = await this.importIngredientRepository.find({
         where: {
-          id: id,
+          import: Like('%' + id + '%'),
         },
+        relations: ['ingredient'],
       });
-      if (check.isCompleted == -1) {
-        throw new HttpException(
-          {
-            message: 'Lỗi hoàn thành hoá đơn nhập',
-          },
-          500,
-        );
-      } else {
-        const exportIngredients = await this.importIngredientRepository.find({
-          where: {
-            import: Like('%' + id + '%'),
-          },
-          relations: ['ingredient'],
-        });
-        let totalAmount = 0;
-        for (const exportIngredient of exportIngredients) {
-          totalAmount += exportIngredient.price;
-          await queryRunner.manager
-            .createQueryBuilder()
-            .update(Ingredient)
-            .set({ quantity: () => '`quantity` - :newQuantity' })
-            .where('id = :id', { id: exportIngredient.ingredient.id })
-            .setParameter('newQuantity', exportIngredient.quantity)
-            .execute();
-        }
-        await queryRunner.manager.update(Import, id, {
-          total: totalAmount,
-          isCompleted: 1,
-        });
-
-        await queryRunner.commitTransaction();
-
-        return {
-          message: 'Hoàn thành hoá đơn nhập',
-        };
+      let totalAmount = 0;
+      for (const importIngredient of importIngredients) {
+        totalAmount += importIngredient.price;
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(Ingredient)
+          .set({ quantity: () => '`quantity` + :newQuantity' })
+          .where('id = :id', { id: importIngredient.ingredient.id })
+          .setParameter('newQuantity', importIngredient.quantity)
+          .execute();
       }
+      await queryRunner.manager.update(Import, id, {
+        total: totalAmount,
+        isCompleted: 1,
+      });
+
+      await queryRunner.commitTransaction();
+
+      const message = await getMessage('COMPLETE_IMPORT_SUCCESS');
+      return {
+        message: message,
+      };
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi hoàn thành hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     } finally {
       await queryRunner.release();
@@ -180,21 +164,21 @@ export class ImportService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       createImportDto.date = date;
-      const res = await this.importRepository.save({
+      await this.importRepository.save({
         ...createImportDto,
         staff: req.user[0].id,
       });
+      const message = await getMessage('CREATE_SUCCESS');
       return {
-        data: res,
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -204,16 +188,18 @@ export class ImportService {
       await this.importRepository.update(id, {
         ...updateImportDto,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
+
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -230,45 +216,23 @@ export class ImportService {
           id: item.ingredientId,
         },
       });
-      if (!importInvoice) {
-        throw new HttpException(
-          {
-            message: 'Hoá đơn không tồn tại',
-          },
-          400,
-        );
-      }
-      if (!ingredient) {
-        throw new HttpException(
-          {
-            message: 'Nguyên liệu không tồn tại',
-          },
-          400,
-        );
-      }
-      if (importInvoice.isCompleted == 1 || importInvoice.isCompleted == -1) {
-        throw new HttpException(
-          {
-            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể thêm',
-          },
-          400,
-        );
-      }
       await this.importIngredientRepository.save({
         ...item,
         import: importInvoice,
         ingredient: ingredient,
       });
+      const message = await getMessage('CREATE_SUCCESS');
+
       return {
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -285,45 +249,21 @@ export class ImportService {
           id: item.ingredientId,
         },
       });
-      if (!importInvoice) {
-        throw new HttpException(
-          {
-            message: 'Hoá đơn không tồn tại',
-          },
-          400,
-        );
-      }
-      if (!ingredient) {
-        throw new HttpException(
-          {
-            message: 'Nguyên liệu không tồn tại',
-          },
-          400,
-        );
-      }
-      if (importInvoice.isCompleted == 1 || importInvoice.isCompleted == -1) {
-        throw new HttpException(
-          {
-            message: 'Hoá đơn đã hoàn thành hoặc đã huỷ không thể xoá',
-          },
-          400,
-        );
-      }
-      const res = await this.importIngredientRepository.delete({
+      await this.importIngredientRepository.delete({
         ingredient: ingredient,
         import: importInvoice,
       });
+      const message = await getMessage('DELETE_SUCCESS');
       return {
-        data: res,
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá chi tiết hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -333,16 +273,17 @@ export class ImportService {
       await this.importRepository.update(id, {
         isCompleted: -1,
       });
+      const message = await getMessage('CANCEL_SUCCESS');
       return {
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -353,12 +294,12 @@ export class ImportService {
         where: { id },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra tồn tại hoá đơn nhập',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -1,9 +1,10 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Shop } from './entities/shop.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class ShopService {
@@ -21,12 +22,12 @@ export class ShopService {
         where: { id },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra tồn tại thông tin cửa hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -38,12 +39,12 @@ export class ShopService {
         data: res[0],
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy thông tin cửa hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -57,16 +58,17 @@ export class ShopService {
       await this.shopRepository.update(1, {
         ...item,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật thông tin cửa hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

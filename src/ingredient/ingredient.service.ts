@@ -1,10 +1,11 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
 import { Ingredient } from './entities/ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FilterIngredientDto } from './dto/filter-ingredient.dto';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class IngredientService {
@@ -22,12 +23,12 @@ export class IngredientService {
         },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra khi tạo mới nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -39,16 +40,17 @@ export class IngredientService {
       await this.ingredientRepository.save({
         ...item,
       });
+      const message = await getMessage('CREATE_SUCCESS');
       return {
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -58,16 +60,17 @@ export class IngredientService {
       await this.ingredientRepository.update(id, {
         ...updateIngredientDto,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -77,16 +80,17 @@ export class IngredientService {
       await this.ingredientRepository.update(id, {
         isActive: 0,
       });
+      const message = await getMessage('DELETE_SUCCESS');
       return {
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -110,12 +114,12 @@ export class IngredientService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -131,12 +135,12 @@ export class IngredientService {
         data: res,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy thông tin nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -147,12 +151,12 @@ export class IngredientService {
         where: { id },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra tồn tại nguyên liệu',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

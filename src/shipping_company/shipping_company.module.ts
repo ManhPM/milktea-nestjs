@@ -8,6 +8,10 @@ import {
   CheckCreateShippingCompany,
   CheckExistShippingCompany,
 } from 'src/common/middlewares/middlewares';
+import {
+  validateCreateShippingCompany,
+  validateUpdateShippingCompany,
+} from 'src/common/middlewares/validate';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ShippingCompany, Shop])],
@@ -20,7 +24,10 @@ export class ShippingCompanyModule {
       .apply(CheckExistShippingCompany)
       .forRoutes({ path: 'shipping-company/:id', method: RequestMethod.ALL });
     consumer
-      .apply(CheckCreateShippingCompany)
+      .apply(validateCreateShippingCompany, CheckCreateShippingCompany)
       .forRoutes({ path: 'shipping-company', method: RequestMethod.POST });
+    consumer
+      .apply(validateUpdateShippingCompany)
+      .forRoutes({ path: 'shipping-company', method: RequestMethod.PATCH });
   }
 }

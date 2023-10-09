@@ -5,6 +5,7 @@ import {
   HttpException,
   Query,
   Request,
+  HttpStatus,
 } from '@nestjs/common';
 
 import * as querystring from 'qs';
@@ -15,7 +16,14 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Invoice } from './entities/invoice.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
+import {
+  Between,
+  Connection,
+  DataSource,
+  LessThan,
+  Like,
+  Repository,
+} from 'typeorm';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
@@ -24,6 +32,8 @@ import { User } from 'src/user/entities/user.entity';
 import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
+import { ThongKeDto } from './dto/thongke-invoice.dto';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class InvoiceService {
@@ -61,16 +71,16 @@ export class InvoiceService {
         if (invoice.isPaid != 0) {
           throw new HttpException(
             {
-              message: 'Hoá đơn của bạn đã được thanh toán',
+              messageCode: 'PAYMENT_ERROR',
             },
-            400,
+            HttpStatus.BAD_REQUEST,
           );
         } else if (invoice.status == 4) {
           throw new HttpException(
             {
-              message: 'Hoá đơn của bạn đã huỷ',
+              messageCode: 'PAYMENT_ERROR1',
             },
-            400,
+            HttpStatus.BAD_REQUEST,
           );
         } else {
           process.env.TZ = 'Asia/Ho_Chi_Minh';
@@ -123,17 +133,18 @@ export class InvoiceService {
       } else {
         throw new HttpException(
           {
-            message: 'Lỗi thanh toán',
+            messageCode: 'PAYMENT_ERROR2',
           },
-          400,
+          HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi thanh toán',
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -154,23 +165,25 @@ export class InvoiceService {
         await this.invoiceRepository.update(invoice.id, {
           isPaid: 1,
         });
+        const message = await getMessage('PAYMENT_SUCCESS');
         return {
-          message: 'Thanh toán thành công',
+          message: message,
         };
       } else {
         throw new HttpException(
           {
-            message: 'Lỗi thanh toán',
+            messageCode: 'PAYMENT_ERROR3',
           },
-          400,
+          HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi thanh toán',
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -232,17 +245,18 @@ export class InvoiceService {
       } else {
         throw new HttpException(
           {
-            message: 'Lỗi hoàn tiền',
+            messageCode: 'PAYMENT_ERROR4',
           },
-          400,
+          HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi hoàn tiền',
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -252,15 +266,17 @@ export class InvoiceService {
     delete vnp_Params['vnp_SecureHashType'];
 
     try {
+      const message = await getMessage('REFUND_SUCCESS');
       return {
-        message: 'Hoàn tiền thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi hoàn tiền',
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -359,12 +375,84 @@ export class InvoiceService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách đơn hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async thongKe(item: ThongKeDto): Promise<any> {
+    const fromDate = item.fromDate;
+    const toDate = item.toDate;
+    let invoices = [];
+    let revenue = 0;
+    let countRecipes = 0;
+    let countToppings = 0;
+    let countInvoices = 0;
+    const recipeCounts = {};
+    const toppingCounts = {};
+    try {
+      [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
+        where: {
+          date: Between(fromDate, toDate),
+          status: 3,
+        },
+        relations: ['invoice_products.product.product_recipes.recipe'],
+      });
+      for (const invoice of invoices) {
+        for (const invoiceProduct of invoice.invoice_products) {
+          countRecipes += invoiceProduct.quantity;
+          for (const productRecipe of invoiceProduct.product.product_recipes) {
+            const name = productRecipe.recipe.name;
+            const id = productRecipe.recipe.id;
+            const image = productRecipe.recipe.image;
+            const quantityProduct = invoiceProduct.quantity;
+            if (productRecipe.isMain == 1) {
+              if (recipeCounts[id]) {
+                recipeCounts[id].count += quantityProduct;
+              } else {
+                recipeCounts[id] = {
+                  count: quantityProduct,
+                  name: name,
+                  image: image,
+                };
+              }
+            } else {
+              countToppings += invoiceProduct.quantity;
+              if (toppingCounts[id]) {
+                toppingCounts[id].count += quantityProduct;
+              } else {
+                toppingCounts[id] = {
+                  count: quantityProduct,
+                  name: name,
+                  image: image,
+                };
+              }
+            }
+          }
+        }
+        revenue += invoice.total;
+      }
+
+      return {
+        topNames: recipeCounts,
+        topToppings: toppingCounts,
+        revenue: revenue,
+        countToppings: countToppings,
+        countRecipes: countRecipes,
+        countInvoices: countInvoices,
+      };
+    } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -397,12 +485,12 @@ export class InvoiceService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy thông tin đơn hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -435,12 +523,12 @@ export class InvoiceService {
         data: res,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy đơn hàng hiện tại',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -525,18 +613,19 @@ export class InvoiceService {
           total: total * 1000,
         });
         await queryRunner.commitTransaction();
+        const message = await getMessage('CHECKOUT_SUCCESS');
         return {
-          message: 'Đặt hàng thành công',
+          message: message,
         };
       }
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi đặt hàng: Bạn có đơn chưa thanh toán hoặc chưa giao',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     } finally {
       await queryRunner.release();
@@ -575,14 +664,19 @@ export class InvoiceService {
         staff: req.user[0].id,
       });
       await queryRunner.commitTransaction();
+      const message = await getMessage('CONFIRM_SUCCESS');
       return {
-        message: 'Xác nhận đơn hàng',
+        message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      return {
-        message: error.message,
-      };
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     } finally {
       await queryRunner.release();
     }
@@ -602,8 +696,9 @@ export class InvoiceService {
         await this.invoiceRepository.update(id, {
           status: 4,
         });
+        const message = await getMessage('CANCEL_SUCCESS');
         return {
-          message: 'Huỷ đơn hàng thành công',
+          message: message,
         };
       } else {
         if (req.user.role != 0 && invoice.status != 0 && invoice.status != 4) {
@@ -634,27 +729,33 @@ export class InvoiceService {
             status: 4,
           });
           await queryRunner.commitTransaction();
+          const message = await getMessage('CANCEL_SUCCESS');
           return {
-            message: 'Huỷ đơn hàng thành công',
+            message: message,
           };
         } else {
           await queryRunner.rollbackTransaction();
           throw new HttpException(
             {
-              message: 'Đơn hàng này không thể huỷ',
+              messageCode: 'CANCEL_INVOICE_ERROR',
             },
-            400,
+            HttpStatus.BAD_REQUEST,
           );
         }
       }
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      let message = '';
+      if (error.response.messageCode) {
+        message = await getMessage(error.response.messageCode);
+      } else {
+        message = await getMessage('INTERNAL_SERVER_ERROR');
+      }
       throw new HttpException(
         {
-          message: 'Lỗi huỷ đơn hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     } finally {
       await queryRunner.release();
@@ -672,21 +773,30 @@ export class InvoiceService {
         await this.invoiceRepository.update(id, {
           status: 2,
         });
+        const message = await getMessage('RECEIVE_SUCCESS');
         return {
-          message: 'Đã nhận đơn hàng, hãy giao cho khách',
+          message: message,
         };
       } else {
-        return {
-          message: 'Đơn hàng này không thể mang đi giao',
-        };
+        throw new HttpException(
+          {
+            messageCode: 'RECEIVE_INVOICE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
     } catch (error) {
+      let message = '';
+      if (error.response.messageCode) {
+        message = await getMessage(error.response.messageCode);
+      } else {
+        message = await getMessage('INTERNAL_SERVER_ERROR');
+      }
       throw new HttpException(
         {
-          message: 'Lỗi nhận đơn hàng để giao',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -703,21 +813,30 @@ export class InvoiceService {
           status: 3,
           isPaid: 1,
         });
+        const message = getMessage('COMPLETE_SUCCESS');
         return {
-          message: 'Hoàn thành đơn hàng',
+          message: message,
         };
       } else {
-        return {
-          message: 'Đơn hàng này không thể hoàn thành',
-        };
+        throw new HttpException(
+          {
+            messageCode: 'COMPLETE_INVOICE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
     } catch (error) {
+      let message = '';
+      if (error.response.messageCode) {
+        message = await getMessage(error.response.messageCode);
+      } else {
+        message = await getMessage('INTERNAL_SERVER_ERROR');
+      }
       throw new HttpException(
         {
-          message: 'Lỗi hoàn thành đơn hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -728,12 +847,12 @@ export class InvoiceService {
         where: { id },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra tồn tại hoá đơn',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -764,12 +883,12 @@ export class InvoiceService {
         }
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tự động xoá hoá đơn',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

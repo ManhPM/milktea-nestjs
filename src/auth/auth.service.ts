@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from 'src/account/entities/account.entity';
@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class AuthService {
@@ -32,49 +33,71 @@ export class AuthService {
         ...createAccountDto,
         account,
       });
+      const message = await getMessage('REGISTER_SUCCESS');
       return {
-        message: 'Đăng ký thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi đăng ký',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async update(id: number, updateAccountDto: UpdateAccountDto): Promise<any> {
+  async update(@Request() req, updateAccountDto: UpdateAccountDto) {
     try {
-      await this.accountRepository.update(id, {
+      await this.accountRepository.update(req.user[0].id, {
         ...updateAccountDto,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật tài khoản',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findOne(phone: string): Promise<any> {
-    return await this.accountRepository.findOne({
-      where: { phone },
-      relations: ['user', 'staff'],
-    });
+    try {
+      return await this.accountRepository.findOne({
+        where: { phone },
+        relations: ['user', 'staff'],
+      });
+    } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async checkExistPhone(phone: string): Promise<any> {
-    return await this.accountRepository.findOne({
-      where: { phone },
-    });
+    try {
+      return await this.accountRepository.findOne({
+        where: { phone },
+      });
+    } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

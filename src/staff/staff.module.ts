@@ -1,4 +1,8 @@
 import {
+  validateCreateStaff,
+  validateUpdateStaff,
+} from './../common/middlewares/validate';
+import {
   MiddlewareConsumer,
   Module,
   NestModule,
@@ -9,10 +13,7 @@ import { StaffController } from './staff.controller';
 import { Staff } from './entities/staff.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from 'src/account/entities/account.entity';
-import {
-  CheckExistStaff,
-  CheckRegisterPhone,
-} from 'src/common/middlewares/middlewares';
+import { CheckExistStaff } from 'src/common/middlewares/middlewares';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from 'src/user/entities/user.entity';
 
@@ -27,7 +28,10 @@ export class StaffModule implements NestModule {
       .apply(CheckExistStaff)
       .forRoutes({ path: 'staff/:id', method: RequestMethod.ALL });
     consumer
-      .apply(CheckRegisterPhone)
+      .apply(validateCreateStaff)
       .forRoutes({ path: 'staff', method: RequestMethod.POST });
+    consumer
+      .apply(validateUpdateStaff)
+      .forRoutes({ path: 'staff', method: RequestMethod.PATCH });
   }
 }

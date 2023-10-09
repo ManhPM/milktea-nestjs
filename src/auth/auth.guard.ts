@@ -2,11 +2,13 @@ import {
   CanActivate,
   ExecutionContext,
   HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -16,11 +18,12 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
     if (!token) {
+      const message = await getMessage('UNAUTHORIZED');
       throw new HttpException(
         {
-          message: 'Bạn chưa đăng nhập',
+          message: message,
         },
-        401,
+        HttpStatus.UNAUTHORIZED,
       );
     }
     try {
@@ -35,11 +38,12 @@ export class AuthGuard implements CanActivate {
         request['role'] = Object(payload.account.role);
       }
     } catch {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi đăng nhập',
+          message: message,
         },
-        401,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
     return true;

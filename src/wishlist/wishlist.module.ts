@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { WishlistController } from './wishlist.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -25,7 +30,7 @@ import { Type } from 'src/type/entities/type.entity';
   controllers: [WishlistController],
   providers: [WishlistService, RecipeService],
 })
-export class WishlistModule {
+export class WishlistModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CheckExistRecipe)

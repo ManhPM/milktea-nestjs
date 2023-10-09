@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { Recipe } from './entities/recipe.entity';
@@ -8,6 +8,7 @@ import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity
 import { FilterRecipeDto } from './dto/filter-recipe.dto';
 import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
 import { Type } from 'src/type/entities/type.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class RecipeService {
@@ -41,16 +42,17 @@ export class RecipeService {
         ...createRecipeDto,
         type,
       });
+      const message = await getMessage('CREATE_SUCCESS');
       return {
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -81,12 +83,12 @@ export class RecipeService {
         data: res,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -103,12 +105,12 @@ export class RecipeService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách công thức theo loại hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -126,12 +128,12 @@ export class RecipeService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách topping theo loại hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -148,12 +150,12 @@ export class RecipeService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách topping',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -170,12 +172,12 @@ export class RecipeService {
         data: res,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách nguyên liệu theo công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -193,12 +195,12 @@ export class RecipeService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách topping theo công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -209,12 +211,12 @@ export class RecipeService {
         where: { id },
       });
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra tồn tại công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -224,16 +226,17 @@ export class RecipeService {
       await this.recipeRepository.update(id, {
         ...updateRecipeDto,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -243,16 +246,17 @@ export class RecipeService {
       await this.recipeRepository.update(id, {
         isActive: 0,
       });
+      const message = await getMessage('DELETE_SUCCESS');
       return {
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

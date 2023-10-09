@@ -14,7 +14,8 @@ import {
   UseGuards,
   HttpException,
   Get,
-  Param,
+  Request,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
@@ -24,6 +25,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
+import { getMessage } from 'src/common/lib';
 
 cloudinary.config({
   cloud_name: 'dgsumh8ih',
@@ -68,32 +70,23 @@ export class AuthController {
   ) {
     const account = await this.authService.findOne(`${phone}`);
 
-    if (!account) {
-      throw new HttpException(
-        {
-          message: 'Sai thông tin đăng nhập',
-        },
-        401,
-      );
-    }
-
     if (!(await bcrypt.compare(loginPassword, account.password))) {
+      const message = await getMessage('AUTH_ERROR');
       throw new HttpException(
         {
-          message: 'Sai thông tin đăng nhập',
+          message: message,
         },
-        401,
+        HttpStatus.UNAUTHORIZED,
       );
     }
-
     if (account.role != 0) {
       if (!account.staff[0].isActive) {
+        const message = await getMessage('AUTH_ERROR1');
         throw new HttpException(
           {
-            message:
-              'Bạn đã nghỉ việc tại hệ thống của chúng tôi, không thể đăng nhập',
+            message: message,
           },
-          400,
+          HttpStatus.UNAUTHORIZED,
         );
       }
     }
@@ -107,10 +100,10 @@ export class AuthController {
       sameSite: process.env.ENV === 'dev' ? true : 'none',
       secure: process.env.ENV === 'dev' ? false : true,
     });
-
+    const message = await getMessage('LOGIN_SUCCESS');
     return {
       userInfo: account,
-      message: 'Đăng nhập thành công',
+      message: message,
     };
   }
 
@@ -118,8 +111,9 @@ export class AuthController {
   @Get('logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('token');
+    const message = await getMessage('LOGOUT_SUCCESS');
     return {
-      message: 'Đăng xuất thành công',
+      message: message,
     };
   }
 
@@ -130,13 +124,9 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Patch(':id')
-  @UsePipes(ValidationPipe)
-  async update(
-    @Param('id') id: number,
-    @Body() item: UpdateAccountDto,
-  ): Promise<any> {
-    return this.authService.update(id, item);
+  @Roles('0')
+  @Patch('profile')
+  async update(@Request() req, @Body() item: UpdateAccountDto): Promise<any> {
+    return this.authService.update(req, item);
   }
 }

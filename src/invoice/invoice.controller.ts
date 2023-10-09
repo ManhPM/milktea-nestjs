@@ -19,6 +19,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { RefundPaymentDto } from './dto/refund-invoice.dto';
+import { ThongKeDto } from './dto/thongke-invoice.dto';
 
 @Controller('invoice')
 export class InvoiceController {
@@ -41,6 +42,14 @@ export class InvoiceController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.invoiceService.findOne(+id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('2')
+  @UseGuards(AuthGuard)
+  @Post('statistical')
+  statistical(@Body() item: ThongKeDto) {
+    return this.invoiceService.thongKe(item);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

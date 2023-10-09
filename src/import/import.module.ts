@@ -1,21 +1,46 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ImportService } from './import.service';
 import { ImportController } from './import.controller';
 import { Import } from './entities/import.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
+import { CheckExistImport } from 'src/common/middlewares/middlewares';
 import {
-  CheckCreateImport,
-  CheckExistImport,
-} from 'src/common/middlewares/middlewares';
+  validateCompleteImportExport,
+  validateCreateImportIngredient,
+  validateDeleteImportIngredient,
+} from 'src/common/middlewares/validate';
+import { Export } from 'src/export/entities/export.entity';
+import { ExportService } from 'src/export/export.service';
+import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
+import { ExportIngredientService } from 'src/export_ingredient/export_ingredient.service';
+import { IngredientService } from 'src/ingredient/ingredient.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Import, Ingredient, ImportIngredient])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Import,
+      Ingredient,
+      ImportIngredient,
+      Export,
+      ExportIngredient,
+    ]),
+  ],
   controllers: [ImportController],
-  providers: [ImportService],
+  providers: [
+    ImportService,
+    ExportService,
+    ExportIngredientService,
+    IngredientService,
+  ],
 })
-export class ImportModule {
+export class ImportModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(CheckExistImport)
@@ -25,5 +50,14 @@ export class ImportModule {
         { path: 'import/complete/:id', method: RequestMethod.ALL },
         { path: 'import/ingredient/:id', method: RequestMethod.ALL },
       );
+    consumer
+      .apply(validateCompleteImportExport)
+      .forRoutes({ path: 'import/complete/:id', method: RequestMethod.GET });
+    consumer
+      .apply(validateCreateImportIngredient)
+      .forRoutes({ path: 'import/ingredient', method: RequestMethod.POST });
+    consumer
+      .apply(validateDeleteImportIngredient)
+      .forRoutes({ path: 'import/ingredient', method: RequestMethod.DELETE });
   }
 }

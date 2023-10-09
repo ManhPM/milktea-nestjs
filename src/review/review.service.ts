@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Request } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class ReviewService {
@@ -57,16 +58,17 @@ export class ReviewService {
       await this.invoiceProductRepository.update(invoiceProducts.id, {
         isReviewed: 1,
       });
+      const message = await getMessage('RATING_SUCCESS');
       return {
-        message: 'Đánh giá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi đánh giá',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -84,12 +86,12 @@ export class ReviewService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách đánh giá của một sản phẩm',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -115,19 +117,18 @@ export class ReviewService {
       } else {
         throw new HttpException(
           {
-            message:
-              'Hoá đơn chưa hoàn thành hoặc đã đánh giá trước đó. Không thể đánh giá',
+            messageCode: 'CREATE_REVIEW_ERROR',
           },
-          400,
+          HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi kiểm tra khi tạo mới đánh giá',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

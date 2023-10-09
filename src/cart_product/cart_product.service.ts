@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class CartProductService {
@@ -98,14 +99,19 @@ export class CartProductService {
         });
       }
       await queryRunner.commitTransaction();
+      const message = await getMessage('ADD_TO_CART_SUCCESS');
       return {
-        message: 'Đã thêm sản phẩm vào giỏ hàng',
+        message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      return {
-        message: error.message,
-      };
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     } finally {
       // Đảm bảo rằng kết nối luôn được giải phóng
       await queryRunner.release();
@@ -113,16 +119,26 @@ export class CartProductService {
   }
 
   async findAll(@Request() req): Promise<any> {
-    const [res, total] = await this.cartProductRepository.findAndCount({
-      where: {
-        user: req.user.id,
-      },
-      relations: ['product.product_recipes.recipe'],
-    });
-    return {
-      data: res,
-      total,
-    };
+    try {
+      const [res, total] = await this.cartProductRepository.findAndCount({
+        where: {
+          user: req.user.id,
+        },
+        relations: ['product.product_recipes.recipe'],
+      });
+      return {
+        data: res,
+        total,
+      };
+    } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async checkExist(id: number): Promise<any> {
@@ -133,7 +149,13 @@ export class CartProductService {
         },
       });
     } catch (error) {
-      return null;
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -159,13 +181,18 @@ export class CartProductService {
         product: item.product,
         user: item.user,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -182,13 +209,18 @@ export class CartProductService {
         user: item.user,
         product: item.product,
       });
+      const message = await getMessage('DELETE_FROM_CART_SUCCESS');
       return {
-        message: 'Đã xoá khỏi giỏ hàng',
+        message: message,
       };
     } catch (error) {
-      return {
-        message: error.message,
-      };
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

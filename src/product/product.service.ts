@@ -25,6 +25,12 @@ export class ProductService {
     };
   }
 
+  async checkExist(id: number): Promise<any> {
+    return await this.productRepository.findOne({
+      where: { id },
+    });
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} product`;
   }

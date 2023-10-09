@@ -1,11 +1,14 @@
 import { Product } from 'src/product/entities/product.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class ProductRecipe {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  isMain: number;
 
   @ManyToOne(() => Recipe, (invoice) => invoice.product_recipes)
   recipe: Recipe;

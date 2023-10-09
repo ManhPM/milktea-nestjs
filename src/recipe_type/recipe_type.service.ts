@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateRecipeTypeDto } from './dto/create-recipe_type.dto';
 import { DeleteRecipeTypeDto } from './dto/delete-recipe_type.dto';
 import { RecipeType } from './entities/recipe_type.entity';
@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
 import { Type } from 'src/type/entities/type.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class RecipeTypeService {
@@ -35,16 +36,17 @@ export class RecipeTypeService {
         type,
         recipe,
       });
+      const message = await getMessage('CREATE_SUCCESS');
       return {
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới topping theo loại hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -57,16 +59,17 @@ export class RecipeTypeService {
         recipe: Like('%' + recipeId + '%'),
         type: Like('%' + typeId + '%'),
       });
+      const message = await getMessage('DELETE_SUCCESS');
       return {
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá topping theo loại hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -84,12 +87,12 @@ export class RecipeTypeService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách topping theo loại hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

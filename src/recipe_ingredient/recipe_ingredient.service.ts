@@ -1,10 +1,11 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateRecipeIngredientDto } from './dto/create-recipe_ingredient.dto';
 import { UpdateRecipeIngredientDto } from './dto/update-recipe_ingredient.dto';
 import { RecipeIngredient } from './entities/recipe_ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { DeleteRecipeIngredientDto } from './dto/delete-recipe_ingredient.dto';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class RecipeIngredientService {
@@ -17,16 +18,17 @@ export class RecipeIngredientService {
       await this.recipeIngredientRepository.save({
         ...item,
       });
+      const message = await getMessage('CREATE_SUCCESS');
       return {
-        message: 'Tạo mới thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi tạo mới nguyên liệu cho công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -44,12 +46,12 @@ export class RecipeIngredientService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách nguyên liệu cho công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -69,16 +71,17 @@ export class RecipeIngredientService {
       await this.recipeIngredientRepository.update(recipeIngredient.id, {
         quantity: item.quantity,
       });
+      const message = await getMessage('UPDATE_SUCCESS');
       return {
-        message: 'Cập nhật thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi cập nhật nguyên liệu cho công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -89,16 +92,17 @@ export class RecipeIngredientService {
         recipe: Like('%' + item.recipeId + '%'),
         ingredient: Like('%' + item.ingredientId + '%'),
       });
+      const message = await getMessage('DELETE_SUCCESS');
       return {
-        message: 'Xoá thành công',
+        message: message,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi xoá nguyên liệu cho công thức',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

@@ -1,15 +1,20 @@
 import { ExportService } from './../../export/export.service';
-import { HttpException, Injectable, NestMiddleware } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NestMiddleware,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { CartProductService } from 'src/cart_product/cart_product.service';
 import { ImportService } from 'src/import/import.service';
 import { IngredientService } from 'src/ingredient/ingredient.service';
 import { InvoiceService } from 'src/invoice/invoice.service';
+import { ProductService } from 'src/product/product.service';
 import { RecipeService } from 'src/recipe/recipe.service';
 import { ReviewService } from 'src/review/review.service';
 import { ShippingCompanyService } from 'src/shipping_company/shipping_company.service';
-import { ShopService } from 'src/shop/shop.service';
 import { StaffService } from 'src/staff/staff.service';
 import { TypeService } from 'src/type/type.service';
 
@@ -24,9 +29,9 @@ export class CheckExistPhone implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Số điện thoại không tồn tại',
+          message: 'PHONE_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -35,7 +40,7 @@ export class CheckExistPhone implements NestMiddleware {
 
 @Injectable()
 export class CheckExistProduct implements NestMiddleware {
-  constructor(private service: CartProductService) {}
+  constructor(private service: ProductService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id;
@@ -44,9 +49,9 @@ export class CheckExistProduct implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Sản phẩm không tồn tại',
+          message: 'PRODUCT_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -64,9 +69,9 @@ export class CheckExistExport implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã hoá đơn xuất không tồn tại',
+          message: 'EXPORT_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -84,9 +89,9 @@ export class CheckExistImport implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã hoá đơn nhập không tồn tại',
+          message: 'IMPORT_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -104,9 +109,9 @@ export class CheckExistIngredient implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã nguyên liệu không tồn tại',
+          message: 'INGREDIENT_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -124,9 +129,9 @@ export class CheckExistInvoice implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã hoá đơn không tồn tại',
+          message: 'INVOICE_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -144,9 +149,9 @@ export class CheckExistRecipe implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã công thức không tồn tại',
+          message: 'RECIPE_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -164,9 +169,9 @@ export class CheckExistShippingCompany implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã đơn vị vận chuyển không tồn tại',
+          message: 'SHIPPING_COMPANY_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -184,9 +189,9 @@ export class CheckExistStaff implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã nhân viên không tồn tại',
+          message: 'STAFF_NOTFOUND',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -204,29 +209,9 @@ export class CheckExistType implements NestMiddleware {
     if (!exists) {
       throw new HttpException(
         {
-          message: 'Mã loại hàng không tồn tại',
+          message: 'TYPE_NOTFOUND',
         },
-        400,
-      );
-    }
-    next();
-  }
-}
-
-@Injectable()
-export class CheckRegisterPhone implements NestMiddleware {
-  constructor(private service: AuthService) {}
-
-  async use(req: Request, res: Response, next: NextFunction) {
-    const phone = req.body.phone;
-    const exists = await this.service.checkExistPhone(phone);
-
-    if (exists) {
-      throw new HttpException(
-        {
-          message: 'Số điện thoại đã tồn tại',
-        },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -243,9 +228,9 @@ export class CheckCreateExport implements NestMiddleware {
     if (exists) {
       throw new HttpException(
         {
-          message: 'Bạn đang tồn tại hoá đơn xuất chưa hoàn thành',
+          message: 'EXPORT_ISEXIST_ERROR',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -262,9 +247,9 @@ export class CheckCreateImport implements NestMiddleware {
     if (exists) {
       throw new HttpException(
         {
-          message: 'Bạn đang tồn tại hoá đơn nhập chưa hoàn thành',
+          message: 'IMPORT_ISEXIST_ERROR',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -283,9 +268,9 @@ export class CheckCreateIngredient implements NestMiddleware {
     if (exists) {
       throw new HttpException(
         {
-          message: 'Nguyên liệu đã tồn tại',
+          message: 'INGREDIENT_ISEXIST_ERROR',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -316,9 +301,9 @@ export class CheckCreateShippingCompany implements NestMiddleware {
     if (exists) {
       throw new HttpException(
         {
-          message: 'Đơn vị vận chuyển đã tồn tại',
+          message: 'SHIPPING_COMPANY_ISEXIST_ERROR',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();
@@ -331,14 +316,22 @@ export class CheckCreateType implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     const name = req.body.name;
+    if (name) {
+      throw new HttpException(
+        {
+          messageCode: 'INPUT_TYPE_NAME_ERROR',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const exists = await this.service.checkCreate(name);
 
     if (exists) {
       throw new HttpException(
         {
-          message: 'Loại hàng đã tồn tại',
+          messageCode: 'TYPE_ISEXIST_ERROR',
         },
-        400,
+        HttpStatus.BAD_REQUEST,
       );
     }
     next();

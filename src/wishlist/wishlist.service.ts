@@ -1,10 +1,11 @@
-import { HttpException, Injectable, Request } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { Wishlist } from './entities/wishlist.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { getMessage } from 'src/common/lib';
 
 @Injectable()
 export class WishlistService {
@@ -30,8 +31,9 @@ export class WishlistService {
           user: item.user,
           recipe: item.recipe,
         });
+        const message = await getMessage('ADD_TO_WISHLIST_SUCCESS');
         return {
-          message: 'Đã xoá sản phẩm khỏi danh sách yêu thích',
+          message: message,
         };
       } else {
         const user = await this.userRepository.findOne({
@@ -48,17 +50,18 @@ export class WishlistService {
           user: user,
           recipe: recipe,
         });
+        const message = await getMessage('DELETE_FROM_WISHLIST_SUCCESS');
         return {
-          message: 'Đã thêm sản phẩm khỏi danh sách yêu thích',
+          message: message,
         };
       }
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi thêm sản phẩm vào danh sách yêu thích',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -76,12 +79,12 @@ export class WishlistService {
         total,
       };
     } catch (error) {
+      const message = await getMessage('INTERNAL_SERVER_ERROR');
       throw new HttpException(
         {
-          message: 'Lỗi lấy danh sách yêu thích của khách hàng',
-          error: error.message,
+          message: message,
         },
-        500,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
