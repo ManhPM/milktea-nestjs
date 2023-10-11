@@ -8,17 +8,20 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private readonly messageService: MessageService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
     if (!token) {
-      const message = await getMessage('UNAUTHORIZED');
+      const message = await this.messageService.getMessage('UNAUTHORIZED');
       throw new HttpException(
         {
           message: message,
@@ -38,7 +41,9 @@ export class AuthGuard implements CanActivate {
         request['role'] = Object(payload.account.role);
       }
     } catch {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

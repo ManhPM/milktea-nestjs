@@ -6,11 +6,14 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private readonly messageService: MessageService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
@@ -19,7 +22,7 @@ export class RolesGuard implements CanActivate {
     if (roles.includes(role.toString())) {
       return true;
     }
-    const message = await getMessage('FORBIDDEN');
+    const message = await this.messageService.getMessage('FORBIDDEN');
     throw new HttpException(
       {
         message: message,

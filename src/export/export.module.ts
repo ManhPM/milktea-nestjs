@@ -21,6 +21,7 @@ import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredie
 import { ImportService } from 'src/import/import.service';
 import { ImportIngredientService } from 'src/import_ingredient/import_ingredient.service';
 import { IngredientService } from 'src/ingredient/ingredient.service';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { IngredientService } from 'src/ingredient/ingredient.service';
     ImportIngredientService,
     ImportService,
     IngredientService,
+    MessageService,
   ],
 })
 export class ExportModule implements NestModule {

@@ -16,14 +16,7 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Invoice } from './entities/invoice.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Between,
-  Connection,
-  DataSource,
-  LessThan,
-  Like,
-  Repository,
-} from 'typeorm';
+import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
@@ -33,7 +26,7 @@ import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
 import { ThongKeDto } from './dto/thongke-invoice.dto';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class InvoiceService {
@@ -55,6 +48,7 @@ export class InvoiceService {
     @InjectRepository(ShippingCompany)
     readonly shippingCompanyRepository: Repository<ShippingCompany>,
     private dataSource: DataSource,
+    private readonly messageService: MessageService,
   ) {}
   create(createInvoiceDto: CreateInvoiceDto) {
     return 'This action adds a new invoice';
@@ -139,7 +133,9 @@ export class InvoiceService {
         );
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -165,7 +161,7 @@ export class InvoiceService {
         await this.invoiceRepository.update(invoice.id, {
           isPaid: 1,
         });
-        const message = await getMessage('PAYMENT_SUCCESS');
+        const message = await this.messageService.getMessage('PAYMENT_SUCCESS');
         return {
           message: message,
         };
@@ -178,7 +174,9 @@ export class InvoiceService {
         );
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -245,13 +243,15 @@ export class InvoiceService {
       } else {
         throw new HttpException(
           {
-            messageCode: 'PAYMENT_ERROR4',
+            messageCode: 'PAYMENT_ERROR2',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -266,12 +266,14 @@ export class InvoiceService {
     delete vnp_Params['vnp_SecureHashType'];
 
     try {
-      const message = await getMessage('REFUND_SUCCESS');
+      const message = await this.messageService.getMessage('REFUND_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -375,7 +377,9 @@ export class InvoiceService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -447,7 +451,9 @@ export class InvoiceService {
         countInvoices: countInvoices,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -485,7 +491,9 @@ export class InvoiceService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -523,7 +531,9 @@ export class InvoiceService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -540,6 +550,7 @@ export class InvoiceService {
     item.status = 0;
     item.isPaid = 0;
     item.total = 0;
+    item.isPrepared = 0;
     const date = new Date();
     date.setHours(date.getHours() + 7);
     item.date = date;
@@ -613,14 +624,17 @@ export class InvoiceService {
           total: total * 1000,
         });
         await queryRunner.commitTransaction();
-        const message = await getMessage('CHECKOUT_SUCCESS');
+        const message =
+          await this.messageService.getMessage('CHECKOUT_SUCCESS');
         return {
           message: message,
         };
       }
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -664,13 +678,15 @@ export class InvoiceService {
         staff: req.user[0].id,
       });
       await queryRunner.commitTransaction();
-      const message = await getMessage('CONFIRM_SUCCESS');
+      const message = await this.messageService.getMessage('CONFIRM_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -696,7 +712,7 @@ export class InvoiceService {
         await this.invoiceRepository.update(id, {
           status: 4,
         });
-        const message = await getMessage('CANCEL_SUCCESS');
+        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
         return {
           message: message,
         };
@@ -729,7 +745,8 @@ export class InvoiceService {
             status: 4,
           });
           await queryRunner.commitTransaction();
-          const message = await getMessage('CANCEL_SUCCESS');
+          const message =
+            await this.messageService.getMessage('CANCEL_SUCCESS');
           return {
             message: message,
           };
@@ -747,9 +764,11 @@ export class InvoiceService {
       await queryRunner.rollbackTransaction();
       let message = '';
       if (error.response.messageCode) {
-        message = await getMessage(error.response.messageCode);
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
       } else {
-        message = await getMessage('INTERNAL_SERVER_ERROR');
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
       }
       throw new HttpException(
         {
@@ -769,11 +788,11 @@ export class InvoiceService {
           id: id,
         },
       });
-      if (invoice.status == 1) {
+      if (invoice.status == 1 && invoice.isPrepared == 1) {
         await this.invoiceRepository.update(id, {
           status: 2,
         });
-        const message = await getMessage('RECEIVE_SUCCESS');
+        const message = await this.messageService.getMessage('RECEIVE_SUCCESS');
         return {
           message: message,
         };
@@ -788,9 +807,11 @@ export class InvoiceService {
     } catch (error) {
       let message = '';
       if (error.response.messageCode) {
-        message = await getMessage(error.response.messageCode);
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
       } else {
-        message = await getMessage('INTERNAL_SERVER_ERROR');
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
       }
       throw new HttpException(
         {
@@ -813,7 +834,8 @@ export class InvoiceService {
           status: 3,
           isPaid: 1,
         });
-        const message = getMessage('COMPLETE_SUCCESS');
+        const message =
+          await this.messageService.getMessage('COMPLETE_SUCCESS');
         return {
           message: message,
         };
@@ -828,9 +850,53 @@ export class InvoiceService {
     } catch (error) {
       let message = '';
       if (error.response.messageCode) {
-        message = await getMessage(error.response.messageCode);
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
       } else {
-        message = await getMessage('INTERNAL_SERVER_ERROR');
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+      }
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async prepareInvoice(id: number) {
+    try {
+      const invoice = await this.invoiceRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      if (invoice.status == 1 && invoice.isPrepared == 0) {
+        await this.invoiceRepository.update(id, {
+          isPrepared: 1,
+        });
+        const message =
+          await this.messageService.getMessage('PREPARED_SUCCESS');
+        return {
+          message: message,
+        };
+      } else {
+        throw new HttpException(
+          {
+            messageCode: 'PREPARED_INVOICE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    } catch (error) {
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
       }
       throw new HttpException(
         {
@@ -847,7 +913,9 @@ export class InvoiceService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -883,7 +951,9 @@ export class InvoiceService {
         }
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

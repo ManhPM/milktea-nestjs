@@ -33,6 +33,9 @@ export class Invoice {
   @Column()
   isPaid: number;
 
+  @Column()
+  isPrepared: number;
+
   @ManyToOne(() => User, (item) => item.invoices)
   user: User;
 

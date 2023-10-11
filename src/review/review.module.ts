@@ -28,6 +28,7 @@ import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
 import { ProductService } from 'src/product/product.service';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
@@ -48,7 +49,13 @@ import { ProductService } from 'src/product/product.service';
     ]),
   ],
   controllers: [ReviewController],
-  providers: [ReviewService, RecipeService, InvoiceService, ProductService],
+  providers: [
+    ReviewService,
+    RecipeService,
+    InvoiceService,
+    ProductService,
+    MessageService,
+  ],
 })
 export class ReviewModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class WishlistService {
@@ -16,6 +16,7 @@ export class WishlistService {
     readonly userRepository: Repository<User>,
     @InjectRepository(Recipe)
     readonly recipeRepository: Repository<Recipe>,
+    private readonly messageService: MessageService,
   ) {}
   async create(id: number, @Request() req) {
     try {
@@ -31,7 +32,9 @@ export class WishlistService {
           user: item.user,
           recipe: item.recipe,
         });
-        const message = await getMessage('ADD_TO_WISHLIST_SUCCESS');
+        const message = await this.messageService.getMessage(
+          'ADD_TO_WISHLIST_SUCCESS',
+        );
         return {
           message: message,
         };
@@ -50,13 +53,17 @@ export class WishlistService {
           user: user,
           recipe: recipe,
         });
-        const message = await getMessage('DELETE_FROM_WISHLIST_SUCCESS');
+        const message = await this.messageService.getMessage(
+          'DELETE_FROM_WISHLIST_SUCCESS',
+        );
         return {
           message: message,
         };
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -79,7 +86,9 @@ export class WishlistService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

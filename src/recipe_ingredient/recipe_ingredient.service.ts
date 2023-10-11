@@ -5,25 +5,28 @@ import { RecipeIngredient } from './entities/recipe_ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { DeleteRecipeIngredientDto } from './dto/delete-recipe_ingredient.dto';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class RecipeIngredientService {
   constructor(
     @InjectRepository(RecipeIngredient)
     readonly recipeIngredientRepository: Repository<RecipeIngredient>,
+    private readonly messageService: MessageService,
   ) {}
   async create(item: CreateRecipeIngredientDto) {
     try {
       await this.recipeIngredientRepository.save({
         ...item,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -46,7 +49,9 @@ export class RecipeIngredientService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -71,12 +76,14 @@ export class RecipeIngredientService {
       await this.recipeIngredientRepository.update(recipeIngredient.id, {
         quantity: item.quantity,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -92,12 +99,14 @@ export class RecipeIngredientService {
         recipe: Like('%' + item.recipeId + '%'),
         ingredient: Like('%' + item.ingredientId + '%'),
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

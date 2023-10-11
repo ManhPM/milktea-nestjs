@@ -4,13 +4,14 @@ import { UpdateShopDto } from './dto/update-shop.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Shop } from './entities/shop.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class ShopService {
   constructor(
     @InjectRepository(Shop)
     readonly shopRepository: Repository<Shop>,
+    private readonly messageService: MessageService,
   ) {}
   create(createShopDto: CreateShopDto) {
     return 'This action adds a new shop';
@@ -22,7 +23,9 @@ export class ShopService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -39,7 +42,9 @@ export class ShopService {
         data: res[0],
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -58,12 +63,14 @@ export class ShopService {
       await this.shopRepository.update(1, {
         ...item,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

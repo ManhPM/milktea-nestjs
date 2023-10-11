@@ -20,13 +20,14 @@ import {
   validateCreateRecipe,
   validateUpdateRecipe,
 } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Recipe, ProductRecipe, RecipeType, Type]),
   ],
   controllers: [RecipeController],
-  providers: [RecipeService, TypeService],
+  providers: [RecipeService, TypeService, MessageService],
 })
 export class RecipeModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

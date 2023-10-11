@@ -9,11 +9,12 @@ import { ShopController } from './shop.controller';
 import { Shop } from './entities/shop.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { validateUpdateShop } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Shop])],
   controllers: [ShopController],
-  providers: [ShopService],
+  providers: [ShopService, MessageService],
 })
 export class ShopModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

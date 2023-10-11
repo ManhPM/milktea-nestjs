@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class CartProductService {
@@ -30,6 +30,7 @@ export class CartProductService {
     @InjectRepository(Recipe)
     readonly recipeRepository: Repository<Recipe>,
     private dataSource: DataSource,
+    private readonly messageService: MessageService,
   ) {}
 
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
@@ -99,13 +100,17 @@ export class CartProductService {
         });
       }
       await queryRunner.commitTransaction();
-      const message = await getMessage('ADD_TO_CART_SUCCESS');
+      const message = await this.messageService.getMessage(
+        'ADD_TO_CART_SUCCESS',
+      );
       return {
         message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -131,7 +136,9 @@ export class CartProductService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -149,7 +156,9 @@ export class CartProductService {
         },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -181,12 +190,14 @@ export class CartProductService {
         product: item.product,
         user: item.user,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -209,12 +220,16 @@ export class CartProductService {
         user: item.user,
         product: item.product,
       });
-      const message = await getMessage('DELETE_FROM_CART_SUCCESS');
+      const message = await this.messageService.getMessage(
+        'DELETE_FROM_CART_SUCCESS',
+      );
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

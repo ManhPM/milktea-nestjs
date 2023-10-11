@@ -3,9 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   UseGuards,
   Request,
   Query,
@@ -13,12 +11,10 @@ import {
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
-import { RefundPaymentDto } from './dto/refund-invoice.dto';
 import { ThongKeDto } from './dto/thongke-invoice.dto';
 
 @Controller('invoice')
@@ -109,5 +105,12 @@ export class InvoiceController {
   @Get('/complete/:id')
   complete(@Param('id') id: number) {
     return this.invoiceService.completeInvoice(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('1', '2')
+  @Get('/prepare/:id')
+  prepare(@Param('id') id: number) {
+    return this.invoiceService.prepareInvoice(id);
   }
 }

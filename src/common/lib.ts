@@ -1,46 +1,66 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import * as Excel from 'exceljs';
+import { Injectable, Scope, Inject } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 
-export async function getMessage(messageCode: any) {
-  try {
-    const workbook = new Excel.Workbook();
-    await workbook.xlsx.readFile('src/assets/message.xlsx');
-    const worksheet = workbook.getWorksheet('Sheet1');
-    let message;
-    for (let i = 1; i <= worksheet.rowCount; i++) {
-      const row = worksheet.getRow(i);
-      if (row.getCell(1).value == messageCode) {
-        message = row.getCell(2).value;
-        break;
+@Injectable({ scope: Scope.REQUEST })
+export class MessageService {
+  constructor(@Inject(REQUEST) private readonly request: Request) {}
+
+  async getMessage(messageCode: any) {
+    try {
+      const workbook = new Excel.Workbook();
+      await workbook.xlsx.readFile('src/assets/message.xlsx');
+      const worksheet = workbook.getWorksheet('Sheet1');
+      let message;
+      let language = 'VN';
+      if (this.request.query.language) {
+        language = this.request.query.language as string;
       }
-    }
-    if (!message) {
-      throw new HttpException(
-        {
-          messageCode: 'MESSAGE_NOTFOUND',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    } else {
-      return message;
-    }
-  } catch (err) {
-    if (err.response.messageCode) {
-      const message = await getMessage(err.response.messageCode);
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    } else {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      for (let i = 2; i <= worksheet.rowCount; i++) {
+        const firstRow = worksheet.getRow(1);
+        const row = worksheet.getRow(i);
+        for (let i = 2; i <= worksheet.columnCount; i++) {
+          if (
+            firstRow.getCell(i).value == language &&
+            row.getCell(1).value == messageCode
+          ) {
+            message = row.getCell(i).value;
+            break;
+          }
+        }
+      }
+      if (!message) {
+        throw new HttpException(
+          {
+            messageCode: 'MESSAGE_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        return message;
+      }
+    } catch (error) {
+      if (error.response.messageCode) {
+        const message = await this.getMessage(error.response.messageCode);
+        //getMessage(error
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        const message = await this.getMessage('INTERNAL_SERVER_ERROR');
+        //getMessage('
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

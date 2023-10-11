@@ -4,25 +4,28 @@ import { UpdateTypeDto } from './dto/update-type.dto';
 import { Type } from './entities/type.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class TypeService {
   constructor(
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
+    private readonly messageService: MessageService,
   ) {}
   async create(createTypeDto: CreateTypeDto) {
     try {
       await this.typeRepository.save({
         ...createTypeDto,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -38,7 +41,9 @@ export class TypeService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -56,7 +61,9 @@ export class TypeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -78,7 +85,9 @@ export class TypeService {
         },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -93,12 +102,14 @@ export class TypeService {
       await this.typeRepository.update(id, {
         ...updateTypeDto,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

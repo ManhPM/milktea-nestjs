@@ -12,11 +12,12 @@ import {
   CheckCreateType,
   CheckExistType,
 } from 'src/common/middlewares/middlewares';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Type])],
   controllers: [TypeController],
-  providers: [TypeService],
+  providers: [TypeService, MessageService],
 })
 export class TypeModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

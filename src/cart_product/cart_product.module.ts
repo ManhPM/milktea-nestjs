@@ -18,6 +18,7 @@ import {
   validateCreateCartProduct,
   validateUpdateCartProduct,
 } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import {
     ]),
   ],
   controllers: [CartProductController],
-  providers: [CartProductService, ProductService],
+  providers: [CartProductService, ProductService, MessageService],
 })
 export class CartProductModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

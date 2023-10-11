@@ -13,11 +13,12 @@ import {
   CheckExistIngredient,
 } from 'src/common/middlewares/middlewares';
 import { validateCreateIngredient } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Ingredient])],
   controllers: [IngredientController],
-  providers: [IngredientService],
+  providers: [IngredientService, MessageService],
 })
 export class IngredientModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -4,6 +4,7 @@ export class CreateInvoiceDto {
   paymentMethod: string;
   date: Date;
   status: number;
+  isPrepared: number;
   isPaid: number;
   shippingCompanyId: number;
 }

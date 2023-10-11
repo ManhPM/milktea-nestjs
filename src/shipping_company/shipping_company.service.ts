@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Query } from '@nestjs/common';
 import { UpdateShippingCompanyDto } from './dto/update-shipping_company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,7 +6,8 @@ import { ShippingCompany } from './entities/shipping_company.entity';
 import { CreateShippingCompanyDto } from './dto/create-shipping_company.dto';
 import { GetFeeShip } from './dto/getFeeShip.dto';
 import { Shop } from 'src/shop/entities/shop.entity';
-import { calDistance, getMessage } from 'src/common/lib';
+import { calDistance } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class ShippingCompanyService {
@@ -15,6 +16,7 @@ export class ShippingCompanyService {
     readonly shippingCompanyRepository: Repository<ShippingCompany>,
     @InjectRepository(Shop)
     readonly shopRepository: Repository<Shop>,
+    private readonly messageService: MessageService,
   ) {}
 
   async create(createShippingCompanyDto: CreateShippingCompanyDto) {
@@ -22,12 +24,14 @@ export class ShippingCompanyService {
       await this.shippingCompanyRepository.save({
         ...createShippingCompanyDto,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -46,7 +50,9 @@ export class ShippingCompanyService {
         },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -61,12 +67,14 @@ export class ShippingCompanyService {
       await this.shippingCompanyRepository.update(id, {
         ...updateShippingCompanyDto,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -81,12 +89,14 @@ export class ShippingCompanyService {
       await this.shippingCompanyRepository.update(id, {
         isActive: 0,
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -102,7 +112,9 @@ export class ShippingCompanyService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -123,7 +135,9 @@ export class ShippingCompanyService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -144,7 +158,9 @@ export class ShippingCompanyService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -154,7 +170,7 @@ export class ShippingCompanyService {
     }
   }
 
-  async getFeeShip(id: number, getFeeShip: GetFeeShip) {
+  async getFeeShip(id: number, @Query() query) {
     try {
       const shippingCompany = await this.shippingCompanyRepository.findOne({
         where: {
@@ -162,8 +178,8 @@ export class ShippingCompanyService {
         },
       });
       const shop = await this.shopRepository.find({});
-      const lat1 = getFeeShip.userLat;
-      const lon1 = getFeeShip.userLng;
+      const lat1 = query.userLat;
+      const lon1 = query.userLng;
       const lat2 = Number(shop[0].latitude);
       const lon2 = Number(shop[0].longitude);
       const distance = calDistance(lat1, lon1, lat2, lon2);
@@ -171,7 +187,7 @@ export class ShippingCompanyService {
       if (distance >= 20) {
         throw new HttpException(
           {
-            messageCode: 'CHECKOUT_ERROR',
+            messageCode: 'GET_FEESHIP_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -191,13 +207,26 @@ export class ShippingCompanyService {
         };
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

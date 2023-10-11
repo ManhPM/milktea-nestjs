@@ -8,7 +8,7 @@ import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity
 import { FilterRecipeDto } from './dto/filter-recipe.dto';
 import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
 import { Type } from 'src/type/entities/type.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class RecipeService {
@@ -21,6 +21,7 @@ export class RecipeService {
     readonly recipeTypeRepository: Repository<RecipeType>,
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
+    private readonly messageService: MessageService,
   ) {}
   async create(createRecipeDto: CreateRecipeDto) {
     try {
@@ -42,12 +43,14 @@ export class RecipeService {
         ...createRecipeDto,
         type,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -83,7 +86,9 @@ export class RecipeService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -105,7 +110,9 @@ export class RecipeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -128,7 +135,9 @@ export class RecipeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -150,7 +159,9 @@ export class RecipeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -172,7 +183,9 @@ export class RecipeService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -195,7 +208,9 @@ export class RecipeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -211,7 +226,9 @@ export class RecipeService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -226,12 +243,14 @@ export class RecipeService {
       await this.recipeRepository.update(id, {
         ...updateRecipeDto,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -246,12 +265,14 @@ export class RecipeService {
       await this.recipeRepository.update(id, {
         isActive: 0,
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

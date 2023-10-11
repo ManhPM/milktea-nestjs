@@ -4,12 +4,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     readonly userRepository: Repository<User>,
+    private readonly messageService: MessageService,
   ) {}
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
@@ -30,7 +32,9 @@ export class UserService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -50,9 +54,13 @@ export class UserService {
       });
       delete user.account.password;
       delete user.account.role;
-      return user;
+      return {
+        data: user,
+      };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -72,7 +80,9 @@ export class UserService {
         ...updateUserDto,
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

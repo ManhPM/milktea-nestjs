@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
 import { Type } from 'src/type/entities/type.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class RecipeTypeService {
@@ -17,6 +17,7 @@ export class RecipeTypeService {
     readonly recipeRepository: Repository<Recipe>,
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
+    private readonly messageService: MessageService,
   ) {}
   async create(item: CreateRecipeTypeDto) {
     try {
@@ -36,12 +37,14 @@ export class RecipeTypeService {
         type,
         recipe,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -59,12 +62,14 @@ export class RecipeTypeService {
         recipe: Like('%' + recipeId + '%'),
         type: Like('%' + typeId + '%'),
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -87,7 +92,9 @@ export class RecipeTypeService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

@@ -16,11 +16,12 @@ import {
   validateRegister,
   validateUpdateUser,
 } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account, User, MailerService])],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, MessageService],
 })
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -7,7 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Recipe } from 'src/recipe/entities/recipe.entity';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class ReviewService {
@@ -22,6 +22,7 @@ export class ReviewService {
     readonly invoiceProductRepository: Repository<InvoiceProduct>,
     @InjectRepository(Invoice)
     readonly invoiceRepository: Repository<Invoice>,
+    private readonly messageService: MessageService,
   ) {}
 
   async create(createReviewDto: CreateReviewDto, @Request() req) {
@@ -58,12 +59,14 @@ export class ReviewService {
       await this.invoiceProductRepository.update(invoiceProducts.id, {
         isReviewed: 1,
       });
-      const message = await getMessage('RATING_SUCCESS');
+      const message = await this.messageService.getMessage('RATING_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -86,7 +89,9 @@ export class ReviewService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -123,13 +128,26 @@ export class ReviewService {
         );
       }
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

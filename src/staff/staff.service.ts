@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from './entities/staff.entity';
 import { DataSource, Like, Repository } from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class StaffService {
@@ -16,6 +16,7 @@ export class StaffService {
     @InjectRepository(Account)
     readonly accountRepository: Repository<Account>,
     private dataSource: DataSource,
+    private readonly messageService: MessageService,
   ) {}
   async create(item: CreateStaffDto) {
     try {
@@ -30,12 +31,14 @@ export class StaffService {
         ...item,
         account,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -51,7 +54,9 @@ export class StaffService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -76,7 +81,9 @@ export class StaffService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -99,7 +106,9 @@ export class StaffService {
         data: res,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -143,13 +152,15 @@ export class StaffService {
         });
       }
       await queryRunner.commitTransaction();
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -166,12 +177,14 @@ export class StaffService {
       await this.staffRepository.update(id, {
         isActive: 0,
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

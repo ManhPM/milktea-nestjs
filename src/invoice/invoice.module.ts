@@ -19,6 +19,7 @@ import { ShippingCompanyService } from 'src/shipping_company/shipping_company.se
 import { ExportService } from 'src/export/export.service';
 import { Export } from 'src/export/entities/export.entity';
 import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
@@ -36,7 +37,12 @@ import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredie
     ]),
   ],
   controllers: [InvoiceController],
-  providers: [InvoiceService, ShippingCompanyService, ExportService],
+  providers: [
+    InvoiceService,
+    ShippingCompanyService,
+    ExportService,
+    MessageService,
+  ],
 })
 export class InvoiceModule {
   configure(consumer: MiddlewareConsumer) {

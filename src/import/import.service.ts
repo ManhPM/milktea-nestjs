@@ -8,7 +8,7 @@ import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
 import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
 import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class ImportService {
@@ -20,6 +20,7 @@ export class ImportService {
     @InjectRepository(ImportIngredient)
     readonly importIngredientRepository: Repository<ImportIngredient>,
     private dataSource: DataSource,
+    private readonly messageService: MessageService,
   ) {}
 
   async findAll(): Promise<any> {
@@ -35,7 +36,9 @@ export class ImportService {
         total,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -54,7 +57,9 @@ export class ImportService {
         },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -82,7 +87,9 @@ export class ImportService {
         data: nonImportedIngredients,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -101,7 +108,9 @@ export class ImportService {
         relations: ['staff', 'import_ingredients.ingredient'],
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -141,13 +150,17 @@ export class ImportService {
 
       await queryRunner.commitTransaction();
 
-      const message = await getMessage('COMPLETE_IMPORT_SUCCESS');
+      const message = await this.messageService.getMessage(
+        'COMPLETE_IMPORT_SUCCESS',
+      );
       return {
         message: message,
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -168,12 +181,14 @@ export class ImportService {
         ...createImportDto,
         staff: req.user[0].id,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -188,13 +203,15 @@ export class ImportService {
       await this.importRepository.update(id, {
         ...updateImportDto,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
 
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -221,13 +238,15 @@ export class ImportService {
         import: importInvoice,
         ingredient: ingredient,
       });
-      const message = await getMessage('CREATE_SUCCESS');
+      const message = await this.messageService.getMessage('CREATE_SUCCESS');
 
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -253,12 +272,14 @@ export class ImportService {
         ingredient: ingredient,
         import: importInvoice,
       });
-      const message = await getMessage('DELETE_SUCCESS');
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -273,12 +294,14 @@ export class ImportService {
       await this.importRepository.update(id, {
         isCompleted: -1,
       });
-      const message = await getMessage('CANCEL_SUCCESS');
+      const message = await this.messageService.getMessage('CANCEL_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -294,7 +317,9 @@ export class ImportService {
         where: { id },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,

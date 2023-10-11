@@ -15,6 +15,7 @@ import { RecipeService } from 'src/recipe/recipe.service';
 import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
 import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
 import { Type } from 'src/type/entities/type.entity';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { Type } from 'src/type/entities/type.entity';
     ]),
   ],
   controllers: [WishlistController],
-  providers: [WishlistService, RecipeService],
+  providers: [WishlistService, RecipeService, MessageService],
 })
 export class WishlistModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

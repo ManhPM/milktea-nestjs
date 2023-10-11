@@ -25,7 +25,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 cloudinary.config({
   cloud_name: 'dgsumh8ih',
@@ -38,6 +38,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private jwtService: JwtService,
+    private readonly messageService: MessageService,
   ) {}
 
   @Post('upload')
@@ -71,7 +72,7 @@ export class AuthController {
     const account = await this.authService.findOne(`${phone}`);
 
     if (!(await bcrypt.compare(loginPassword, account.password))) {
-      const message = await getMessage('AUTH_ERROR');
+      const message = await this.messageService.getMessage('AUTH_ERROR');
       throw new HttpException(
         {
           message: message,
@@ -81,7 +82,7 @@ export class AuthController {
     }
     if (account.role != 0) {
       if (!account.staff[0].isActive) {
-        const message = await getMessage('AUTH_ERROR1');
+        const message = await this.messageService.getMessage('AUTH_ERROR1');
         throw new HttpException(
           {
             message: message,
@@ -97,10 +98,10 @@ export class AuthController {
 
     response.cookie('token', token, {
       httpOnly: true,
-      sameSite: process.env.ENV === 'dev' ? true : 'none',
+      sameSite: 'none',
       secure: process.env.ENV === 'dev' ? false : true,
     });
-    const message = await getMessage('LOGIN_SUCCESS');
+    const message = await this.messageService.getMessage('LOGIN_SUCCESS');
     return {
       userInfo: account,
       message: message,
@@ -111,7 +112,7 @@ export class AuthController {
   @Get('logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('token');
-    const message = await getMessage('LOGOUT_SUCCESS');
+    const message = await this.messageService.getMessage('LOGOUT_SUCCESS');
     return {
       message: message,
     };

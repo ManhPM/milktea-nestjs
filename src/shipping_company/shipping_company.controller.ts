@@ -9,6 +9,7 @@ import {
   UseGuards,
   UsePipes,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { ShippingCompanyService } from './shipping_company.service';
 import { CreateShippingCompanyDto } from './dto/create-shipping_company.dto';
@@ -48,10 +49,9 @@ export class ShippingCompanyController {
     return this.shippingCompanyService.remove(id);
   }
 
-  @UseGuards(AuthGuard)
   @Get('/feeship/:id')
-  getFeeShip(@Param('id') id: number, @Body() getFeeShip: GetFeeShip) {
-    return this.shippingCompanyService.getFeeShip(id, getFeeShip);
+  getFeeShip(@Param('id') id: number, @Query() query) {
+    return this.shippingCompanyService.getFeeShip(id, query);
   }
 
   @UseGuards(AuthGuard)

@@ -26,8 +26,6 @@ export class TypeController {
     return this.typeService.create(createTypeDto);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
   @Get()
   findAll() {
     return this.typeService.findAll();

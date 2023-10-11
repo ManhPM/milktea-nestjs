@@ -12,11 +12,12 @@ import {
   validateCreateShippingCompany,
   validateUpdateShippingCompany,
 } from 'src/common/middlewares/validate';
+import { MessageService } from 'src/common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ShippingCompany, Shop])],
   controllers: [ShippingCompanyController],
-  providers: [ShippingCompanyService],
+  providers: [ShippingCompanyService, MessageService],
 })
 export class ShippingCompanyModule {
   configure(consumer: MiddlewareConsumer) {

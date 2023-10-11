@@ -7,7 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
-import { getMessage } from 'src/common/lib';
+import { MessageService } from 'src/common/lib';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +15,7 @@ export class AuthService {
     @InjectRepository(Account) readonly accountRepository: Repository<Account>,
     @InjectRepository(User) readonly userRepository: Repository<User>,
     private readonly mailerService: MailerService,
+    private readonly messageService: MessageService,
   ) {}
 
   async create(createAccountDto: CreateAccountDto) {
@@ -33,12 +34,14 @@ export class AuthService {
         ...createAccountDto,
         account,
       });
-      const message = await getMessage('REGISTER_SUCCESS');
+      const message = await this.messageService.getMessage('REGISTER_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -53,12 +56,14 @@ export class AuthService {
       await this.accountRepository.update(req.user[0].id, {
         ...updateAccountDto,
       });
-      const message = await getMessage('UPDATE_SUCCESS');
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -75,7 +80,9 @@ export class AuthService {
         relations: ['user', 'staff'],
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
@@ -91,7 +98,9 @@ export class AuthService {
         where: { phone },
       });
     } catch (error) {
-      const message = await getMessage('INTERNAL_SERVER_ERROR');
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
       throw new HttpException(
         {
           message: message,
