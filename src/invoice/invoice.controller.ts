@@ -8,6 +8,7 @@ import {
   Request,
   Query,
   Ip,
+  Delete,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -112,5 +113,12 @@ export class InvoiceController {
   @Get('/prepare/:id')
   prepare(@Param('id') id: number) {
     return this.invoiceService.prepareInvoice(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('1', '2')
+  @Delete('/autodelete')
+  autoDelete() {
+    return this.invoiceService.handleAutoDeleteInvoice;
   }
 }

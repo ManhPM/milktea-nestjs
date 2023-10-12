@@ -13,9 +13,8 @@ import vnpayConfig from '../../config/vnpayConfig';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { Invoice } from './entities/invoice.entity';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
@@ -47,12 +46,9 @@ export class InvoiceService {
     readonly productRepository: Repository<Product>,
     @InjectRepository(ShippingCompany)
     readonly shippingCompanyRepository: Repository<ShippingCompany>,
-    private dataSource: DataSource,
+    @InjectDataSource() private dataSource: DataSource,
     private readonly messageService: MessageService,
   ) {}
-  create(createInvoiceDto: CreateInvoiceDto) {
-    return 'This action adds a new invoice';
-  }
 
   async handlePayment(@Body('id_order') id_order: number, @Ip() ip) {
     try {
@@ -441,8 +437,12 @@ export class InvoiceService {
         }
         revenue += invoice.total;
       }
+      const count = await this.dataSource.query(
+        `SELECT COUNT(userId)/COUNT(id)*100 as percent FROM invoice WHERE status = 3 GROUP BY userId HAVING COUNT(userId) >= 2`,
+      );
 
       return {
+        percentCusReOrder: Number(count[0].percent),
         topNames: recipeCounts,
         topToppings: toppingCounts,
         revenue: revenue,
@@ -924,8 +924,6 @@ export class InvoiceService {
       );
     }
   }
-
-  @Cron(CronExpression.EVERY_MINUTE)
   async handleAutoDeleteInvoice(): Promise<any> {
     try {
       const now = new Date();

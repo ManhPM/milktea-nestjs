@@ -54,6 +54,7 @@
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "rxjs": "^7.2.0",
+    "twilio": "^4.18.1",
     "typeorm": "^0.3.16",
     "typeorm-seeding": "^1.6.1"
   },

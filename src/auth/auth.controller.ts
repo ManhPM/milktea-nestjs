@@ -99,7 +99,7 @@ export class AuthController {
     response.cookie('token', token, {
       httpOnly: true,
       sameSite: 'none',
-      secure: process.env.ENV === 'dev' ? false : true,
+      secure: true,
     });
     const message = await this.messageService.getMessage('LOGIN_SUCCESS');
     return {

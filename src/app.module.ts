@@ -29,6 +29,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { ProductRecipeModule } from './product_recipe/product_recipe.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
+import { InvoiceService } from './invoice/invoice.service';
+import { InvoiceProductService } from './invoice_product/invoice_product.service';
 
 @Module({
   imports: [
