@@ -6,7 +6,7 @@ export const dataSourceOptions: DataSourceOptions = {
   port: 3306,
   username: 'root',
   password: '15092001',
-  database: 'tour-nestjs',
+  database: 'milktea-nestjs',
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/db/migrations/*.js'],
   synchronize: false,

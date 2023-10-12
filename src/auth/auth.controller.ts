@@ -2,68 +2,132 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import {
-  BadRequestException,
   Body,
   Controller,
+  Patch,
   Post,
   Res,
   UsePipes,
   ValidationPipe,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+  HttpException,
+  Get,
+  Request,
+  HttpStatus,
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
+import { CreateAccountDto } from 'src/account/dto/create-account.dto';
+import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
+import { v2 as cloudinary } from 'cloudinary';
+import { AuthGuard } from './auth.guard';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
+import { MessageService } from 'src/common/lib';
+
+cloudinary.config({
+  cloud_name: 'dgsumh8ih',
+  api_key: '726416339718441',
+  api_secret: 'n9z2-8LwGN8MPhbDadWYuMGN78U',
+});
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private jwtService: JwtService,
+    private readonly messageService: MessageService,
   ) {}
+
+  @Post('upload')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('0', '2')
+  @UseInterceptors(FileInterceptor('my_file'))
+  async uploadFile(@UploadedFile() file) {
+    try {
+      const b64 = Buffer.from(file.buffer).toString('base64');
+      const dataURI = 'data:' + file.mimetype + ';base64,' + b64;
+      const cldRes = await cloudinary.uploader.upload(dataURI, {
+        resource_type: 'auto',
+      });
+      return {
+        url: cldRes.url,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        message: error.message,
+      };
+    }
+  }
 
   @Post('login')
   async login(
-    @Body('username') username: string,
+    @Body('phone') phone: string,
     @Body('password') loginPassword: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const user = await this.authService.findOne(`${username}`);
+    const account = await this.authService.findOne(`${phone}`);
 
-    if (!user) {
-      throw new BadRequestException('Sai thông tin đăng nhập');
+    if (!(await bcrypt.compare(loginPassword, account.password))) {
+      const message = await this.messageService.getMessage('AUTH_ERROR');
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    if (account.role != 0) {
+      if (!account.staff[0].isActive) {
+        const message = await this.messageService.getMessage('AUTH_ERROR1');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
     }
 
-    if (!(await bcrypt.compare(loginPassword, user.password))) {
-      throw new BadRequestException('Sai thông tin đăng nhập');
-    }
+    delete account.password;
 
-    delete user.password;
-
-    const token = await this.jwtService.signAsync({ userInfo: user });
+    const token = await this.jwtService.signAsync({ account });
 
     response.cookie('token', token, {
       httpOnly: true,
-      sameSite: process.env.ENV === 'dev' ? true : 'none',
-      secure: process.env.ENV === 'dev' ? false : true,
+      sameSite: 'none',
+      secure: true,
     });
-
+    const message = await this.messageService.getMessage('LOGIN_SUCCESS');
     return {
-      userInfo: user,
-      message: 'Login success',
+      userInfo: account,
+      message: message,
     };
   }
 
-  @Post('logout')
+  @UseGuards(AuthGuard)
+  @Get('logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('token');
-
+    const message = await this.messageService.getMessage('LOGOUT_SUCCESS');
     return {
-      message: 'Logout success',
+      message: message,
     };
   }
 
   @Post('register')
   @UsePipes(ValidationPipe)
-  async register(@Body() createUserDto: CreateUserDto): Promise<any> {
-    return this.authService.create(createUserDto);
+  async register(@Body() item: CreateAccountDto): Promise<any> {
+    return this.authService.create(item);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('0')
+  @Patch('profile')
+  async update(@Request() req, @Body() item: UpdateAccountDto): Promise<any> {
+    return this.authService.update(req, item);
   }
 }

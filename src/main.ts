@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.setGlobalPrefix('api/v1');
   app.enableCors({
-    origin: 'http://localhost:4000',
+    origin: process.env.ENV === 'dev' ? true : 'https://holidate.vercel.app',
     credentials: true,
   });
   await app.listen(4000);
