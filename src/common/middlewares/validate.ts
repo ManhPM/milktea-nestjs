@@ -748,6 +748,14 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
+      if (ingredient.quantity < quantity) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_QUANTITY_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       next();
     } catch (error) {
       let message;
