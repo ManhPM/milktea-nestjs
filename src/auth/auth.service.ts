@@ -1,4 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
+import twilio from 'twilio';
 import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -17,6 +18,19 @@ export class AuthService {
     private readonly mailerService: MailerService,
     private readonly messageService: MessageService,
   ) {}
+
+  async sendSMS(): Promise<any> {
+    try {
+      const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
+      await client.messages.create({
+        from: '+12052933897',
+        to: '+14233765903',
+        body: 'test message',
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async create(createAccountDto: CreateAccountDto) {
     try {
