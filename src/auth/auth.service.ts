@@ -1,6 +1,12 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import twilio from 'twilio';
-import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
+import * as twilio from 'twilio';
+import {
+  HttpException,
+  Injectable,
+  HttpStatus,
+  Request,
+  Body,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from 'src/account/entities/account.entity';
@@ -19,17 +25,20 @@ export class AuthService {
     private readonly messageService: MessageService,
   ) {}
 
-  async sendSMS(): Promise<any> {
-    try {
-      const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
-      await client.messages.create({
-        from: '+12052933897',
-        to: '+14233765903',
-        body: 'test message',
-      });
-    } catch (error) {
-      console.log(error);
-    }
+  async sendSms(phoneNumber: string, password: string) {
+    // Định dạng email-to-SMS theo nhà mạng của bạn
+    // Ví dụ này sử dụng Verizon
+    const smsAddress = phoneNumber + '@vtext.com';
+    const message = 'MÃ XÁC NHẬN CỦA BẠN LÀ ABC';
+    // Gửi email đến smsAddress với nội dung là message
+    await this.mailerService.sendMail({
+      to: smsAddress,
+      subject: '',
+      text: message,
+    });
+    return {
+      message: 'Gửi tin nhắn thành công',
+    };
   }
 
   async create(createAccountDto: CreateAccountDto) {

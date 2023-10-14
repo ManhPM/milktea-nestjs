@@ -47,12 +47,39 @@ export class ExportService {
 
   async findOne(id: number) {
     try {
-      return await this.exportRepository.findOne({
+      const res = await this.exportRepository.findOne({
         where: {
           id: id,
         },
         relations: ['staff', 'export_ingredients.ingredient'],
       });
+      const data = {
+        id: null,
+        date: null,
+        isCompleted: null,
+        total: null,
+        description: null,
+        staff: {},
+        ingredients: [
+          {
+            quantity: 0,
+          },
+        ],
+      };
+      if (res) {
+        data.id = res.id;
+        data.date = res.date;
+        data.isCompleted = res.isCompleted;
+        data.total = res.total;
+        data.description = res.description;
+        data.staff = res.staff;
+        for (let i = 0; i < res.export_ingredients.length; i++) {
+          data.ingredients[i] = res.export_ingredients[i].ingredient;
+          data.ingredients[i].quantity = res.export_ingredients[i].quantity;
+        }
+        return data;
+      }
+      return null;
     } catch (error) {
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',

@@ -111,9 +111,9 @@ export class AuthController {
       userInfo.address = account.user[0].address;
       userInfo.photo = account.user[0].photo;
     } else {
-      userInfo.userId = account.user[0].id;
-      userInfo.name = account.user[0].name;
-      userInfo.address = account.user[0].address;
+      userInfo.userId = account.staff[0].id;
+      userInfo.name = account.staff[0].name;
+      userInfo.address = account.staff[0].address;
     }
     response.cookie('token', token, {
       httpOnly: true,
@@ -141,6 +141,14 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   async register(@Body() item: CreateAccountDto): Promise<any> {
     return this.authService.create(item);
+  }
+
+  @Post('sms')
+  async sendSMS(
+    @Body('phone') phone: string,
+    @Body('password') password: string,
+  ): Promise<any> {
+    return this.authService.sendSms(phone, password);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
