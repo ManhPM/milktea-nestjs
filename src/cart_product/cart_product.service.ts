@@ -131,6 +131,62 @@ export class CartProductService {
         },
         relations: ['product.product_recipes.recipe'],
       });
+      for (let i = 0; i < res.length; i++) {
+        res[i].product.product_recipes.sort((a, b) => b.isMain - a.isMain);
+      }
+      if (res) {
+        const data = [
+          {
+            id: 0,
+            quantity: 0,
+            size: 0,
+            name: '',
+            image: '',
+            discount: 0,
+            price: 0,
+            toppings: [
+              {
+                id: 0,
+                name: '',
+                image: '',
+                price: 0,
+              },
+            ],
+          },
+        ];
+        let totalCart = 0;
+        for (let i = 0; i < res.length; i++) {
+          data[i] = {
+            id: res[i].product.id,
+            quantity: res[i].quantity,
+            size: res[i].size,
+            name: res[i].product.product_recipes[0].recipe.name,
+            discount: res[i].product.product_recipes[0].recipe.discount,
+            image: res[i].product.product_recipes[0].recipe.image,
+            price: res[i].product.product_recipes[0].recipe.price,
+            toppings: [],
+          };
+          if (res[i].size != 0) {
+            totalCart += res[i].quantity * res[i].size;
+          }
+          totalCart +=
+            res[i].quantity * res[i].product.product_recipes[0].recipe.price;
+          for (let j = 1; j < res[i].product.product_recipes.length; j++) {
+            data[i].toppings[j - 1] = {
+              id: res[i].product.product_recipes[j].recipe.id,
+              name: res[i].product.product_recipes[j].recipe.name,
+              image: res[i].product.product_recipes[j].recipe.image,
+              price: res[i].product.product_recipes[j].recipe.price,
+            };
+            totalCart +=
+              res[i].quantity * res[i].product.product_recipes[j].recipe.price;
+          }
+        }
+        return {
+          data: data,
+          total: totalCart,
+        };
+      }
       return {
         data: res,
         total,

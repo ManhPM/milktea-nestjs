@@ -81,9 +81,17 @@ export class WishlistService {
         },
         relations: ['recipe'],
       });
+      if (res) {
+        const data = [res[0].recipe];
+        for (let i = 0; i < res.length; i++) {
+          data[i] = res[i].recipe;
+        }
+        return {
+          data: data,
+        };
+      }
       return {
         data: res,
-        total,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(

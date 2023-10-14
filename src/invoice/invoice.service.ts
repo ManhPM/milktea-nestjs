@@ -441,16 +441,32 @@ export class InvoiceService {
         `SELECT COUNT(userId)/COUNT(id)*100 as percent FROM invoice WHERE status = 3 GROUP BY userId HAVING COUNT(userId) >= 2`,
       );
 
+      const topNames = Object.values(recipeCounts);
+      const topToppings = Object.values(toppingCounts);
+
+      const totalImport = await this.dataSource.query(
+        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM import GROUP BY month ORDER BY month`,
+      );
+      const totalExport = await this.dataSource.query(
+        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM export GROUP BY month ORDER BY month`,
+      );
+      const importExportIngredients = await this.dataSource.query(
+        `SELECT I.*, (SELECT SUM(quantity) FROM import_ingredient WHERE ingredientId = I.id) as total_import, (SELECT IFNULL(SUM(quantity), 0) FROM export_ingredient WHERE ingredientId = I.id) as total_export FROM ingredient as I`,
+      );
       return {
+        totalExport: totalExport,
+        totalImport: totalImport,
+        importExportIngredients: importExportIngredients,
         percentCusReOrder: Number(count[0].percent),
-        topNames: recipeCounts,
-        topToppings: toppingCounts,
+        topNames: topNames,
+        topToppings: topToppings,
         revenue: revenue,
         countToppings: countToppings,
         countRecipes: countRecipes,
         countInvoices: countInvoices,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );
@@ -484,11 +500,72 @@ export class InvoiceService {
           'product_recipes',
           'recipe',
         ])
+        .orderBy('product_recipes.isMain', 'DESC')
         .where('invoice.id = :id', { id: id })
         .getMany();
+      if (res) {
+        const data = {
+          invoice: {},
+          user: {
+            phone: '',
+            name: '',
+            address: '',
+          },
+          products: [
+            {
+              quantity: 0,
+              size: 0,
+              name: '',
+              image: '',
+              toppings: [
+                {
+                  name: '',
+                  image: '',
+                  price: 0,
+                },
+              ],
+            },
+          ],
+        };
+        data.user.name = res.user.name;
+        data.user.address = res.user.address;
+        data.user.phone = res.user.account.phone;
+        delete res.user;
+        data.invoice = res;
+        for (let i = 0; i < res.invoice_products.length; i++) {
+          for (let i = 0; i < res.invoice_products.length; i++) {
+            data.products[i] = {
+              quantity: res.invoice_products[i].quantity,
+              size: res.invoice_products[i].size,
+              name: res.invoice_products[i].product.product_recipes[0].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[0].recipe.image,
+              toppings: [],
+            };
+          }
+          for (
+            let j = 1;
+            j < res.invoice_products[i].product.product_recipes.length;
+            j++
+          ) {
+            data.products[i].toppings[j - 1] = {
+              name: res.invoice_products[i].product.product_recipes[j].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[j].recipe.image,
+              price:
+                res.invoice_products[i].product.product_recipes[j].recipe.price,
+            };
+          }
+        }
+        delete res.invoice_products;
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -524,11 +601,73 @@ export class InvoiceService {
           'product_recipes',
           'recipe',
         ])
-        .where('invoice.status <= :status', { status: 3 })
+        .where('invoice.status < :status', { status: 3 })
         .andWhere('invoice.user.id = :user', { user: req.user[0].id })
         .getOne();
+
+      if (res) {
+        const data = {
+          invoice: {},
+          user: {
+            phone: '',
+            name: '',
+            address: '',
+          },
+          products: [
+            {
+              quantity: 0,
+              size: 0,
+              name: '',
+              image: '',
+              toppings: [
+                {
+                  name: '',
+                  image: '',
+                  price: 0,
+                },
+              ],
+            },
+          ],
+        };
+        data.user.name = res.user.name;
+        data.user.address = res.user.address;
+        data.user.phone = res.user.account.phone;
+        delete res.user;
+        data.invoice = res;
+        for (let i = 0; i < res.invoice_products.length; i++) {
+          for (let i = 0; i < res.invoice_products.length; i++) {
+            data.products[i] = {
+              quantity: res.invoice_products[i].quantity,
+              size: res.invoice_products[i].size,
+              name: res.invoice_products[i].product.product_recipes[0].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[0].recipe.image,
+              toppings: [],
+            };
+          }
+          for (
+            let j = 1;
+            j < res.invoice_products[i].product.product_recipes.length;
+            j++
+          ) {
+            data.products[i].toppings[j - 1] = {
+              name: res.invoice_products[i].product.product_recipes[j].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[j].recipe.image,
+              price:
+                res.invoice_products[i].product.product_recipes[j].recipe.price,
+            };
+          }
+        }
+        delete res.invoice_products;
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -665,6 +804,19 @@ export class InvoiceService {
             .recipe_ingredients) {
             const decreQuantity =
               recipeIngredient.quantity * invoiceProduct.quantity;
+            const ingredient = await this.ingredientRepository.findOne({
+              where: {
+                id: recipeIngredient.ingredient.id,
+              },
+            });
+            if (decreQuantity > ingredient.quantity) {
+              throw new HttpException(
+                {
+                  messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
             await this.ingredientRepository.decrement(
               { id: recipeIngredient.ingredient.id },
               'quantity',
@@ -684,9 +836,14 @@ export class InvoiceService {
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+      }
       throw new HttpException(
         {
           message: message,
@@ -709,6 +866,14 @@ export class InvoiceService {
         },
       });
       if (invoice.status == 0) {
+        await this.invoiceRepository.update(id, {
+          status: 4,
+        });
+        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
+        return {
+          message: message,
+        };
+      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
         await this.invoiceRepository.update(id, {
           status: 4,
         });

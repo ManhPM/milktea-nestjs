@@ -27,6 +27,29 @@ export class UserService {
           },
         },
       });
+      if (res) {
+        const data = [
+          {
+            id: 0,
+            name: '',
+            phone: '',
+            address: '',
+            photo: '',
+          },
+        ];
+        for (let i = 0; i < res.length; i++) {
+          data[i] = {
+            id: res[i].id,
+            name: res[i].name,
+            address: res[i].address,
+            phone: res[i].account.phone,
+            photo: res[i].photo,
+          };
+        }
+        return {
+          data: data,
+        };
+      }
       return {
         data: res,
         total,
@@ -52,8 +75,23 @@ export class UserService {
         },
         relations: ['account'],
       });
-      delete user.account.password;
-      delete user.account.role;
+      if (user) {
+        const data = {
+          id: 0,
+          name: '',
+          phone: '',
+          address: '',
+          photo: '',
+        };
+        data.id = user.id;
+        data.name = user.name;
+        data.phone = user.account.phone;
+        data.address = user.address;
+        data.photo = user.photo;
+        return {
+          data: data,
+        };
+      }
       return {
         data: user,
       };

@@ -68,7 +68,7 @@ export class StaffService {
 
   async findAll(): Promise<any> {
     try {
-      const [res, total] = await this.staffRepository.findAndCount({
+      const res = await this.staffRepository.find({
         relations: ['account'],
         select: {
           account: {
@@ -76,11 +76,40 @@ export class StaffService {
           },
         },
       });
+      if (res) {
+        const data = [
+          {
+            id: 0,
+            name: '',
+            phone: '',
+            address: '',
+            gender: '',
+            birthday: null,
+            hiredate: null,
+            isActive: 0,
+          },
+        ];
+        for (let i = 0; i < res.length; i++) {
+          data[i] = {
+            id: res[i].id,
+            name: res[i].name,
+            address: res[i].address,
+            phone: res[i].account.phone,
+            gender: res[i].gender,
+            birthday: res[i].birthday,
+            hiredate: res[i].hiredate,
+            isActive: res[i].isActive,
+          };
+        }
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );
