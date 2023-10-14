@@ -444,7 +444,19 @@ export class InvoiceService {
       const topNames = Object.values(recipeCounts);
       const topToppings = Object.values(toppingCounts);
 
+      const totalImport = await this.dataSource.query(
+        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM import GROUP BY month ORDER BY month`,
+      );
+      const totalExport = await this.dataSource.query(
+        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM export GROUP BY month ORDER BY month`,
+      );
+      const importExportIngredients = await this.dataSource.query(
+        `SELECT I.*, (SELECT SUM(quantity) FROM import_ingredient WHERE ingredientId = I.id) as total_import, (SELECT IFNULL(SUM(quantity), 0) FROM export_ingredient WHERE ingredientId = I.id) as total_export FROM ingredient as I`,
+      );
       return {
+        totalExport: totalExport,
+        totalImport: totalImport,
+        importExportIngredients: importExportIngredients,
         percentCusReOrder: Number(count[0].percent),
         topNames: topNames,
         topToppings: topToppings,
@@ -454,6 +466,7 @@ export class InvoiceService {
         countInvoices: countInvoices,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );
@@ -791,6 +804,19 @@ export class InvoiceService {
             .recipe_ingredients) {
             const decreQuantity =
               recipeIngredient.quantity * invoiceProduct.quantity;
+            const ingredient = await this.ingredientRepository.findOne({
+              where: {
+                id: recipeIngredient.ingredient.id,
+              },
+            });
+            if (decreQuantity > ingredient.quantity) {
+              throw new HttpException(
+                {
+                  messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
             await this.ingredientRepository.decrement(
               { id: recipeIngredient.ingredient.id },
               'quantity',
@@ -810,9 +836,14 @@ export class InvoiceService {
       };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+      }
       throw new HttpException(
         {
           message: message,
@@ -835,6 +866,14 @@ export class InvoiceService {
         },
       });
       if (invoice.status == 0) {
+        await this.invoiceRepository.update(id, {
+          status: 4,
+        });
+        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
+        return {
+          message: message,
+        };
+      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
         await this.invoiceRepository.update(id, {
           status: 4,
         });

@@ -17,9 +17,10 @@ import { CheckExistStaff } from 'src/common/middlewares/middlewares';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from 'src/user/entities/user.entity';
 import { MessageService } from 'src/common/lib';
+import { Verify } from 'src/verify/entities/verify.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Staff, Account, User])],
+  imports: [TypeOrmModule.forFeature([Staff, Account, User, Verify])],
   controllers: [StaffController],
   providers: [StaffService, AuthService, MessageService],
 })

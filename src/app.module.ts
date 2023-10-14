@@ -31,6 +31,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
 import { InvoiceService } from './invoice/invoice.service';
 import { InvoiceProductService } from './invoice_product/invoice_product.service';
+import { VerifyModule } from './verify/verify.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { InvoiceProductService } from './invoice_product/invoice_product.service
         },
       },
     }),
+    VerifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

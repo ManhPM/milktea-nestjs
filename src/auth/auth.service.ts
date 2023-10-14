@@ -11,34 +11,164 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from 'src/account/entities/account.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
-import { MessageService } from 'src/common/lib';
+import { MessageService, isNumberic } from 'src/common/lib';
+import { Verify } from 'src/verify/entities/verify.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Account) readonly accountRepository: Repository<Account>,
     @InjectRepository(User) readonly userRepository: Repository<User>,
+    @InjectRepository(Verify) readonly verifyRepository: Repository<Verify>,
     private readonly mailerService: MailerService,
     private readonly messageService: MessageService,
   ) {}
 
-  async sendSms(phoneNumber: string, password: string) {
-    // Định dạng email-to-SMS theo nhà mạng của bạn
-    // Ví dụ này sử dụng Verizon
-    const smsAddress = phoneNumber + '@vtext.com';
-    const message = 'MÃ XÁC NHẬN CỦA BẠN LÀ ABC';
-    // Gửi email đến smsAddress với nội dung là message
-    await this.mailerService.sendMail({
-      to: smsAddress,
-      subject: '',
-      text: message,
-    });
-    return {
-      message: 'Gửi tin nhắn thành công',
-    };
+  async sendSms(phoneNumber: string) {
+    try {
+      const phone = await this.accountRepository.findOne({
+        where: {
+          phone: phoneNumber,
+        },
+      });
+      if (phone) {
+        throw new HttpException(
+          {
+            messageCode: 'PHONE_ISEXIST_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const date = new Date();
+      date.setHours(date.getHours() + 7);
+      const phoneVerify = await this.verifyRepository.findOne({
+        where: {
+          phone: phoneNumber,
+          expireAt: LessThan(date),
+        },
+      });
+      if (phoneVerify) {
+        throw new HttpException(
+          {
+            messageCode: 'SMS_SEND_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const randomID = Math.floor(100000 + Math.random() * 900000);
+      const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
+      await client.messages.create({
+        body: `Mã xác minh của bạn là ${randomID}`,
+        to: phoneNumber,
+        from: `${process.env.PHONE}`,
+      });
+      const message = await this.messageService.getMessage('SMS_SEND_SUCCESS');
+      return {
+        message: message,
+      };
+    } catch (error) {
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  async verify(phoneNumber: string, verifyID: string) {
+    try {
+      if (verifyID.length < 6) {
+        throw new HttpException(
+          {
+            messageCode: 'VERIFY_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!isNumberic(verifyID)) {
+        throw new HttpException(
+          {
+            messageCode: 'VERIFY_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const date = new Date();
+      date.setHours(date.getHours() + 7);
+      const phoneVerify = await this.verifyRepository.findOne({
+        where: {
+          phone: phoneNumber,
+          verifyID: verifyID,
+        },
+      });
+      if (!phoneVerify) {
+        throw new HttpException(
+          {
+            messageCode: 'VERIFY_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (phoneVerify.expireAt <= date) {
+        throw new HttpException(
+          {
+            messageCode: 'VERIFY_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const phoneList = await this.verifyRepository.find({
+        where: {
+          phone: phoneNumber,
+        },
+      });
+      for (const phone of phoneList) {
+        await this.verifyRepository.delete(phone.id);
+      }
+      const message = await this.messageService.getMessage('VERIFY_SUCCESS');
+      return {
+        message: message,
+      };
+    } catch (error) {
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
   }
 
   async create(createAccountDto: CreateAccountDto) {

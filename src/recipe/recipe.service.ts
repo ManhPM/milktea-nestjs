@@ -69,7 +69,6 @@ export class RecipeService {
           where: {
             type: Not(5),
             name: Like('%' + keyword + '%'),
-            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -77,7 +76,6 @@ export class RecipeService {
         res = await this.recipeRepository.find({
           where: {
             type: Not(5),
-            isActive: Not(0),
           },
           relations: ['type'],
         });

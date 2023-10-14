@@ -154,6 +154,7 @@ export class CartProductService {
             ],
           },
         ];
+        let totalCart = 0;
         for (let i = 0; i < res.length; i++) {
           data[i] = {
             id: res[i].product.id,
@@ -165,7 +166,11 @@ export class CartProductService {
             price: res[i].product.product_recipes[0].recipe.price,
             toppings: [],
           };
-
+          if (res[i].size != 0) {
+            totalCart += res[i].quantity * res[i].size;
+          }
+          totalCart +=
+            res[i].quantity * res[i].product.product_recipes[0].recipe.price;
           for (let j = 1; j < res[i].product.product_recipes.length; j++) {
             data[i].toppings[j - 1] = {
               id: res[i].product.product_recipes[j].recipe.id,
@@ -173,10 +178,13 @@ export class CartProductService {
               image: res[i].product.product_recipes[j].recipe.image,
               price: res[i].product.product_recipes[j].recipe.price,
             };
+            totalCart +=
+              res[i].quantity * res[i].product.product_recipes[j].recipe.price;
           }
         }
         return {
           data: data,
+          total: totalCart,
         };
       }
       return {

@@ -17,9 +17,10 @@ import {
   validateUpdateUser,
 } from 'src/common/middlewares/validate';
 import { MessageService } from 'src/common/lib';
+import { Verify } from 'src/verify/entities/verify.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Account, User, MailerService])],
+  imports: [TypeOrmModule.forFeature([Account, User, MailerService, Verify])],
   controllers: [AuthController],
   providers: [AuthService, MessageService],
 })

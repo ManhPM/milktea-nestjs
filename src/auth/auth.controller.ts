@@ -144,11 +144,8 @@ export class AuthController {
   }
 
   @Post('sms')
-  async sendSMS(
-    @Body('phone') phone: string,
-    @Body('password') password: string,
-  ): Promise<any> {
-    return this.authService.sendSms(phone, password);
+  async sendSMS(@Body('phone') phone: string): Promise<any> {
+    return this.authService.sendSms(phone);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
