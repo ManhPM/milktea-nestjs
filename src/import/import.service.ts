@@ -101,12 +101,39 @@ export class ImportService {
 
   async findOne(id: number) {
     try {
-      return await this.importRepository.findOne({
+      const res = await this.importRepository.findOne({
         where: {
           id: id,
         },
         relations: ['staff', 'import_ingredients.ingredient'],
       });
+      const data = {
+        id: null,
+        date: null,
+        isCompleted: null,
+        total: null,
+        description: null,
+        staff: {},
+        ingredients: [
+          {
+            quantity: 0,
+          },
+        ],
+      };
+      if (res) {
+        data.id = res.id;
+        data.date = res.date;
+        data.isCompleted = res.isCompleted;
+        data.total = res.total;
+        data.description = res.description;
+        data.staff = res.staff;
+        for (let i = 0; i < res.import_ingredients.length; i++) {
+          data.ingredients[i] = res.import_ingredients[i].ingredient;
+          data.ingredients[i].quantity = res.import_ingredients[i].quantity;
+        }
+        return data;
+      }
+      return null;
     } catch (error) {
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',

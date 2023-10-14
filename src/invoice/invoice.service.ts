@@ -441,10 +441,13 @@ export class InvoiceService {
         `SELECT COUNT(userId)/COUNT(id)*100 as percent FROM invoice WHERE status = 3 GROUP BY userId HAVING COUNT(userId) >= 2`,
       );
 
+      const topNames = Object.values(recipeCounts);
+      const topToppings = Object.values(toppingCounts);
+
       return {
         percentCusReOrder: Number(count[0].percent),
-        topNames: recipeCounts,
-        topToppings: toppingCounts,
+        topNames: topNames,
+        topToppings: topToppings,
         revenue: revenue,
         countToppings: countToppings,
         countRecipes: countRecipes,
@@ -484,11 +487,72 @@ export class InvoiceService {
           'product_recipes',
           'recipe',
         ])
+        .orderBy('product_recipes.isMain', 'DESC')
         .where('invoice.id = :id', { id: id })
         .getMany();
+      if (res) {
+        const data = {
+          invoice: {},
+          user: {
+            phone: '',
+            name: '',
+            address: '',
+          },
+          products: [
+            {
+              quantity: 0,
+              size: 0,
+              name: '',
+              image: '',
+              toppings: [
+                {
+                  name: '',
+                  image: '',
+                  price: 0,
+                },
+              ],
+            },
+          ],
+        };
+        data.user.name = res.user.name;
+        data.user.address = res.user.address;
+        data.user.phone = res.user.account.phone;
+        delete res.user;
+        data.invoice = res;
+        for (let i = 0; i < res.invoice_products.length; i++) {
+          for (let i = 0; i < res.invoice_products.length; i++) {
+            data.products[i] = {
+              quantity: res.invoice_products[i].quantity,
+              size: res.invoice_products[i].size,
+              name: res.invoice_products[i].product.product_recipes[0].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[0].recipe.image,
+              toppings: [],
+            };
+          }
+          for (
+            let j = 1;
+            j < res.invoice_products[i].product.product_recipes.length;
+            j++
+          ) {
+            data.products[i].toppings[j - 1] = {
+              name: res.invoice_products[i].product.product_recipes[j].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[j].recipe.image,
+              price:
+                res.invoice_products[i].product.product_recipes[j].recipe.price,
+            };
+          }
+        }
+        delete res.invoice_products;
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -524,11 +588,73 @@ export class InvoiceService {
           'product_recipes',
           'recipe',
         ])
-        .where('invoice.status <= :status', { status: 3 })
+        .where('invoice.status < :status', { status: 3 })
         .andWhere('invoice.user.id = :user', { user: req.user[0].id })
         .getOne();
+
+      if (res) {
+        const data = {
+          invoice: {},
+          user: {
+            phone: '',
+            name: '',
+            address: '',
+          },
+          products: [
+            {
+              quantity: 0,
+              size: 0,
+              name: '',
+              image: '',
+              toppings: [
+                {
+                  name: '',
+                  image: '',
+                  price: 0,
+                },
+              ],
+            },
+          ],
+        };
+        data.user.name = res.user.name;
+        data.user.address = res.user.address;
+        data.user.phone = res.user.account.phone;
+        delete res.user;
+        data.invoice = res;
+        for (let i = 0; i < res.invoice_products.length; i++) {
+          for (let i = 0; i < res.invoice_products.length; i++) {
+            data.products[i] = {
+              quantity: res.invoice_products[i].quantity,
+              size: res.invoice_products[i].size,
+              name: res.invoice_products[i].product.product_recipes[0].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[0].recipe.image,
+              toppings: [],
+            };
+          }
+          for (
+            let j = 1;
+            j < res.invoice_products[i].product.product_recipes.length;
+            j++
+          ) {
+            data.products[i].toppings[j - 1] = {
+              name: res.invoice_products[i].product.product_recipes[j].recipe
+                .name,
+              image:
+                res.invoice_products[i].product.product_recipes[j].recipe.image,
+              price:
+                res.invoice_products[i].product.product_recipes[j].recipe.price,
+            };
+          }
+        }
+        delete res.invoice_products;
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(

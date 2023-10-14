@@ -130,9 +130,18 @@ export class RecipeService {
         },
         relations: ['recipe'],
       });
+
+      if (res) {
+        const data = [{}];
+        for (let i = 0; i < res.length; i++) {
+          data[i] = res[i].recipe;
+        }
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -177,37 +186,22 @@ export class RecipeService {
         where: {
           id: id,
         },
-        relations: ['recipe_inredients.ingredient'],
+        relations: ['recipe_ingredients.ingredient'],
       });
+      if (res) {
+        const data = [{}];
+        for (let i = 0; i < res.recipe_ingredients.length; i++) {
+          data[i] = res.recipe_ingredients[i];
+        }
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
+        data: null,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async getToppingByRecipe(id: number) {
-    try {
-      const [res, total] = await this.productRecipeRepository.findAndCount({
-        where: {
-          product: Like('%' + id + '%'),
-        },
-        relations: ['recipe', 'product'],
-      });
-      return {
-        data: res,
-        total,
-      };
-    } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );

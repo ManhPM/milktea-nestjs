@@ -92,10 +92,29 @@ export class AuthController {
       }
     }
 
-    delete account.password;
-
     const token = await this.jwtService.signAsync({ account });
-
+    const userInfo = {
+      phone: '',
+      accountId: 1,
+      userId: 1,
+      role: 0,
+      name: '',
+      address: '',
+      photo: '',
+    };
+    userInfo.phone = account.phone;
+    userInfo.accountId = account.accountId;
+    userInfo.role = account.role;
+    if (account.role == 0) {
+      userInfo.userId = account.user[0].id;
+      userInfo.name = account.user[0].name;
+      userInfo.address = account.user[0].address;
+      userInfo.photo = account.user[0].photo;
+    } else {
+      userInfo.userId = account.staff[0].id;
+      userInfo.name = account.staff[0].name;
+      userInfo.address = account.staff[0].address;
+    }
     response.cookie('token', token, {
       httpOnly: true,
       sameSite: 'none',
@@ -103,7 +122,7 @@ export class AuthController {
     });
     const message = await this.messageService.getMessage('LOGIN_SUCCESS');
     return {
-      userInfo: account,
+      userInfo: userInfo,
       message: message,
     };
   }
@@ -122,6 +141,14 @@ export class AuthController {
   @UsePipes(ValidationPipe)
   async register(@Body() item: CreateAccountDto): Promise<any> {
     return this.authService.create(item);
+  }
+
+  @Post('sms')
+  async sendSMS(
+    @Body('phone') phone: string,
+    @Body('password') password: string,
+  ): Promise<any> {
+    return this.authService.sendSms(phone, password);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
