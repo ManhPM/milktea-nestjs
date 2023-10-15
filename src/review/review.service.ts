@@ -83,6 +83,9 @@ export class ReviewService {
           recipe: Like('%' + id + '%'),
         },
         relations: ['user', 'recipe'],
+        order: {
+          date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+        },
       });
       return {
         data: res,

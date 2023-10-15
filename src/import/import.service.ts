@@ -30,6 +30,9 @@ export class ImportService {
         where: {
           isCompleted: MoreThan(0),
         },
+        order: {
+          date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+        },
       });
       return {
         data: res,

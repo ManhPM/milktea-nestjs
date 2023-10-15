@@ -58,7 +58,13 @@ export class AuthService {
           HttpStatus.BAD_REQUEST,
         );
       }
+      date.setMinutes(date.getMinutes() + 5);
       const randomID = Math.floor(100000 + Math.random() * 900000);
+      await this.verifyRepository.save({
+        phone: phoneNumber,
+        verifyID: randomID.toString(),
+        expireAt: date,
+      });
       const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
       await client.messages.create({
         body: `Mã xác minh của bạn là ${randomID}`,
