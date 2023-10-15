@@ -14,7 +14,7 @@ import { User } from 'src/user/entities/user.entity';
 import { LessThan, Repository } from 'typeorm';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
-import { MessageService, isNumberic } from 'src/common/lib';
+import { MessageService, convertPhoneNumber, isNumberic } from 'src/common/lib';
 import { Verify } from 'src/verify/entities/verify.entity';
 
 @Injectable()
@@ -29,6 +29,30 @@ export class AuthService {
 
   async sendSms(phoneNumber: string) {
     try {
+      if (!phoneNumber) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!isNumberic(phoneNumber)) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (phoneNumber.length != 10) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       const phone = await this.accountRepository.findOne({
         where: {
           phone: phoneNumber,
@@ -65,10 +89,11 @@ export class AuthService {
         verifyID: randomID.toString(),
         expireAt: date,
       });
+      const convertPhone = convertPhoneNumber(phoneNumber);
       const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
       await client.messages.create({
         body: `Mã xác minh của bạn là ${randomID}`,
-        to: phoneNumber,
+        to: convertPhone,
         from: `${process.env.PHONE}`,
       });
       const message = await this.messageService.getMessage('SMS_SEND_SUCCESS');
