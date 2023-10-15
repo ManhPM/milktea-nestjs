@@ -53,8 +53,13 @@ export class RecipeController {
   }
 
   @Get('/type-topping/:id')
-  getToppingOfType(@Param('id') id: string) {
-    return this.recipeService.getToppingOfType(+id);
+  getToppingByType(@Param('id') id: string) {
+    return this.recipeService.getToppingByType(+id);
+  }
+
+  @Get('/recipe-topping/:id')
+  getToppingByRecipe(@Param('id') id: string) {
+    return this.recipeService.getToppingByRecipe(+id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

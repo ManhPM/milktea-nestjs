@@ -120,7 +120,7 @@ export class RecipeService {
     }
   }
 
-  async getToppingOfType(id: number) {
+  async getToppingByType(id: number) {
     try {
       const [res, total] = await this.recipeTypeRepository.findAndCount({
         where: {
@@ -133,6 +133,39 @@ export class RecipeService {
         const data = [{}];
         for (let i = 0; i < res.length; i++) {
           data[i] = res[i].recipe;
+        }
+        return {
+          data: data,
+        };
+      }
+      return {
+        data: null,
+      };
+    } catch (error) {
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getToppingByRecipe(id: number) {
+    try {
+      const res = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
+        relations: ['type.recipe_types.recipe'],
+      });
+      if (res) {
+        const data = [{}];
+        for (let i = 0; i < res.type.recipe_types.length; i++) {
+          data[i] = res.type.recipe_types[i].recipe;
         }
         return {
           data: data,

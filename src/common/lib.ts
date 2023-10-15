@@ -65,6 +65,13 @@ export class MessageService {
   }
 }
 
+export function convertPhoneNumber(phoneNumber: any) {
+  if (phoneNumber.startsWith('0')) {
+    return '+84' + phoneNumber.slice(1);
+  }
+  return phoneNumber;
+}
+
 export function isNumberic(phone: any) {
   const regex = /^[0-9]+$/;
   return regex.test(phone);
