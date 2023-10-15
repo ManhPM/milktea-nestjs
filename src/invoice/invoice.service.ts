@@ -539,6 +539,7 @@ export class InvoiceService {
           products: [
             {
               quantity: 0,
+              price: 0,
               size: 0,
               name: '',
               image: '',
@@ -562,6 +563,7 @@ export class InvoiceService {
             data.products[i] = {
               quantity: res.invoice_products[i].quantity,
               size: res.invoice_products[i].size,
+              price: res.invoice_products[i].price,
               name: res.invoice_products[i].product.product_recipes[0].recipe
                 .name,
               image:

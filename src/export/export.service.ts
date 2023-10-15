@@ -27,6 +27,9 @@ export class ExportService {
     try {
       const [res, total] = await this.exportRepository.findAndCount({
         relations: ['staff'],
+        order: {
+          date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+        },
       });
       return {
         data: res,

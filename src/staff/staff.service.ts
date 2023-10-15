@@ -75,6 +75,9 @@ export class StaffService {
             phone: true,
           },
         },
+        order: {
+          hiredate: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+        },
       });
       if (res) {
         const data = [
