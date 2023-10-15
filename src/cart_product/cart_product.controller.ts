@@ -45,9 +45,9 @@ export class CartProductController {
   update(
     @Request() req,
     @Param('id') id: string,
-    @Body() updateCartProductDto: UpdateCartProductDto,
+    @Body() item: CreateCartProductDto,
   ) {
-    return this.cartProductService.update(req, +id, updateCartProductDto);
+    return this.cartProductService.update(+id, item, req);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

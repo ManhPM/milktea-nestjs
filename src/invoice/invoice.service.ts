@@ -153,7 +153,7 @@ export class InvoiceService {
           id: id_order,
         },
       });
-      if (invoice.isPaid == 0 && amount == invoice.total) {
+      if (invoice.isPaid == 0 && amount == invoice.total * 1000) {
         await this.invoiceRepository.update(invoice.id, {
           isPaid: 1,
         });
@@ -315,12 +315,18 @@ export class InvoiceService {
                 user: Like('%' + req.user[0].id + '%'),
                 date: Between(today, tomorrow),
               },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+              },
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 user: Like('%' + req.user[0].id + '%'),
                 status,
+              },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
             });
           }
@@ -331,11 +337,17 @@ export class InvoiceService {
                 user: Like('%' + req.user[0].id + '%'),
                 date: Between(today, tomorrow),
               },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+              },
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 user: Like('%' + req.user[0].id + '%'),
+              },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
             });
           }
@@ -348,11 +360,17 @@ export class InvoiceService {
                 status,
                 date: Between(today, tomorrow),
               },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+              },
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
+              },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
             });
           }
@@ -362,9 +380,16 @@ export class InvoiceService {
               where: {
                 date: Between(today, tomorrow),
               },
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+              },
             });
           } else {
-            [res, total] = await this.invoiceRepository.findAndCount({});
+            [res, total] = await this.invoiceRepository.findAndCount({
+              order: {
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+              },
+            });
           }
         }
       }
@@ -739,7 +764,7 @@ export class InvoiceService {
             await this.invoiceProductRepository.save({
               size: cartProduct.size,
               quantity: cartProduct.quantity,
-              price: (price + shop[0].upSizePrice) * 1000,
+              price: price + shop[0].upSizePrice,
               invoice: invoice,
               product: product,
               isReviewed: 0,
@@ -748,7 +773,7 @@ export class InvoiceService {
             await this.invoiceProductRepository.save({
               size: 0,
               quantity: cartProduct.quantity,
-              price: price * 1000,
+              price: price,
               invoice: invoice,
               product: product,
               isReviewed: 0,
@@ -760,7 +785,7 @@ export class InvoiceService {
           await this.cartProductRepository.delete(cartProduct.id);
         }
         await this.invoiceRepository.update(invoice.id, {
-          total: total * 1000,
+          total: total,
         });
         await queryRunner.commitTransaction();
         const message =

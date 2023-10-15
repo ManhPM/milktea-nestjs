@@ -1,12 +1,6 @@
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
 import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import {
-  Injectable,
-  Request,
-  HttpStatus,
-  Res,
-  HttpException,
-} from '@nestjs/common';
+import { Injectable, Request, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateCartProductDto } from './dto/create-cart_product.dto';
 import { UpdateCartProductDto } from './dto/update-cart_product.dto';
 import { DataSource, Like, Repository } from 'typeorm';
@@ -123,6 +117,78 @@ export class CartProductService {
     }
   }
 
+  async update(
+    id: number,
+    createCartProductDto: CreateCartProductDto,
+    @Request() req,
+  ) {
+    const productString = createCartProductDto.productString;
+    const splitMain = productString.substring(2);
+    const recipeString = splitMain.split(',');
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+      const product = await this.productRepository.findOne({
+        where: {
+          productString: productString,
+        },
+      });
+      const currentProduct = await this.cartProductRepository.findOne({
+        where: {
+          product: Like('%' + id + '%'),
+          user: user,
+        },
+      });
+      const cartProduct = await this.cartProductRepository.findOne({
+        where: {
+          user: user,
+          product: product,
+        },
+      });
+      if (cartProduct) {
+        await this.cartProductRepository.update(cartProduct.id, {
+          size: createCartProductDto.size,
+          quantity: Number(createCartProductDto.quantity),
+        });
+      } else {
+        await this.cartProductRepository.delete({
+          id: currentProduct.id,
+        });
+        await this.cartProductRepository.save({
+          ...createCartProductDto,
+          product,
+          user,
+        });
+      }
+      await queryRunner.commitTransaction();
+      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
+      return {
+        message: message,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } finally {
+      // Đảm bảo rằng kết nối luôn được giải phóng
+      await queryRunner.release();
+    }
+  }
+
   async findAll(@Request() req): Promise<any> {
     try {
       const [res, total] = await this.cartProductRepository.findAndCount({
@@ -156,6 +222,7 @@ export class CartProductService {
         ];
         let totalCart = 0;
         for (let i = 0; i < res.length; i++) {
+          let toppingPrice = 0;
           data[i] = {
             id: res[i].product.id,
             quantity: res[i].quantity,
@@ -163,14 +230,12 @@ export class CartProductService {
             name: res[i].product.product_recipes[0].recipe.name,
             discount: res[i].product.product_recipes[0].recipe.discount,
             image: res[i].product.product_recipes[0].recipe.image,
-            price: res[i].product.product_recipes[0].recipe.price,
+            price: res[i].product.product_recipes[0].recipe.price + res[i].size,
             toppings: [],
           };
           if (res[i].size != 0) {
             totalCart += res[i].quantity * res[i].size;
           }
-          totalCart +=
-            res[i].quantity * res[i].product.product_recipes[0].recipe.price;
           for (let j = 1; j < res[i].product.product_recipes.length; j++) {
             data[i].toppings[j - 1] = {
               id: res[i].product.product_recipes[j].recipe.id,
@@ -180,7 +245,14 @@ export class CartProductService {
             };
             totalCart +=
               res[i].quantity * res[i].product.product_recipes[j].recipe.price;
+            toppingPrice += res[i].product.product_recipes[j].recipe.price;
           }
+          totalCart +=
+            res[i].quantity * res[i].product.product_recipes[0].recipe.price;
+          data[i].price =
+            res[i].product.product_recipes[0].recipe.price +
+            res[i].size +
+            toppingPrice;
         }
         return {
           data: data,
@@ -226,41 +298,6 @@ export class CartProductService {
 
   findOne(id: number) {
     return `This action returns a #${id} cartProduct`;
-  }
-
-  async update(
-    @Request() req,
-    id: number,
-    updateCartProductDto: UpdateCartProductDto,
-  ): Promise<any> {
-    try {
-      const item = await this.cartProductRepository.findOne({
-        where: {
-          user: Like('%' + req.user[0].id + '%'),
-          product: Like('%' + id + '%'),
-        },
-      });
-      await this.cartProductRepository.update(item.id, {
-        size: updateCartProductDto.size,
-        quantity: updateCartProductDto.quantity,
-        product: item.product,
-        user: item.user,
-      });
-      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
   }
 
   async remove(id: number, @Request() req) {
