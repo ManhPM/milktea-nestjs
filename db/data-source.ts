@@ -10,6 +10,7 @@ export const dataSourceOptions: DataSourceOptions = {
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/db/migrations/*.js'],
   synchronize: false,
+  timezone: 'Asia/Ho_Chi_Minh',
 };
 
 const dataSource = new DataSource(dataSourceOptions);

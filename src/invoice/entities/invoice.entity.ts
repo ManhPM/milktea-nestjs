@@ -4,6 +4,7 @@ import { Staff } from 'src/staff/entities/staff.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,

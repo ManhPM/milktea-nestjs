@@ -143,7 +143,7 @@ export class AuthService {
         );
       }
       const date = new Date();
-      date.setHours(date.getHours() + 7);
+      date.setHours(date.getHours() - 3);
       const phoneVerify = await this.verifyRepository.findOne({
         where: {
           phone: phoneNumber,
@@ -159,6 +159,7 @@ export class AuthService {
         );
       }
       if (phoneVerify.expireAt <= date) {
+        console.log(phoneVerify);
         throw new HttpException(
           {
             messageCode: 'VERIFY_ERROR3',

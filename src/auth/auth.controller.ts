@@ -148,6 +148,14 @@ export class AuthController {
     return this.authService.sendSms(phone);
   }
 
+  @Post('verify')
+  async verify(
+    @Body('phone') phone: string,
+    @Body('verifyID') verifyID: string,
+  ): Promise<any> {
+    return this.authService.verify(phone, verifyID);
+  }
+
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('0')
   @Patch('profile')
