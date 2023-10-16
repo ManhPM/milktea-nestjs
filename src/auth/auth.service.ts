@@ -224,6 +224,7 @@ export class AuthService {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );

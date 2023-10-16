@@ -162,7 +162,7 @@ export class validateRegister implements NestMiddleware {
       if (exists) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_PHONE_ERROR3',
+            messageCode: 'PHONE_ISEXIST_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
