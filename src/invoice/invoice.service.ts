@@ -306,7 +306,7 @@ export class InvoiceService {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     try {
-      if (req.user[0].role == 0) {
+      if (req.role == 0) {
         if (status) {
           if (date) {
             [res, total] = await this.invoiceRepository.findAndCount({
