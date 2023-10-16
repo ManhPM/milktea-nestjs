@@ -129,7 +129,7 @@ export class RecipeService {
         relations: ['recipe'],
       });
 
-      if (res) {
+      if (res[0]) {
         const data = [{}];
         for (let i = 0; i < res.length; i++) {
           data[i] = res[i].recipe;

@@ -27,7 +27,7 @@ export class UserService {
           },
         },
       });
-      if (res) {
+      if (res[0]) {
         const data = [
           {
             id: 0,
@@ -71,7 +71,7 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          account: req.user.id,
+          account: req.user[0].id,
         },
         relations: ['account'],
       });

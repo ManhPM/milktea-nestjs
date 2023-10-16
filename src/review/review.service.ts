@@ -36,7 +36,7 @@ export class ReviewService {
       }
       const user = await this.userRepository.findOne({
         where: {
-          id: req.user.id,
+          id: req.user[0].id,
         },
       });
       const invoiceProducts = await this.invoiceProductRepository.findOne({

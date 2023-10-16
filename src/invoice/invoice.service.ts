@@ -745,7 +745,7 @@ export class InvoiceService {
         });
         const cartProducts = await this.cartProductRepository.find({
           where: {
-            user: req.user[0].id,
+            user: Like('%' + req.user[0].id + '%'),
           },
           relations: ['user', 'product.product_recipes.recipe'],
         });
@@ -900,7 +900,7 @@ export class InvoiceService {
         return {
           message: message,
         };
-      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
+      } else if (invoice.status == 0 && invoice.user.id == req.user[0].id) {
         await this.invoiceRepository.update(id, {
           status: 4,
         });

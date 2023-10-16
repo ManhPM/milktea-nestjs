@@ -38,7 +38,7 @@ export class CartProductService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: req.user.id,
+          id: req.user[0].id,
         },
       });
       let product = await this.productRepository.findOne({
@@ -132,7 +132,7 @@ export class CartProductService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: req.user.id,
+          id: req.user[0].id,
         },
       });
       const product = await this.productRepository.findOne({
@@ -191,16 +191,18 @@ export class CartProductService {
 
   async findAll(@Request() req): Promise<any> {
     try {
-      const [res, total] = await this.cartProductRepository.findAndCount({
+      console.log(req.user[0].id);
+      const res = await this.cartProductRepository.find({
         where: {
-          user: req.user.id,
+          user: Like('%' + req.user[0].id + '%'),
         },
         relations: ['product.product_recipes.recipe'],
       });
       for (let i = 0; i < res.length; i++) {
         res[i].product.product_recipes.sort((a, b) => b.isMain - a.isMain);
       }
-      if (res) {
+      if (res[0]) {
+        console.log(res);
         const data = [
           {
             id: 0,
@@ -260,8 +262,7 @@ export class CartProductService {
         };
       }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -304,7 +305,7 @@ export class CartProductService {
     try {
       const item = await this.cartProductRepository.findOne({
         where: {
-          user: req.user[0].id,
+          user: Like('%' + req.user[0].id + '%'),
           product: Like('%' + id + '%'),
         },
         relations: ['user', 'product'],

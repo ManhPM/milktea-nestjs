@@ -79,7 +79,7 @@ export class StaffService {
           hiredate: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
         },
       });
-      if (res) {
+      if (res[0]) {
         const data = [
           {
             id: 0,
