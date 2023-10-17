@@ -315,7 +315,7 @@ export class validateCreateCartProduct implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!size) {
+      if (!size && size != 0) {
         throw new HttpException(
           {
             messageCode: 'INPUT_SIZE_ERROR',
