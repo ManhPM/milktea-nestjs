@@ -22,7 +22,7 @@ export class WishlistService {
     try {
       const item = await this.wishlistRepository.findOne({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          user: Like('%' + req.user.id + '%'),
           recipe: Like('%' + id + '%'),
         },
         relations: ['user', 'recipe'],
@@ -41,7 +41,7 @@ export class WishlistService {
       } else {
         const user = await this.userRepository.findOne({
           where: {
-            id: req.user[0].id,
+            id: req.user.id,
           },
         });
         const recipe = await this.recipeRepository.findOne({
@@ -77,7 +77,7 @@ export class WishlistService {
     try {
       const [res, total] = await this.wishlistRepository.findAndCount({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          user: Like('%' + req.user.id + '%'),
         },
         relations: ['recipe'],
       });

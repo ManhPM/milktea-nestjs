@@ -320,7 +320,7 @@ export class InvoiceService {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
                 date: Between(today, tomorrow),
               },
               order: {
@@ -330,7 +330,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
                 status,
               },
               order: {
@@ -342,7 +342,7 @@ export class InvoiceService {
           if (date) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
                 date: Between(today, tomorrow),
               },
               order: {
@@ -352,7 +352,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -636,7 +636,7 @@ export class InvoiceService {
           'recipe',
         ])
         .where('invoice.status < :status', { status: 3 })
-        .andWhere('invoice.user.id = :user', { user: req.user[0].id })
+        .andWhere('invoice.user.id = :user', { user: req.user.id })
         .getOne();
 
       if (res) {
@@ -730,14 +730,14 @@ export class InvoiceService {
     try {
       const checkCreate = await this.invoiceRepository.findOne({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          user: Like('%' + req.user.id + '%'),
           status: Not(In([3, 4])),
         },
       });
       if (!checkCreate) {
         const cartProducts = await this.cartProductRepository.find({
           where: {
-            user: Like('%' + req.user[0].id + '%'),
+            user: Like('%' + req.user.id + '%'),
           },
           relations: ['user', 'product.product_recipes.recipe'],
         });
@@ -773,7 +773,7 @@ export class InvoiceService {
         });
         const user = await this.userRepository.findOne({
           where: {
-            id: req.user[0].id,
+            id: req.user.id,
           },
         });
         const invoice = await this.invoiceRepository.save({
@@ -904,7 +904,7 @@ export class InvoiceService {
       }
       await this.invoiceRepository.update(id, {
         status: 1,
-        staff: req.user[0].id,
+        staff: req.user.id,
       });
       await queryRunner.commitTransaction();
       const message = await this.messageService.getMessage('CONFIRM_SUCCESS');
@@ -950,7 +950,7 @@ export class InvoiceService {
         return {
           message: message,
         };
-      } else if (invoice.status == 0 && invoice.user.id == req.user[0].id) {
+      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
         await this.invoiceRepository.update(id, {
           status: 4,
         });

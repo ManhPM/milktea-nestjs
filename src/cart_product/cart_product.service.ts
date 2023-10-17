@@ -38,7 +38,7 @@ export class CartProductService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: req.user[0].id,
+          id: req.user.id,
         },
       });
       let product = await this.productRepository.findOne({
@@ -132,7 +132,7 @@ export class CartProductService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          id: req.user[0].id,
+          id: req.user.id,
         },
       });
       const product = await this.productRepository.findOne({
@@ -193,7 +193,7 @@ export class CartProductService {
     try {
       const res = await this.cartProductRepository.find({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          user: Like('%' + req.user.id + '%'),
         },
         relations: ['product.product_recipes.recipe'],
       });
@@ -305,7 +305,7 @@ export class CartProductService {
     try {
       const item = await this.cartProductRepository.findOne({
         where: {
-          user: Like('%' + req.user[0].id + '%'),
+          user: Like('%' + req.user.id + '%'),
           product: Like('%' + id + '%'),
         },
         relations: ['user', 'product'],

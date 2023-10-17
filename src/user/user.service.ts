@@ -71,7 +71,7 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne({
         where: {
-          account: req.user[0].id,
+          account: req.user.id,
         },
         relations: ['account'],
       });
@@ -114,7 +114,7 @@ export class UserService {
 
   async update(@Request() req, updateUserDto: UpdateUserDto) {
     try {
-      await this.userRepository.update(req.user[0].id, {
+      await this.userRepository.update(req.user.id, {
         ...updateUserDto,
       });
     } catch (error) {

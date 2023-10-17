@@ -12,6 +12,8 @@ import { User } from 'src/user/entities/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import { CheckExistPhone } from 'src/common/middlewares/middlewares';
 import {
+  validateChangePassword,
+  validateForgotPassword,
   validateLogin,
   validateRegister,
   validateUpdateUser,
@@ -32,6 +34,12 @@ export class AuthModule implements NestModule {
     consumer
       .apply(validateRegister)
       .forRoutes({ path: 'auth/register', method: RequestMethod.POST });
+    consumer
+      .apply(validateChangePassword)
+      .forRoutes({ path: 'auth/changepassword', method: RequestMethod.POST });
+    consumer
+      .apply(CheckExistPhone, validateForgotPassword)
+      .forRoutes({ path: 'auth/forgotpassword', method: RequestMethod.POST });
     consumer
       .apply(validateUpdateUser)
       .forRoutes({ path: 'auth/profile', method: RequestMethod.PATCH });

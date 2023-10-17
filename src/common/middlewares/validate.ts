@@ -199,8 +199,6 @@ export class validateUpdateUser implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const phone = req.body.phone;
-      const password = req.body.password;
-      const repeatPassword = req.body.repeatPassword;
       if (phone) {
         if (phone.length != 10) {
           throw new HttpException(
@@ -210,44 +208,150 @@ export class validateUpdateUser implements NestMiddleware {
             HttpStatus.BAD_REQUEST,
           );
         }
-      }
-      if (password) {
-        if (!repeatPassword) {
+        if (!isNumberic(phone)) {
           throw new HttpException(
             {
-              messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+              messageCode: 'INPUT_PHONE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (phone.length != 10) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PHONE_ERROR2',
             },
             HttpStatus.BAD_REQUEST,
           );
         }
       }
-      if (repeatPassword) {
-        if (!password) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+      next();
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-      if (password && repeatPassword) {
-        if (password.length < 6 || repeatPassword < 6) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR2',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (password != repeatPassword) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR3',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+    }
+  }
+}
+
+@Injectable()
+export class validateChangePassword implements NestMiddleware {
+  constructor(private readonly messageService: MessageService) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const oldPassword = req.body.oldPassword;
+      const newPassword = req.body.newPassword;
+      const repeatPassword = req.body.repeatPassword;
+      if (!oldPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR4',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR6',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (
+        oldPassword.length < 6 ||
+        newPassword.length < 6 ||
+        repeatPassword.length < 6
+      ) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (repeatPassword != newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      next();
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
+
+@Injectable()
+export class validateForgotPassword implements NestMiddleware {
+  constructor(private readonly messageService: MessageService) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const newPassword = req.body.newPassword;
+      const phone = req.body.phone;
+      const repeatPassword = req.body.repeatPassword;
+      if (!phone) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (phone.length != 10) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (!isNumberic(phone)) {
         throw new HttpException(
@@ -261,6 +365,38 @@ export class validateUpdateUser implements NestMiddleware {
         throw new HttpException(
           {
             messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR6',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (newPassword.lengh < 6 || repeatPassword.length < 6) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (repeatPassword != newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
           },
           HttpStatus.BAD_REQUEST,
         );

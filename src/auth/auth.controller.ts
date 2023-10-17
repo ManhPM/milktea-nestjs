@@ -26,6 +26,7 @@ import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
 import { MessageService } from 'src/common/lib';
+import { ChangePassword } from 'src/user/dto/changepassword.dto';
 
 cloudinary.config({
   cloud_name: 'dgsumh8ih',
@@ -70,7 +71,6 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const account = await this.authService.findOne(`${phone}`);
-
     if (!(await bcrypt.compare(loginPassword, account.password))) {
       const message = await this.messageService.getMessage('AUTH_ERROR');
       throw new HttpException(
@@ -81,14 +81,16 @@ export class AuthController {
       );
     }
     if (account.role != 0) {
-      if (!account.staff[0].isActive) {
-        const message = await this.messageService.getMessage('AUTH_ERROR1');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
+      if (account.staff.length) {
+        if (!account.staff[0].isActive) {
+          const message = await this.messageService.getMessage('AUTH_ERROR1');
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
       }
     }
 
@@ -135,6 +137,20 @@ export class AuthController {
     return {
       message: message,
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('changepassword')
+  async changePassword(
+    @Request() req,
+    @Body() item: ChangePassword,
+  ): Promise<any> {
+    return this.authService.changePassword(req, item);
+  }
+
+  @Post('forgotpassword')
+  async forgotPassword(@Body() item: ChangePassword): Promise<any> {
+    return this.authService.forgotPassword(item);
   }
 
   @Post('register')

@@ -55,7 +55,7 @@ export class ImportService {
     try {
       return await this.importRepository.find({
         where: {
-          staff: req.user[0].id,
+          staff: req.user.id,
           isCompleted: 0,
         },
       });
@@ -209,7 +209,7 @@ export class ImportService {
       createImportDto.date = date;
       await this.importRepository.save({
         ...createImportDto,
-        staff: req.user[0].id,
+        staff: req.user.id,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {

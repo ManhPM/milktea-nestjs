@@ -100,7 +100,7 @@ export class ExportService {
     try {
       return await this.exportRepository.find({
         where: {
-          staff: req.user[0].id,
+          staff: req.user.id,
           isCompleted: 0,
         },
       });
@@ -154,7 +154,7 @@ export class ExportService {
       item.date = date;
       await this.exportRepository.save({
         ...item,
-        staff: req.user[0].id,
+        staff: req.user.id,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
