@@ -191,7 +191,6 @@ export class CartProductService {
 
   async findAll(@Request() req): Promise<any> {
     try {
-      console.log(req.user[0].id);
       const res = await this.cartProductRepository.find({
         where: {
           user: Like('%' + req.user[0].id + '%'),
@@ -202,7 +201,6 @@ export class CartProductService {
         res[i].product.product_recipes.sort((a, b) => b.isMain - a.isMain);
       }
       if (res[0]) {
-        console.log(res);
         const data = [
           {
             id: 0,
@@ -212,6 +210,7 @@ export class CartProductService {
             image: '',
             discount: 0,
             price: 0,
+            isActive: 0,
             toppings: [
               {
                 id: 0,
@@ -233,6 +232,7 @@ export class CartProductService {
             discount: res[i].product.product_recipes[0].recipe.discount,
             image: res[i].product.product_recipes[0].recipe.image,
             price: res[i].product.product_recipes[0].recipe.price + res[i].size,
+            isActive: res[i].product.product_recipes[0].recipe.isActive,
             toppings: [],
           };
           if (res[i].size != 0) {

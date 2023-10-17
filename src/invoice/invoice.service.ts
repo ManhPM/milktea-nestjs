@@ -15,7 +15,15 @@ import * as moment from 'moment';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { Invoice } from './entities/invoice.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
+import {
+  Between,
+  DataSource,
+  In,
+  LessThan,
+  Like,
+  Not,
+  Repository,
+} from 'typeorm';
 import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
@@ -491,7 +499,6 @@ export class InvoiceService {
         countInvoices: countInvoices,
       };
     } catch (error) {
-      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );
@@ -724,10 +731,41 @@ export class InvoiceService {
       const checkCreate = await this.invoiceRepository.findOne({
         where: {
           user: Like('%' + req.user[0].id + '%'),
-          isPaid: 0,
+          status: Not(In([3, 4])),
         },
       });
       if (!checkCreate) {
+        const cartProducts = await this.cartProductRepository.find({
+          where: {
+            user: Like('%' + req.user[0].id + '%'),
+          },
+          relations: ['user', 'product.product_recipes.recipe'],
+        });
+        if (!cartProducts[0]) {
+          throw new HttpException(
+            {
+              messageCode: 'CHECKOUT_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        for (const cartProduct of cartProducts) {
+          let isFail = 0;
+          for (const productRecipe of cartProduct.product.product_recipes) {
+            if (productRecipe.recipe.isActive == 0) {
+              isFail = 1;
+              await this.cartProductRepository.delete(cartProduct.id);
+            }
+          }
+          if (isFail) {
+            throw new HttpException(
+              {
+                messageCode: 'CHECKOUT_ERROR',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+        }
         const shippingCompany = await this.shippingCompanyRepository.findOne({
           where: {
             id: item.shippingCompanyId,
@@ -742,12 +780,6 @@ export class InvoiceService {
           ...item,
           user,
           shippingCompany,
-        });
-        const cartProducts = await this.cartProductRepository.find({
-          where: {
-            user: Like('%' + req.user[0].id + '%'),
-          },
-          relations: ['user', 'product.product_recipes.recipe'],
         });
         const shop = await this.shopRepository.find({});
         let total = 0;
@@ -795,18 +827,36 @@ export class InvoiceService {
         return {
           message: message,
         };
+      } else {
+        throw new HttpException(
+          {
+            messageCode: 'CHECKOUT_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message = '';
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        await queryRunner.rollbackTransaction();
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     } finally {
       await queryRunner.release();
     }
