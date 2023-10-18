@@ -24,7 +24,6 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-import { FilterInvoiceDto } from './dto/filter-invoice.dto';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
@@ -32,7 +31,6 @@ import { User } from 'src/user/entities/user.entity';
 import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { ThongKeDto } from './dto/thongke-invoice.dto';
 import { MessageService } from 'src/common/lib';
 
 @Injectable()
@@ -303,25 +301,21 @@ export class InvoiceService {
     return sorted;
   }
 
-  async findAll(query: FilterInvoiceDto, @Request() req): Promise<any> {
+  async findAll(@Query() query, @Request() req): Promise<any> {
     const status = query.status;
-    const date = query.date;
+    const fromDate = query.fromdate;
+    const toDate = query.todate;
     let res = [];
     let total = 0;
-    const today = new Date(date);
-    today.setHours(today.getHours() + 7);
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
     try {
       if (req.role == 0) {
         if (status) {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
                 user: Like('%' + req.user.id + '%'),
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -339,11 +333,11 @@ export class InvoiceService {
             });
           }
         } else {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 user: Like('%' + req.user.id + '%'),
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -362,11 +356,11 @@ export class InvoiceService {
         }
       } else {
         if (status) {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -383,10 +377,10 @@ export class InvoiceService {
             });
           }
         } else {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -418,9 +412,9 @@ export class InvoiceService {
     }
   }
 
-  async thongKe(item: ThongKeDto): Promise<any> {
-    const fromDate = item.fromDate;
-    const toDate = item.toDate;
+  async thongKe(@Query() query): Promise<any> {
+    const fromDate = query.fromdate;
+    const toDate = query.todate;
     let invoices = [];
     let revenue = 0;
     let countRecipes = 0;

@@ -728,8 +728,8 @@ export class validateDeleteImportIngredient implements NestMiddleware {
     try {
       const importId = req.body.importId;
       const ingredientId = req.body.ingredientId;
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkImport = await this.service2.checkExist(importId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkImport = await this.service1.checkExist(importId);
       if (!ingredient) {
         throw new HttpException(
           {
@@ -857,8 +857,8 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkExport = await this.service2.checkExist(exportId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkExport = await this.service1.checkExist(exportId);
 
       if (!ingredient) {
         throw new HttpException(
@@ -929,8 +929,8 @@ export class validateDeleteExportIngredient implements NestMiddleware {
     try {
       const exportId = req.body.exportId;
       const ingredientId = req.body.ingredientId;
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkExport = await this.service2.checkExist(exportId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkExport = await this.service1.checkExist(exportId);
       if (!exportId) {
         throw new HttpException(
           {
@@ -1144,15 +1144,15 @@ export class validateCheckOut implements NestMiddleware {
 }
 
 @Injectable()
-export class validateStatistical implements NestMiddleware {
+export class validateFromDateToDate implements NestMiddleware {
   constructor(
     private service: ShippingCompanyService,
     private readonly messageService: MessageService,
   ) {}
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      const fromDate = req.body.fromDate;
-      const toDate = req.body.toDate;
+      const fromDate = req.query.fromdate;
+      const toDate = req.query.todate;
       if (!fromDate) {
         throw new HttpException(
           {
@@ -1185,6 +1185,14 @@ export class validateStatistical implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
+      if (toDate < fromDate) {
+        throw new HttpException(
+          {
+            messageCode: 'FROMDATE_TODATE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       if (isDateGreaterThanNow(fromDate)) {
         throw new HttpException(
           {
@@ -1203,6 +1211,7 @@ export class validateStatistical implements NestMiddleware {
       }
       next();
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
@@ -1723,7 +1732,7 @@ export class validateCreateStaff implements NestMiddleware {
       if (gender !== 'Mam' && gender !== 'Nữ') {
         throw new HttpException(
           {
-            messageCode: 'INPUT_STAFF_GENDER_ERROR',
+            messageCode: 'INPUT_STAFF_GENDER_ERROR1',
           },
           HttpStatus.BAD_REQUEST,
         );

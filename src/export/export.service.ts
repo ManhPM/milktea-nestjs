@@ -1,14 +1,24 @@
-import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { CreateExportDto } from './dto/create-export.dto';
 import { UpdateExportDto } from './dto/update-export.dto';
-import { DataSource, Like, Repository, getConnection } from 'typeorm';
+import { Between, DataSource, Like, Repository, getConnection } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Export } from './entities/export.entity';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
 import { CreateExportIngredientDto } from 'src/export_ingredient/dto/create-export_ingredient.dto';
 import { UpdateExportIngredientDto } from 'src/export_ingredient/dto/update-export_ingredient.dto';
-import { MessageService } from 'src/common/lib';
+import {
+  MessageService,
+  isDateGreaterThanNow,
+  isValidDate,
+} from 'src/common/lib';
 
 @Injectable()
 export class ExportService {
@@ -23,17 +33,57 @@ export class ExportService {
     private readonly messageService: MessageService,
   ) {}
 
-  async findAll(): Promise<any> {
+  async findAll(@Query() query): Promise<any> {
     try {
-      const [res, total] = await this.exportRepository.findAndCount({
-        relations: ['staff'],
-        order: {
-          date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
-        },
-      });
+      const fromDate = query.fromdate;
+      const toDate = query.todate;
+      const status = query.status;
+      let res = [];
+      if (fromDate && toDate) {
+        if (status) {
+          res = await this.exportRepository.find({
+            relations: ['staff'],
+            where: {
+              isCompleted: status,
+              date: Between(fromDate, toDate),
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        } else {
+          res = await this.exportRepository.find({
+            relations: ['staff'],
+            where: {
+              date: Between(fromDate, toDate),
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        }
+      } else {
+        if (status) {
+          res = await this.exportRepository.find({
+            relations: ['staff'],
+            where: {
+              isCompleted: status,
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        } else {
+          res = await this.exportRepository.find({
+            relations: ['staff'],
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        }
+      }
       return {
         data: res,
-        total,
       };
     } catch (error) {
       const message = await this.messageService.getMessage(
@@ -96,27 +146,6 @@ export class ExportService {
     }
   }
 
-  async checkCreate(@Request() req) {
-    try {
-      return await this.exportRepository.find({
-        where: {
-          staff: req.user.id,
-          isCompleted: 0,
-        },
-      });
-    } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async findIngredientExport(id: number): Promise<any> {
     try {
       const ingredients = await this.ingredientRepository.find({});
@@ -152,6 +181,20 @@ export class ExportService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       item.date = date;
+      const check = await this.exportRepository.findOne({
+        where: {
+          staff: req.user.id,
+          isCompleted: 0,
+        },
+      });
+      if (check) {
+        throw new HttpException(
+          {
+            messageCode: 'EXPORT_ISEXIST_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.exportRepository.save({
         ...item,
         staff: req.user.id,
@@ -161,15 +204,26 @@ export class ExportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -315,6 +369,19 @@ export class ExportService {
 
   async remove(id: number) {
     try {
+      const check = await this.exportRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      if (check.isCompleted != 0) {
+        throw new HttpException(
+          {
+            messageCode: 'CANCEL_INVOICE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.exportRepository.update(id, {
         isCompleted: -1,
       });
@@ -323,15 +390,27 @@ export class ExportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      if (error.response.messageCode) {
+        const message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        const message = await this.messageService.getMessage(
+          'INTERNAL_SERVER_ERROR',
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
   async checkExist(id: number): Promise<any> {

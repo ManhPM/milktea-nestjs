@@ -15,8 +15,6 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
-import { FilterInvoiceDto } from './dto/filter-invoice.dto';
-import { ThongKeDto } from './dto/thongke-invoice.dto';
 
 @Controller('invoice')
 export class InvoiceController {
@@ -31,7 +29,7 @@ export class InvoiceController {
 
   @UseGuards(AuthGuard)
   @Get()
-  findAll(@Query() query: FilterInvoiceDto, @Request() req) {
+  findAll(@Query() query, @Request() req) {
     return this.invoiceService.findAll(query, req);
   }
 
@@ -44,9 +42,9 @@ export class InvoiceController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
   @UseGuards(AuthGuard)
-  @Post('statistical')
-  statistical(@Body() item: ThongKeDto) {
-    return this.invoiceService.thongKe(item);
+  @Get('statistical/get')
+  statistical(@Query() query) {
+    return this.invoiceService.thongKe(query);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
