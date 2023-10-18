@@ -202,6 +202,7 @@ export class CartProductService {
         const data = [
           {
             id: 0,
+            productId: 0,
             quantity: 0,
             size: 0,
             name: '',
@@ -223,6 +224,7 @@ export class CartProductService {
         for (let i = 0; i < res.length; i++) {
           let toppingPrice = 0;
           data[i] = {
+            productId: res[i].product.id,
             id: res[i].product.product_recipes[0].recipe.id,
             quantity: res[i].quantity,
             size: res[i].size,

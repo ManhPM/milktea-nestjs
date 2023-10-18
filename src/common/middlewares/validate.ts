@@ -664,8 +664,8 @@ export class validateCreateImportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkImport = await this.service2.checkExist(importId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkImport = await this.service1.checkExist(importId);
       if (!ingredient) {
         throw new HttpException(
           {
