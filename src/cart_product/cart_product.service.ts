@@ -29,8 +29,7 @@ export class CartProductService {
 
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
     const productString = createCartProductDto.productString;
-    const splitMain = productString.substring(2);
-    const recipeString = splitMain.split(',');
+    const recipeArray = createCartProductDto.productString.split(',');
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -48,12 +47,13 @@ export class CartProductService {
       });
       if (!product) {
         product = await this.productRepository.save({
-          ...createCartProductDto,
+          size: createCartProductDto.size,
+          productString: createCartProductDto.productString,
         });
-        for (let i = 0; i < recipeString.length; i++) {
+        for (let i = 0; i < productString.length; i++) {
           const recipe = await this.recipeRepository.findOne({
             where: {
-              id: Number(recipeString[i]),
+              id: Number(recipeArray[i]),
             },
           });
           if (i == 0) {
@@ -101,6 +101,7 @@ export class CartProductService {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
