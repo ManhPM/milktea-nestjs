@@ -120,7 +120,7 @@ export class RecipeService {
         const newData = res.map((item) => {
           return {
             ...item,
-            isLike: wishlistIds.includes(item.id) ? 1 : 0,
+            isLiked: wishlistIds.includes(item.id) ? 1 : 0,
           };
         });
         return {
@@ -130,7 +130,7 @@ export class RecipeService {
       const newData = res.map((item) => {
         return {
           ...item,
-          isLike: 0,
+          isLiked: 0,
         };
       });
       return {

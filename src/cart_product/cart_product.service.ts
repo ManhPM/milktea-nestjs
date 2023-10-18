@@ -124,8 +124,6 @@ export class CartProductService {
     @Request() req,
   ) {
     const productString = createCartProductDto.productString;
-    const splitMain = productString.substring(2);
-    const recipeString = splitMain.split(',');
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -153,15 +151,14 @@ export class CartProductService {
           product: product,
         },
       });
+      console.log(cartProduct, currentProduct);
       if (cartProduct) {
         await this.cartProductRepository.update(cartProduct.id, {
           size: createCartProductDto.size,
           quantity: Number(createCartProductDto.quantity),
         });
       } else {
-        await this.cartProductRepository.delete({
-          id: currentProduct.id,
-        });
+        await this.cartProductRepository.delete(currentProduct.id);
         await this.cartProductRepository.save({
           ...createCartProductDto,
           product,
@@ -311,10 +308,7 @@ export class CartProductService {
         },
         relations: ['user', 'product'],
       });
-      await this.cartProductRepository.delete({
-        user: item.user,
-        product: item.product,
-      });
+      await this.cartProductRepository.delete(item.id);
       const message = await this.messageService.getMessage(
         'DELETE_FROM_CART_SUCCESS',
       );
