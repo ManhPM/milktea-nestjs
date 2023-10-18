@@ -334,7 +334,17 @@ export class AuthService {
 
   async update(@Request() req, updateAccountDto: UpdateAccountDto) {
     try {
-      await this.accountRepository.update(req.user.id, {
+      const account = await this.accountRepository.findOne({
+        where: {
+          phone: Like('%' + req.user.phone + '%'),
+        },
+      });
+      if (updateAccountDto.phone) {
+        await this.accountRepository.update(account.id, {
+          phone: updateAccountDto.phone,
+        });
+      }
+      await this.userRepository.update(req.user.id, {
         ...updateAccountDto,
       });
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
@@ -342,6 +352,7 @@ export class AuthService {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { Recipe } from './entities/recipe.entity';
@@ -9,6 +9,7 @@ import { FilterRecipeDto } from './dto/filter-recipe.dto';
 import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
 import { Type } from 'src/type/entities/type.entity';
 import { MessageService } from 'src/common/lib';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 
 @Injectable()
 export class RecipeService {
@@ -19,6 +20,8 @@ export class RecipeService {
     readonly productRecipeRepository: Repository<ProductRecipe>,
     @InjectRepository(RecipeType)
     readonly recipeTypeRepository: Repository<RecipeType>,
+    @InjectRepository(Wishlist)
+    readonly wishlistRepository: Repository<Wishlist>,
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
     private readonly messageService: MessageService,
@@ -96,18 +99,37 @@ export class RecipeService {
     }
   }
 
-  async getRecipeByType(id: number) {
+  async getRecipeByType(id: number, @Request() req) {
     try {
-      const [res, total] = await this.recipeRepository.findAndCount({
+      const res = await this.recipeRepository.find({
         where: {
           type: Like('%' + id + '%'),
         },
       });
+      const wishlist = await this.wishlistRepository.find({
+        where: {
+          user: Like('%' + req.query.id + '%'),
+        },
+        relations: ['recipe'],
+      });
+      const data = [
+        {
+          id: 0,
+        },
+      ];
+      if (wishlist[0]) {
+        for (let i = 0; i < wishlist.length; i++) {
+          data[i] = {
+            id: wishlist[i].recipe.id,
+          };
+        }
+      }
       return {
-        data: res,
-        total,
+        data: data,
+        wishlist: wishlist,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );

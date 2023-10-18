@@ -4,7 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -26,7 +25,7 @@ export class AuthGuard implements CanActivate {
         {
           message: message,
         },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.BAD_REQUEST,
       );
     }
     try {

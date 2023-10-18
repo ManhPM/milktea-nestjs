@@ -77,7 +77,7 @@ export class AuthController {
         {
           message: message,
         },
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.BAD_REQUEST,
       );
     }
     if (account.role != 0) {
@@ -88,7 +88,7 @@ export class AuthController {
             {
               message: message,
             },
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.BAD_REQUEST,
           );
         }
       }
