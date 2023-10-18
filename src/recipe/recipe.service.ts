@@ -112,21 +112,29 @@ export class RecipeService {
         },
         relations: ['recipe'],
       });
-      const data = [
-        {
-          id: 0,
-        },
-      ];
       if (wishlist[0]) {
-        for (let i = 0; i < wishlist.length; i++) {
-          data[i] = {
-            id: wishlist[i].recipe.id,
-          };
+        let wishlistIds;
+        if (wishlist[0]) {
+          wishlistIds = wishlist.map((item) => item.id);
         }
+        const newData = res.map((item) => {
+          return {
+            ...item,
+            isLike: wishlistIds.includes(item.id) ? 1 : 0,
+          };
+        });
+        return {
+          data: newData,
+        };
       }
+      const newData = res.map((item) => {
+        return {
+          ...item,
+          isLike: 0,
+        };
+      });
       return {
-        data: data,
-        wishlist: wishlist,
+        data: newData,
       };
     } catch (error) {
       console.log(error);
