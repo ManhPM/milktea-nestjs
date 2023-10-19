@@ -828,6 +828,7 @@ export class InvoiceService {
         const message =
           await this.messageService.getMessage('CHECKOUT_SUCCESS');
         return {
+          data: invoice,
           message: message,
         };
       } else {
