@@ -49,7 +49,6 @@ export class WishlistService {
             id: id,
           },
         });
-        console.log(user, recipe);
         await this.wishlistRepository.save({
           user: user,
           recipe: recipe,

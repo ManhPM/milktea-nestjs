@@ -115,7 +115,7 @@ export class RecipeService {
       if (wishlist[0]) {
         let wishlistIds;
         if (wishlist[0]) {
-          wishlistIds = wishlist.map((item) => item.id);
+          wishlistIds = wishlist.map((item) => item.recipe.id);
         }
         const newData = res.map((item) => {
           return {
