@@ -1111,7 +1111,7 @@ export class validateCheckOut implements NestMiddleware {
       if (!paymentMethod) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_IMAGE_ERROR',
+            messageCode: 'PAYMENT_METHOD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
