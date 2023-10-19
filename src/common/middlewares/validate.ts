@@ -109,11 +109,20 @@ export class validateRegister implements NestMiddleware {
     try {
       const phone = req.body.phone;
       const password = req.body.password;
+      const repeatPassword = req.body.repeatPassword;
       const name = req.body.name;
       if (!phone) {
         throw new HttpException(
           {
             messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!password) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -126,18 +135,34 @@ export class validateRegister implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!name) {
+      if (!repeatPassword) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_USERNAME_ERROR',
+            messageCode: 'INPUT_PASSWORD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!password) {
+      if (repeatPassword.length < 6) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_PASSWORD_ERROR',
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (password != repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!name) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_USERNAME_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );

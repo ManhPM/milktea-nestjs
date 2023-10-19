@@ -250,6 +250,9 @@ export class ImportService {
           isCompleted: 0,
         },
       });
+      if (!createImportDto.description) {
+        createImportDto.description = 'Mô tả';
+      }
       if (check) {
         throw new HttpException(
           {
@@ -325,26 +328,52 @@ export class ImportService {
           id: item.ingredientId,
         },
       });
+      const importIngredient = await this.importIngredientRepository.findOne({
+        where: {
+          import: Like('%' + importInvoice.id + '%'),
+          ingredient: Like('%' + ingredient.id + '%'),
+        },
+      });
+      if (importIngredient) {
+        throw new HttpException(
+          {
+            messageCode: 'IMPORT_EXPORT_INGREDIENT_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.importIngredientRepository.save({
         ...item,
         import: importInvoice,
         ingredient: ingredient,
       });
+
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
 
       return {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 

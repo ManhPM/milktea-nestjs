@@ -181,6 +181,9 @@ export class ExportService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       item.date = date;
+      if (!item.description) {
+        item.description = 'Mô tả';
+      }
       const check = await this.exportRepository.findOne({
         where: {
           staff: req.user.id,
@@ -239,6 +242,20 @@ export class ExportService {
           id: item.ingredientId,
         },
       });
+      const exportIngredient = await this.exportIngredientRepository.findOne({
+        where: {
+          export: Like('%' + exportInvoice.id + '%'),
+          ingredient: Like('%' + ingredient.id + '%'),
+        },
+      });
+      if (exportIngredient) {
+        throw new HttpException(
+          {
+            messageCode: 'IMPORT_EXPORT_INGREDIENT_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.exportIngredientRepository.save({
         ...item,
         export: exportInvoice,
@@ -249,15 +266,26 @@ export class ExportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
