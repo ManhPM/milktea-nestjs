@@ -1169,6 +1169,94 @@ export class validateCheckOut implements NestMiddleware {
 }
 
 @Injectable()
+export class validateCheckOut1 implements NestMiddleware {
+  constructor(
+    private service: ShippingCompanyService,
+    private readonly messageService: MessageService,
+  ) {}
+
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const shippingFee = req.body.shippingFee;
+      const shippingCompanyId = req.body.shippingCompanyId;
+      const paymentMethod = req.body.paymentMethod;
+      if (!shippingFee) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!shippingCompanyId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!paymentMethod) {
+        throw new HttpException(
+          {
+            messageCode: 'PAYMENT_METHOD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!isNumberic(shippingFee)) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (shippingFee < 0) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const checkShippingCompany =
+        await this.service.checkExist(shippingCompanyId);
+      if (!checkShippingCompany) {
+        throw new HttpException(
+          {
+            messageCode: 'SHIPPING_COMPANY_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      next();
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
+
+@Injectable()
 export class validateFromDateToDate implements NestMiddleware {
   constructor(
     private service: ShippingCompanyService,

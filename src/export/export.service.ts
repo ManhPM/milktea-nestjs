@@ -19,6 +19,7 @@ import {
   isDateGreaterThanNow,
   isValidDate,
 } from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Injectable()
 export class ExportService {
@@ -27,6 +28,8 @@ export class ExportService {
     readonly exportRepository: Repository<Export>,
     @InjectRepository(Ingredient)
     readonly ingredientRepository: Repository<Ingredient>,
+    @InjectRepository(Recipe)
+    readonly recipeRepository: Repository<Recipe>,
     @InjectRepository(ExportIngredient)
     readonly exportIngredientRepository: Repository<ExportIngredient>,
     private dataSource: DataSource,
@@ -344,6 +347,31 @@ export class ExportService {
           .where('id = :id', { id: exportIngredient.ingredient.id })
           .setParameter('newQuantity', exportIngredient.quantity)
           .execute();
+      }
+      const recipes = await this.recipeRepository.find({
+        where: {
+          isActive: 2,
+        },
+        relations: ['recipe_ingredients.ingredient'],
+      });
+
+      if (recipes[0]) {
+        for (const recipe of recipes) {
+          let canActive = 1;
+          for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
+            if (
+              recipe.recipe_ingredients[i].quantity >
+              recipe.recipe_ingredients[i].ingredient.quantity
+            ) {
+              canActive = 0;
+            }
+            if (canActive) {
+              await this.recipeRepository.update(recipe.id, {
+                isActive: 1,
+              });
+            }
+          }
+        }
       }
       await queryRunner.manager.update(Export, id, {
         total: totalAmount,

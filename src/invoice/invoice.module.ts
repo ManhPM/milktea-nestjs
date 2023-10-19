@@ -20,6 +20,7 @@ import { ExportService } from 'src/export/export.service';
 import { Export } from 'src/export/entities/export.entity';
 import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
 import { MessageService } from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MessageService } from 'src/common/lib';
       ShippingCompany,
       Export,
       ExportIngredient,
+      Recipe,
     ]),
   ],
   controllers: [InvoiceController],

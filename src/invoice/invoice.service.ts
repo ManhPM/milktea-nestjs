@@ -32,12 +32,15 @@ import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
 import { MessageService } from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Injectable()
 export class InvoiceService {
   constructor(
     @InjectRepository(Invoice)
     readonly invoiceRepository: Repository<Invoice>,
+    @InjectRepository(Recipe)
+    readonly recipeRepository: Repository<Recipe>,
     @InjectRepository(InvoiceProduct)
     readonly invoiceProductRepository: Repository<InvoiceProduct>,
     @InjectRepository(Ingredient)
@@ -726,7 +729,6 @@ export class InvoiceService {
     item.status = 0;
     item.isPaid = 0;
     item.total = 0;
-    item.isPrepared = 0;
     const date = new Date();
     date.setHours(date.getHours() + 7);
     item.date = date;
@@ -758,6 +760,27 @@ export class InvoiceService {
             if (productRecipe.recipe.isActive == 0) {
               isFail = 1;
               await this.cartProductRepository.delete(cartProduct.id);
+            }
+            for (const recipeIngredient of productRecipe.recipe
+              .recipe_ingredients) {
+              const decreQuantity =
+                recipeIngredient.quantity * cartProduct.quantity;
+              const ingredient = await this.ingredientRepository.findOne({
+                where: {
+                  id: recipeIngredient.ingredient.id,
+                },
+              });
+              if (decreQuantity > ingredient.quantity) {
+                await this.recipeRepository.update(recipeIngredient.recipe.id, {
+                  isActive: 2,
+                });
+                throw new HttpException(
+                  {
+                    messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                  },
+                  HttpStatus.BAD_REQUEST,
+                );
+              }
             }
           }
           if (isFail) {
@@ -1034,7 +1057,7 @@ export class InvoiceService {
           id: id,
         },
       });
-      if (invoice.status == 1 && invoice.isPrepared == 1) {
+      if (invoice.status == 1) {
         await this.invoiceRepository.update(id, {
           status: 2,
         });
@@ -1113,28 +1136,28 @@ export class InvoiceService {
 
   async prepareInvoice(id: number) {
     try {
-      const invoice = await this.invoiceRepository.findOne({
-        where: {
-          id: id,
-        },
-      });
-      if (invoice.status == 1 && invoice.isPrepared == 0) {
-        await this.invoiceRepository.update(id, {
-          isPrepared: 1,
-        });
-        const message =
-          await this.messageService.getMessage('PREPARED_SUCCESS');
-        return {
-          message: message,
-        };
-      } else {
-        throw new HttpException(
-          {
-            messageCode: 'PREPARED_INVOICE_ERROR',
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      // const invoice = await this.invoiceRepository.findOne({
+      //   where: {
+      //     id: id,
+      //   },
+      // });
+      // if (invoice.status == 1) {
+      //   await this.invoiceRepository.update(id, {
+      //     isPrepared: 1,
+      //   });
+      //   const message =
+      //     await this.messageService.getMessage('PREPARED_SUCCESS');
+      //   return {
+      //     message: message,
+      //   };
+      // } else {
+      //   throw new HttpException(
+      //     {
+      //       messageCode: 'PREPARED_INVOICE_ERROR',
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
     } catch (error) {
       let message = '';
       if (error.response.messageCode) {
