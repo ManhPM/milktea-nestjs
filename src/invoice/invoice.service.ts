@@ -423,13 +423,22 @@ export class InvoiceService {
     const recipeCounts = {};
     const toppingCounts = {};
     try {
-      [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
-        where: {
-          date: Between(fromDate, toDate),
-          status: 3,
-        },
-        relations: ['invoice_products.product.product_recipes.recipe'],
-      });
+      if (fromDate && toDate) {
+        [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
+          where: {
+            date: Between(fromDate, toDate),
+            status: 3,
+          },
+          relations: ['invoice_products.product.product_recipes.recipe'],
+        });
+      } else {
+        [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
+          where: {
+            status: 3,
+          },
+          relations: ['invoice_products.product.product_recipes.recipe'],
+        });
+      }
       for (const invoice of invoices) {
         for (const invoiceProduct of invoice.invoice_products) {
           countRecipes += invoiceProduct.quantity;

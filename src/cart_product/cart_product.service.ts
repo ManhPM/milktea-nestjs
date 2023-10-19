@@ -101,7 +101,6 @@ export class CartProductService {
         message: message,
       };
     } catch (error) {
-      console.log(error);
       await queryRunner.rollbackTransaction();
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
@@ -310,6 +309,14 @@ export class CartProductService {
         },
         relations: ['user', 'product'],
       });
+      if (!item) {
+        throw new HttpException(
+          {
+            messageCode: 'CART_PRODUCT_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.cartProductRepository.delete(item.id);
       const message = await this.messageService.getMessage(
         'DELETE_FROM_CART_SUCCESS',

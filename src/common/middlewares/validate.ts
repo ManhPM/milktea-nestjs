@@ -1178,61 +1178,51 @@ export class validateFromDateToDate implements NestMiddleware {
     try {
       const fromDate = req.query.fromdate;
       const toDate = req.query.todate;
-      if (!fromDate) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_FROMDATE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+      if (fromDate) {
+        if (!isValidDate(fromDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_FROMDATE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (isDateGreaterThanNow(fromDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_FROMDATE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
-      if (!toDate) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_TODATE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+      if (toDate) {
+        if (!isValidDate(toDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_TODATE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (isDateGreaterThanNow(toDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_TODATE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
-      if (!isValidDate(fromDate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_FROMDATE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isValidDate(toDate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_TODATE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (toDate < fromDate) {
-        throw new HttpException(
-          {
-            messageCode: 'FROMDATE_TODATE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isDateGreaterThanNow(fromDate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_FROMDATE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isDateGreaterThanNow(toDate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_TODATE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+      if (toDate && fromDate) {
+        if (toDate < fromDate) {
+          throw new HttpException(
+            {
+              messageCode: 'FROMDATE_TODATE_ERROR',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
       next();
     } catch (error) {
