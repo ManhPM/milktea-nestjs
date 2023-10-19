@@ -33,7 +33,7 @@ export class WishlistService {
           recipe: item.recipe,
         });
         const message = await this.messageService.getMessage(
-          'ADD_TO_WISHLIST_SUCCESS',
+          'DELETE_FROM_WISHLIST_SUCCESS',
         );
         return {
           message: message,
@@ -49,12 +49,13 @@ export class WishlistService {
             id: id,
           },
         });
+        console.log(user, recipe);
         await this.wishlistRepository.save({
           user: user,
           recipe: recipe,
         });
         const message = await this.messageService.getMessage(
-          'DELETE_FROM_WISHLIST_SUCCESS',
+          'ADD_TO_WISHLIST_SUCCESS',
         );
         return {
           message: message,
