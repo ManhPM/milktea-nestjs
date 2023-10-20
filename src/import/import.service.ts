@@ -9,14 +9,7 @@ import { CreateImportDto } from './dto/create-import.dto';
 import { UpdateImportDto } from './dto/update-import.dto';
 import { Import } from './entities/import.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Between,
-  DataSource,
-  Like,
-  MoreThan,
-  Repository,
-  getConnection,
-} from 'typeorm';
+import { Between, DataSource, Like, MoreThan, Repository } from 'typeorm';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
 import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
@@ -198,79 +191,81 @@ export class ImportService {
   }
 
   async completeImport(id: number) {
-    await getConnection().transaction(async (transactionalEntityManager) => {
-      try {
-        const importIngredients = await transactionalEntityManager
-          .getRepository(ImportIngredient)
-          .find({
-            where: {
-              import: Like('%' + id + '%'),
-            },
-            relations: ['ingredient'],
-          });
-        let totalAmount = 0;
-        for (const importIngredient of importIngredients) {
-          totalAmount += importIngredient.price;
-          await transactionalEntityManager
-            .createQueryBuilder()
-            .update(Ingredient)
-            .set({ quantity: () => '`quantity` + :newQuantity' })
-            .where('id = :id', { id: importIngredient.ingredient.id })
-            .setParameter('newQuantity', importIngredient.quantity)
-            .execute();
-        }
-        const recipes = await transactionalEntityManager
-          .getRepository(Recipe)
-          .find({
-            where: {
-              isActive: 2,
-            },
-            relations: ['recipe_ingredients.ingredient'],
-          });
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const importIngredients = await transactionalEntityManager
+            .getRepository(ImportIngredient)
+            .find({
+              where: {
+                import: Like('%' + id + '%'),
+              },
+              relations: ['ingredient'],
+            });
+          let totalAmount = 0;
+          for (const importIngredient of importIngredients) {
+            totalAmount += importIngredient.price;
+            await transactionalEntityManager
+              .createQueryBuilder()
+              .update(Ingredient)
+              .set({ quantity: () => '`quantity` + :newQuantity' })
+              .where('id = :id', { id: importIngredient.ingredient.id })
+              .setParameter('newQuantity', importIngredient.quantity)
+              .execute();
+          }
+          const recipes = await transactionalEntityManager
+            .getRepository(Recipe)
+            .find({
+              where: {
+                isActive: 2,
+              },
+              relations: ['recipe_ingredients.ingredient'],
+            });
 
-        if (recipes[0]) {
-          for (const recipe of recipes) {
-            let canActive = 1;
-            for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
-              if (
-                recipe.recipe_ingredients[i].quantity >
-                recipe.recipe_ingredients[i].ingredient.quantity
-              ) {
-                canActive = 0;
-              }
-              if (canActive) {
-                await transactionalEntityManager
-                  .getRepository(Recipe)
-                  .update(recipe.id, {
-                    isActive: 1,
-                  });
+          if (recipes[0]) {
+            for (const recipe of recipes) {
+              let canActive = 1;
+              for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
+                if (
+                  recipe.recipe_ingredients[i].quantity >
+                  recipe.recipe_ingredients[i].ingredient.quantity
+                ) {
+                  canActive = 0;
+                }
+                if (canActive) {
+                  await transactionalEntityManager
+                    .getRepository(Recipe)
+                    .update(recipe.id, {
+                      isActive: 1,
+                    });
+                }
               }
             }
           }
-        }
-        await transactionalEntityManager.update(Import, id, {
-          total: totalAmount,
-          isCompleted: 1,
-        });
+          await transactionalEntityManager.update(Import, id, {
+            total: totalAmount,
+            isCompleted: 1,
+          });
 
-        const message = await this.messageService.getMessage(
-          'COMPLETE_IMPORT_SUCCESS',
-        );
-        return {
-          message: message,
-        };
-      } catch (error) {
-        const message = await this.messageService.getMessage(
-          'INTERNAL_SERVER_ERROR',
-        );
-        throw new HttpException(
-          {
+          const message = await this.messageService.getMessage(
+            'COMPLETE_IMPORT_SUCCESS',
+          );
+          return {
             message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    });
+          };
+        } catch (error) {
+          const message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      },
+    );
   }
 
   async create(createImportDto: CreateImportDto, @Request() req) {

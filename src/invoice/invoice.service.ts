@@ -723,281 +723,215 @@ export class InvoiceService {
   }
 
   async checkout(item: CreateInvoiceDto, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
     item.status = 0;
     item.isPaid = 0;
     item.total = 0;
     const date = new Date();
     date.setHours(date.getHours() + 7);
     item.date = date;
-    try {
-      const checkCreate = await this.invoiceRepository.findOne({
-        where: {
-          user: Like('%' + req.user.id + '%'),
-          status: Not(In([3, 4])),
-        },
-      });
-      if (!checkCreate) {
-        const cartProducts = await this.cartProductRepository.find({
-          where: {
-            user: Like('%' + req.user.id + '%'),
-          },
-          relations: [
-            'user',
-            'product.product_recipes.recipe.recipe_ingredients.ingredient',
-          ],
-        });
-        if (!cartProducts[0]) {
-          throw new HttpException(
-            {
-              messageCode: 'CHECKOUT_ERROR2',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        for (const cartProduct of cartProducts) {
-          let isFail = 0;
-          for (const productRecipe of cartProduct.product.product_recipes) {
-            if (productRecipe.recipe.isActive == 0) {
-              isFail = 1;
-              await this.cartProductRepository.delete(cartProduct.id);
-            }
-            for (const recipeIngredient of productRecipe.recipe
-              .recipe_ingredients) {
-              const decreQuantity =
-                recipeIngredient.quantity * cartProduct.quantity;
-              const ingredient = await this.ingredientRepository.findOne({
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const checkCreate = await transactionalEntityManager
+            .getRepository(Invoice)
+            .findOne({
+              where: {
+                user: Like('%' + req.user.id + '%'),
+                status: Not(In([3, 4])),
+              },
+            });
+          if (!checkCreate) {
+            const cartProducts = await transactionalEntityManager
+              .getRepository(CartProduct)
+              .find({
                 where: {
-                  id: recipeIngredient.ingredient.id,
+                  user: Like('%' + req.user.id + '%'),
                 },
+                relations: [
+                  'user',
+                  'product.product_recipes.recipe.recipe_ingredients.ingredient',
+                ],
               });
-              if (decreQuantity > ingredient.quantity) {
-                await this.recipeRepository.update(recipeIngredient.recipe.id, {
-                  isActive: 2,
-                });
+            if (!cartProducts[0]) {
+              throw new HttpException(
+                {
+                  messageCode: 'CHECKOUT_ERROR2',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+            for (const cartProduct of cartProducts) {
+              let isFail = 0;
+              for (const productRecipe of cartProduct.product.product_recipes) {
+                if (productRecipe.recipe.isActive == 0) {
+                  isFail = 1;
+                  await transactionalEntityManager
+                    .getRepository(CartProduct)
+                    .delete(cartProduct.id);
+                }
+                for (const recipeIngredient of productRecipe.recipe
+                  .recipe_ingredients) {
+                  const decreQuantity =
+                    recipeIngredient.quantity * cartProduct.quantity;
+                  const ingredient = await transactionalEntityManager
+                    .getRepository(Ingredient)
+                    .findOne({
+                      where: {
+                        id: recipeIngredient.ingredient.id,
+                      },
+                    });
+                  if (decreQuantity > ingredient.quantity) {
+                    await transactionalEntityManager
+                      .getRepository(Recipe)
+                      .update(recipeIngredient.recipe.id, {
+                        isActive: 2,
+                      });
+                    throw new HttpException(
+                      {
+                        messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                      },
+                      HttpStatus.BAD_REQUEST,
+                    );
+                  }
+                }
+              }
+              if (isFail) {
                 throw new HttpException(
                   {
-                    messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                    messageCode: 'CHECKOUT_ERROR',
                   },
                   HttpStatus.BAD_REQUEST,
                 );
               }
             }
-          }
-          if (isFail) {
+            const shippingCompany = await transactionalEntityManager
+              .getRepository(ShippingCompany)
+              .findOne({
+                where: {
+                  id: item.shippingCompanyId,
+                },
+              });
+            const user = await transactionalEntityManager
+              .getRepository(User)
+              .findOne({
+                where: {
+                  id: req.user.id,
+                },
+              });
+            const invoice = await transactionalEntityManager
+              .getRepository(Invoice)
+              .save({
+                ...item,
+                user,
+                shippingCompany,
+              });
+            const shop = await transactionalEntityManager
+              .getRepository(Shop)
+              .find({});
+            let total = 0;
+            for (const cartProduct of cartProducts) {
+              let price = 0;
+              for (const productRecipe of cartProduct.product.product_recipes) {
+                total += cartProduct.quantity * productRecipe.recipe.price;
+                price += cartProduct.quantity * productRecipe.recipe.price;
+              }
+              const product = await transactionalEntityManager
+                .getRepository(Product)
+                .findOne({
+                  where: {
+                    id: cartProduct.product.id,
+                  },
+                });
+              if (cartProduct.size != 0) {
+                await transactionalEntityManager
+                  .getRepository(InvoiceProduct)
+                  .save({
+                    size: cartProduct.size,
+                    quantity: cartProduct.quantity,
+                    price: price + shop[0].upSizePrice,
+                    invoice: invoice,
+                    product: product,
+                    isReviewed: 0,
+                  });
+                total += shop[0].upSizePrice * cartProduct.quantity;
+              } else {
+                await transactionalEntityManager
+                  .getRepository(InvoiceProduct)
+                  .save({
+                    size: 0,
+                    quantity: cartProduct.quantity,
+                    price: price,
+                    invoice: invoice,
+                    product: product,
+                    isReviewed: 0,
+                  });
+              }
+              if (cartProduct.size != 0) {
+                total += shop[0].upSizePrice * cartProduct.quantity;
+              }
+              await transactionalEntityManager
+                .getRepository(CartProduct)
+                .delete(cartProduct.id);
+            }
+            await transactionalEntityManager
+              .getRepository(Invoice)
+              .update(invoice.id, { total: total });
+            const message =
+              await this.messageService.getMessage('CHECKOUT_SUCCESS');
+            return {
+              data: invoice,
+              message: message,
+            };
+          } else {
             throw new HttpException(
               {
-                messageCode: 'CHECKOUT_ERROR',
+                messageCode: 'CHECKOUT_ERROR1',
               },
               HttpStatus.BAD_REQUEST,
             );
           }
-        }
-        const shippingCompany = await this.shippingCompanyRepository.findOne({
-          where: {
-            id: item.shippingCompanyId,
-          },
-        });
-        const user = await this.userRepository.findOne({
-          where: {
-            id: req.user.id,
-          },
-        });
-        const invoice = await this.invoiceRepository.save({
-          ...item,
-          user,
-          shippingCompany,
-        });
-        const shop = await this.shopRepository.find({});
-        let total = 0;
-        for (const cartProduct of cartProducts) {
-          let price = 0;
-          for (const productRecipe of cartProduct.product.product_recipes) {
-            total += cartProduct.quantity * productRecipe.recipe.price;
-            price += cartProduct.quantity * productRecipe.recipe.price;
-          }
-          const product = await this.productRepository.findOne({
-            where: {
-              id: cartProduct.product.id,
-            },
-          });
-          if (cartProduct.size != 0) {
-            await this.invoiceProductRepository.save({
-              size: cartProduct.size,
-              quantity: cartProduct.quantity,
-              price: price + shop[0].upSizePrice,
-              invoice: invoice,
-              product: product,
-              isReviewed: 0,
-            });
-          } else {
-            await this.invoiceProductRepository.save({
-              size: 0,
-              quantity: cartProduct.quantity,
-              price: price,
-              invoice: invoice,
-              product: product,
-              isReviewed: 0,
-            });
-          }
-          if (cartProduct.size != 0) {
-            total += shop[0].upSizePrice * cartProduct.quantity;
-          }
-          await this.cartProductRepository.delete(cartProduct.id);
-        }
-        await this.invoiceRepository.update(invoice.id, {
-          total: total,
-        });
-        await queryRunner.commitTransaction();
-        const message =
-          await this.messageService.getMessage('CHECKOUT_SUCCESS');
-        return {
-          data: invoice,
-          message: message,
-        };
-      } else {
-        throw new HttpException(
-          {
-            messageCode: 'CHECKOUT_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    } catch (error) {
-      let message = '';
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        await queryRunner.rollbackTransaction();
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async confirmInvoice(id: number, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const invoiceProducts = await this.invoiceProductRepository.find({
-        where: {
-          invoice: Like('%' + id + '%'),
-        },
-        relations: [
-          'product.product_recipes.recipe.recipe_ingredients.ingredient',
-        ],
-      });
-      for (const invoiceProduct of invoiceProducts) {
-        for (const productRecipe of invoiceProduct.product.product_recipes) {
-          for (const recipeIngredient of productRecipe.recipe
-            .recipe_ingredients) {
-            const decreQuantity =
-              recipeIngredient.quantity * invoiceProduct.quantity;
-            const ingredient = await this.ingredientRepository.findOne({
-              where: {
-                id: recipeIngredient.ingredient.id,
+        } catch (error) {
+          let message = '';
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
               },
-            });
-            if (decreQuantity > ingredient.quantity) {
-              throw new HttpException(
-                {
-                  messageCode: 'QUANTITY_NOTENOUGH_ERROR',
-                },
-                HttpStatus.BAD_REQUEST,
-              );
-            }
-            await this.ingredientRepository.decrement(
-              { id: recipeIngredient.ingredient.id },
-              'quantity',
-              decreQuantity,
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
             );
           }
         }
-      }
-      await this.invoiceRepository.update(id, {
-        status: 1,
-        staff: req.user.id,
-      });
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage('CONFIRM_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      let message = '';
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-      }
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+      },
+    );
   }
 
-  async cancelInvoice(id: number, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const invoice = await this.invoiceRepository.findOne({
-        where: {
-          id: id,
-        },
-      });
-      if (invoice.status == 0) {
-        await this.invoiceRepository.update(id, {
-          status: 4,
-        });
-        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
-        return {
-          message: message,
-        };
-      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
-        await this.invoiceRepository.update(id, {
-          status: 4,
-        });
-        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
-        return {
-          message: message,
-        };
-      } else {
-        if (req.user.role != 0 && invoice.status != 0 && invoice.status != 4) {
-          const invoiceProducts = await this.invoiceProductRepository.find({
-            where: {
-              invoice: Like('%' + id + '%'),
-            },
-            relations: [
-              'product.product_recipes.recipe.recipe_ingredients.ingredient',
-            ],
-          });
+  async confirmInvoice(id: number, @Request() req) {
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const invoiceProducts = await transactionalEntityManager
+            .getRepository(InvoiceProduct)
+            .find({
+              where: {
+                invoice: Like('%' + id + '%'),
+              },
+              relations: [
+                'product.product_recipes.recipe.recipe_ingredients.ingredient',
+              ],
+            });
           for (const invoiceProduct of invoiceProducts) {
             for (const productRecipe of invoiceProduct.product
               .product_recipes) {
@@ -1005,52 +939,181 @@ export class InvoiceService {
                 .recipe_ingredients) {
                 const decreQuantity =
                   recipeIngredient.quantity * invoiceProduct.quantity;
-                await this.ingredientRepository.increment(
-                  { id: recipeIngredient.ingredient.id },
-                  'quantity',
-                  decreQuantity,
-                );
+                const ingredient = await transactionalEntityManager
+                  .getRepository(Ingredient)
+                  .findOne({
+                    where: {
+                      id: recipeIngredient.ingredient.id,
+                    },
+                  });
+                if (decreQuantity > ingredient.quantity) {
+                  throw new HttpException(
+                    {
+                      messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                    },
+                    HttpStatus.BAD_REQUEST,
+                  );
+                }
+                await transactionalEntityManager
+                  .getRepository(Ingredient)
+                  .decrement(
+                    { id: recipeIngredient.ingredient.id },
+                    'quantity',
+                    decreQuantity,
+                  );
               }
             }
           }
-          await this.invoiceRepository.update(id, {
-            status: 4,
+          await transactionalEntityManager.getRepository(Invoice).update(id, {
+            status: 1,
+            staff: req.user.id,
           });
-          await queryRunner.commitTransaction();
+
+          const message =
+            await this.messageService.getMessage('CONFIRM_SUCCESS');
+          return {
+            message: message,
+          };
+        } catch (error) {
+          let message = '';
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
+        }
+      },
+    );
+  }
+
+  async cancelInvoice(id: number, @Request() req) {
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const invoice = await transactionalEntityManager
+            .getRepository(Invoice)
+            .findOne({
+              where: {
+                id: id,
+              },
+            });
+          if (req.role == 0) {
+            if (invoice.status == 0) {
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            } else {
+              throw new HttpException(
+                {
+                  messageCode: 'CANCEL_INVOICE_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+          }
+          if (req.role != 0) {
+            if (invoice.status == 0) {
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            }
+            if (
+              invoice.status != 0 &&
+              invoice.status != 4 &&
+              invoice.status != 3
+            ) {
+              const invoiceProducts = await transactionalEntityManager
+                .getRepository(InvoiceProduct)
+                .find({
+                  where: {
+                    invoice: Like('%' + id + '%'),
+                  },
+                  relations: [
+                    'product.product_recipes.recipe.recipe_ingredients.ingredient',
+                  ],
+                });
+              for (const invoiceProduct of invoiceProducts) {
+                for (const productRecipe of invoiceProduct.product
+                  .product_recipes) {
+                  for (const recipeIngredient of productRecipe.recipe
+                    .recipe_ingredients) {
+                    const decreQuantity =
+                      recipeIngredient.quantity * invoiceProduct.quantity;
+                    await transactionalEntityManager
+                      .getRepository(Ingredient)
+                      .increment(
+                        { id: recipeIngredient.ingredient.id },
+                        'quantity',
+                        decreQuantity,
+                      );
+                  }
+                }
+              }
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            } else {
+              throw new HttpException(
+                {
+                  messageCode: 'CANCEL_INVOICE_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+          }
           const message =
             await this.messageService.getMessage('CANCEL_SUCCESS');
           return {
             message: message,
           };
-        } else {
-          await queryRunner.rollbackTransaction();
-          throw new HttpException(
-            {
-              messageCode: 'CANCEL_INVOICE_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
+        } catch (error) {
+          let message = '';
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
         }
-      }
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      let message = '';
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-      }
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+      },
+    );
   }
 
   async receiveInvoice(id: number) {

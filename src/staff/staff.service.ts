@@ -4,7 +4,7 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from './entities/staff.entity';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Like, Repository, getConnection } from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
 import { MessageService } from 'src/common/lib';
 
@@ -151,57 +151,57 @@ export class StaffService {
   }
 
   async update(id: number, item: UpdateStaffDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const staff = await transactionalEntityManager
+            .getRepository(Staff)
+            .findOne({
+              where: {
+                id: id,
+              },
+              relations: ['account'],
+            });
+          await transactionalEntityManager.update(Staff, id, {
+            name: item.name,
+            address: item.address,
+            gender: item.gender,
+            birthday: item.birthday,
+            hiredate: item.hiredate,
+            isActive: item.isActive,
+            account: staff.account,
+          });
+          if (item.phone || item.password || item.role) {
+            if (item.password) {
+              const salt = bcrypt.genSaltSync(10);
+              const hashPassword = await bcrypt.hash(item.password, salt);
+              item.password = hashPassword;
+            }
+            await transactionalEntityManager.update(Account, staff.account.id, {
+              password: item.password,
+              phone: item.phone,
+              role: item.role,
+            });
+          }
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const staff = await this.staffRepository.findOne({
-        where: {
-          id: id,
-        },
-        relations: ['account'],
-      });
-      await queryRunner.manager.update(Staff, id, {
-        name: item.name,
-        address: item.address,
-        gender: item.gender,
-        birthday: item.birthday,
-        hiredate: item.hiredate,
-        isActive: item.isActive,
-        account: staff.account,
-      });
-      if (item.phone || item.password || item.role) {
-        if (item.password) {
-          const salt = bcrypt.genSaltSync(10);
-          const hashPassword = await bcrypt.hash(item.password, salt);
-          item.password = hashPassword;
+          const message =
+            await this.messageService.getMessage('UPDATE_SUCCESS');
+          return {
+            message: message,
+          };
+        } catch (error) {
+          const message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
         }
-        await queryRunner.manager.update(Account, staff.account.id, {
-          password: item.password,
-          phone: item.phone,
-          role: item.role,
-        });
-      }
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+      },
+    );
   }
 
   async remove(id: number) {

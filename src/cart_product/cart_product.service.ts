@@ -27,194 +27,106 @@ export class CartProductService {
     private readonly messageService: MessageService,
   ) {}
 
-  // async create(createCartProductDto: CreateCartProductDto, @Request() req) {
-  //   const productString = createCartProductDto.productString;
-  //   const recipeArray = createCartProductDto.productString.split(',');
-  //   const queryRunner = this.dataSource.createQueryRunner();
-
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-  //   try {
-  //     const user = await this.userRepository.findOne({
-  //       where: {
-  //         id: req.user.id,
-  //       },
-  //     });
-  //     let product = await this.productRepository.findOne({
-  //       where: {
-  //         productString: productString,
-  //       },
-  //     });
-  //     if (!product) {
-  //       product = await this.productRepository.save({
-  //         size: createCartProductDto.size,
-  //         productString: createCartProductDto.productString,
-  //       });
-  //       for (let i = 0; i < productString.length; i++) {
-  //         const recipe = await this.recipeRepository.findOne({
-  //           where: {
-  //             id: Number(recipeArray[i]),
-  //           },
-  //         });
-  //         if (i == 0) {
-  //           await this.productRecipeRepository.save({
-  //             isMain: 1,
-  //             recipe,
-  //             product,
-  //           });
-  //         } else {
-  //           await this.productRecipeRepository.save({
-  //             isMain: 0,
-  //             recipe,
-  //             product,
-  //           });
-  //         }
-  //       }
-  //     }
-  //     const cartProduct = await this.cartProductRepository.findOne({
-  //       where: {
-  //         user,
-  //         product,
-  //       },
-  //     });
-  //     if (cartProduct) {
-  //       await this.cartProductRepository.update(cartProduct.id, {
-  //         size: createCartProductDto.size,
-  //         quantity:
-  //           Number(cartProduct.quantity) +
-  //           Number(createCartProductDto.quantity),
-  //         product,
-  //         user,
-  //       });
-  //     } else {
-  //       await this.cartProductRepository.save({
-  //         ...createCartProductDto,
-  //         product,
-  //         user,
-  //       });
-  //     }
-  //     await queryRunner.commitTransaction();
-  //     const message = await this.messageService.getMessage(
-  //       'ADD_TO_CART_SUCCESS',
-  //     );
-  //     return {
-  //       message: message,
-  //     };
-  //   } catch (error) {
-  //     await queryRunner.rollbackTransaction();
-  //     const message = await this.messageService.getMessage(
-  //       'INTERNAL_SERVER_ERROR',
-  //     );
-  //     throw new HttpException(
-  //       {
-  //         message: message,
-  //       },
-  //       HttpStatus.INTERNAL_SERVER_ERROR,
-  //     );
-  //   } finally {
-  //     // Đảm bảo rằng kết nối luôn được giải phóng
-  //     await queryRunner.release();
-  //   }
-  // }
-
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
     const productString = createCartProductDto.productString;
     const recipeArray = createCartProductDto.productString.split(',');
 
-    await getConnection().transaction(async (transactionalEntityManager) => {
-      try {
-        const user = await transactionalEntityManager
-          .getRepository(User)
-          .findOne({
-            where: {
-              id: req.user.id,
-            },
-          });
-        let product = await transactionalEntityManager
-          .getRepository(Product)
-          .findOne({
-            where: {
-              productString: productString,
-            },
-          });
-        if (!product) {
-          product = await transactionalEntityManager
-            .getRepository(Product)
-            .save({
-              size: createCartProductDto.size,
-              productString: createCartProductDto.productString,
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const user = await transactionalEntityManager
+            .getRepository(User)
+            .findOne({
+              where: {
+                id: req.user.id,
+              },
             });
-          for (let i = 0; i < productString.length; i++) {
-            const recipe = await transactionalEntityManager
-              .getRepository(Recipe)
-              .findOne({
-                where: {
-                  id: Number(recipeArray[i]),
-                },
+          let product = await transactionalEntityManager
+            .getRepository(Product)
+            .findOne({
+              where: {
+                productString: productString,
+              },
+            });
+          if (!product) {
+            product = await transactionalEntityManager
+              .getRepository(Product)
+              .save({
+                size: createCartProductDto.size,
+                productString: createCartProductDto.productString,
               });
-            if (i == 0) {
-              await transactionalEntityManager
-                .getRepository(ProductRecipe)
-                .save({
-                  isMain: 1,
-                  recipe,
-                  product,
+            for (let i = 0; i < productString.length; i++) {
+              const recipe = await transactionalEntityManager
+                .getRepository(Recipe)
+                .findOne({
+                  where: {
+                    id: Number(recipeArray[i]),
+                  },
                 });
-            } else {
-              await transactionalEntityManager
-                .getRepository(ProductRecipe)
-                .save({
-                  isMain: 0,
-                  recipe,
-                  product,
-                });
+              if (i == 0) {
+                await transactionalEntityManager
+                  .getRepository(ProductRecipe)
+                  .save({
+                    isMain: 1,
+                    recipe,
+                    product,
+                  });
+              } else {
+                await transactionalEntityManager
+                  .getRepository(ProductRecipe)
+                  .save({
+                    isMain: 0,
+                    recipe,
+                    product,
+                  });
+              }
             }
           }
-        }
-        const cartProduct = await transactionalEntityManager
-          .getRepository(CartProduct)
-          .findOne({
-            where: {
-              user,
-              product,
-            },
-          });
-        if (cartProduct) {
-          await transactionalEntityManager
+          const cartProduct = await transactionalEntityManager
             .getRepository(CartProduct)
-            .update(cartProduct.id, {
-              size: createCartProductDto.size,
-              quantity:
-                Number(cartProduct.quantity) +
-                Number(createCartProductDto.quantity),
+            .findOne({
+              where: {
+                user,
+                product,
+              },
+            });
+          if (cartProduct) {
+            await transactionalEntityManager
+              .getRepository(CartProduct)
+              .update(cartProduct.id, {
+                size: createCartProductDto.size,
+                quantity:
+                  Number(cartProduct.quantity) +
+                  Number(createCartProductDto.quantity),
+                product,
+                user,
+              });
+          } else {
+            await transactionalEntityManager.getRepository(CartProduct).save({
+              ...createCartProductDto,
               product,
               user,
             });
-        } else {
-          await transactionalEntityManager.getRepository(CartProduct).save({
-            ...createCartProductDto,
-            product,
-            user,
-          });
-        }
-        const message = await this.messageService.getMessage(
-          'ADD_TO_CART_SUCCESS',
-        );
-        return {
-          message: message,
-        };
-      } catch (error) {
-        const message = await this.messageService.getMessage(
-          'INTERNAL_SERVER_ERROR',
-        );
-        throw new HttpException(
-          {
+          }
+          const message = await this.messageService.getMessage(
+            'ADD_TO_CART_SUCCESS',
+          );
+          return {
             message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    });
+          };
+        } catch (error) {
+          const message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      },
+    );
   }
 
   async update(
@@ -223,67 +135,77 @@ export class CartProductService {
     @Request() req,
   ) {
     const productString = createCartProductDto.productString;
-    const queryRunner = this.dataSource.createQueryRunner();
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const user = await this.userRepository.findOne({
-        where: {
-          id: req.user.id,
-        },
-      });
-      const product = await this.productRepository.findOne({
-        where: {
-          productString: productString,
-        },
-      });
-      const currentProduct = await this.cartProductRepository.findOne({
-        where: {
-          product: Like('%' + id + '%'),
-          user: user,
-        },
-      });
-      const cartProduct = await this.cartProductRepository.findOne({
-        where: {
-          user: user,
-          product: product,
-        },
-      });
-      console.log(cartProduct, currentProduct);
-      if (cartProduct) {
-        await this.cartProductRepository.update(cartProduct.id, {
-          size: createCartProductDto.size,
-          quantity: Number(createCartProductDto.quantity),
-        });
-      } else {
-        await this.cartProductRepository.delete(currentProduct.id);
-        await this.cartProductRepository.save({
-          ...createCartProductDto,
-          product,
-          user,
-        });
-      }
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      // Đảm bảo rằng kết nối luôn được giải phóng
-      await queryRunner.release();
-    }
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const user = await transactionalEntityManager
+            .getRepository(User)
+            .findOne({
+              where: {
+                id: req.user.id,
+              },
+            });
+          const product = await transactionalEntityManager
+            .getRepository(Product)
+            .findOne({
+              where: {
+                productString: productString,
+              },
+            });
+          const currentProduct = await transactionalEntityManager
+            .getRepository(CartProduct)
+            .findOne({
+              where: {
+                product: Like('%' + id + '%'),
+                user: user,
+              },
+            });
+          const cartProduct = await transactionalEntityManager
+            .getRepository(CartProduct)
+            .findOne({
+              where: {
+                user: user,
+                product: product,
+              },
+            });
+          console.log(cartProduct, currentProduct);
+          if (cartProduct) {
+            await transactionalEntityManager
+              .getRepository(CartProduct)
+              .update(cartProduct.id, {
+                size: createCartProductDto.size,
+                quantity: Number(createCartProductDto.quantity),
+              });
+          } else {
+            await transactionalEntityManager
+              .getRepository(CartProduct)
+              .delete(currentProduct.id);
+            await transactionalEntityManager.getRepository(CartProduct).save({
+              ...createCartProductDto,
+              product,
+              user,
+            });
+          }
+
+          const message =
+            await this.messageService.getMessage('UPDATE_SUCCESS');
+          return {
+            message: message,
+          };
+        } catch (error) {
+          const message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      },
+    );
   }
 
   async findAll(@Request() req): Promise<any> {
