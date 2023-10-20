@@ -95,6 +95,7 @@ export class RecipeService {
           where: {
             type: Not(5),
             name: Like('%' + keyword + '%'),
+            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -127,6 +128,7 @@ export class RecipeService {
       const res = await this.recipeRepository.find({
         where: {
           type: Like('%' + id + '%'),
+          isActive: Not(0),
         },
       });
       const wishlist = await this.wishlistRepository.find({
@@ -185,7 +187,9 @@ export class RecipeService {
       if (res[0]) {
         const data = [{}];
         for (let i = 0; i < res.length; i++) {
-          data[i] = res[i].recipe;
+          if (res[i].recipe.isActive != 0) {
+            data[i] = res[i].recipe;
+          }
         }
         return {
           data: data,
@@ -212,6 +216,7 @@ export class RecipeService {
       const res = await this.recipeRepository.findOne({
         where: {
           id: id,
+          isActive: Not(0),
         },
         relations: ['type.recipe_types.recipe'],
       });
@@ -245,6 +250,7 @@ export class RecipeService {
       const [res, total] = await this.recipeRepository.findAndCount({
         where: {
           type: Like('%' + 5 + '%'),
+          isActive: Not(0),
         },
       });
       return {
@@ -269,6 +275,7 @@ export class RecipeService {
       const res = await this.recipeRepository.findOne({
         where: {
           id: id,
+          isActive: Not(0),
         },
         relations: ['recipe_ingredients.ingredient'],
       });
