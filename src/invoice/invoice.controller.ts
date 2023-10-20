@@ -93,7 +93,6 @@ export class InvoiceController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('1', '2')
   @Get('/cancel/:id')
   cancel(@Param('id') id: number, @Request() req) {
     return this.invoiceService.cancelInvoice(id, req);

@@ -326,79 +326,79 @@ export class ExportService {
   }
 
   async completeExport(id: number) {
-    const queryRunner = this.dataSource.createQueryRunner();
+    await getConnection().transaction(async (transactionalEntityManager) => {
+      try {
+        const exportIngredients = await transactionalEntityManager
+          .getRepository(ExportIngredient)
+          .find({
+            where: {
+              export: Like('%' + id + '%'),
+            },
+            relations: ['ingredient'],
+          });
+        let totalAmount = 0;
+        for (const exportIngredient of exportIngredients) {
+          totalAmount += exportIngredient.price;
+          await transactionalEntityManager
+            .createQueryBuilder()
+            .update(Ingredient)
+            .set({ quantity: () => '`quantity` - :newQuantity' })
+            .where('id = :id', { id: exportIngredient.ingredient.id })
+            .setParameter('newQuantity', exportIngredient.quantity)
+            .execute();
+        }
+        const recipes = await transactionalEntityManager
+          .getRepository(Recipe)
+          .find({
+            where: {
+              isActive: 2,
+            },
+            relations: ['recipe_ingredients.ingredient'],
+          });
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const exportIngredients = await this.exportIngredientRepository.find({
-        where: {
-          export: Like('%' + id + '%'),
-        },
-        relations: ['ingredient'],
-      });
-      let totalAmount = 0;
-      for (const exportIngredient of exportIngredients) {
-        totalAmount += exportIngredient.price;
-        await queryRunner.manager
-          .createQueryBuilder()
-          .update(Ingredient)
-          .set({ quantity: () => '`quantity` - :newQuantity' })
-          .where('id = :id', { id: exportIngredient.ingredient.id })
-          .setParameter('newQuantity', exportIngredient.quantity)
-          .execute();
-      }
-      const recipes = await this.recipeRepository.find({
-        where: {
-          isActive: 2,
-        },
-        relations: ['recipe_ingredients.ingredient'],
-      });
-
-      if (recipes[0]) {
-        for (const recipe of recipes) {
-          let canActive = 1;
-          for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
-            if (
-              recipe.recipe_ingredients[i].quantity >
-              recipe.recipe_ingredients[i].ingredient.quantity
-            ) {
-              canActive = 0;
-            }
-            if (canActive) {
-              await this.recipeRepository.update(recipe.id, {
-                isActive: 1,
-              });
+        if (recipes[0]) {
+          for (const recipe of recipes) {
+            let canActive = 1;
+            for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
+              if (
+                recipe.recipe_ingredients[i].quantity >
+                recipe.recipe_ingredients[i].ingredient.quantity
+              ) {
+                canActive = 0;
+              }
+              if (canActive) {
+                await transactionalEntityManager
+                  .getRepository(Recipe)
+                  .update(recipe.id, {
+                    isActive: 1,
+                  });
+              }
             }
           }
         }
-      }
-      await queryRunner.manager.update(Export, id, {
-        total: totalAmount,
-        isCompleted: 1,
-      });
+        await transactionalEntityManager.update(Export, id, {
+          total: totalAmount,
+          isCompleted: 1,
+        });
 
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage(
-        'COMPLETE_EXPORT_SUCCESS',
-      );
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
+        const message = await this.messageService.getMessage(
+          'COMPLETE_EXPORT_SUCCESS',
+        );
+        return {
           message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+        };
+      } catch (error) {
+        const message = await this.messageService.getMessage(
+          'INTERNAL_SERVER_ERROR',
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    });
   }
 
   async update(id: number, item: UpdateExportDto) {
