@@ -30,7 +30,6 @@ export class CartProductService {
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
     const productString = createCartProductDto.productString;
     const recipeArray = createCartProductDto.productString.split(',');
-
     return await this.dataSource.transaction(
       async (transactionalEntityManager) => {
         try {
@@ -55,7 +54,7 @@ export class CartProductService {
                 size: createCartProductDto.size,
                 productString: createCartProductDto.productString,
               });
-            for (let i = 0; i < productString.length; i++) {
+            for (let i = 0; i < recipeArray.length; i++) {
               const recipe = await transactionalEntityManager
                 .getRepository(Recipe)
                 .findOne({
@@ -115,6 +114,7 @@ export class CartProductService {
             message: message,
           };
         } catch (error) {
+          console.log(error);
           const message = await this.messageService.getMessage(
             'INTERNAL_SERVER_ERROR',
           );
@@ -187,7 +187,6 @@ export class CartProductService {
               user,
             });
           }
-
           const message =
             await this.messageService.getMessage('UPDATE_SUCCESS');
           return {

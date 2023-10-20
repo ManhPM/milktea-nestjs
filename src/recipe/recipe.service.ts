@@ -63,6 +63,29 @@ export class RecipeService {
     }
   }
 
+  async getDetailRecipe(id: number): Promise<any> {
+    try {
+      const res = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      return {
+        data: res,
+      };
+    } catch (error) {
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getAllRecipe(query: FilterRecipeDto): Promise<any> {
     try {
       const keyword = query.keyword || undefined;
