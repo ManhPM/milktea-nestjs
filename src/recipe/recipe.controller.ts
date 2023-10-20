@@ -39,6 +39,11 @@ export class RecipeController {
     return this.recipeService.getRecipeByType(+id, req);
   }
 
+  @Get(':id')
+  getDetail(@Param('id') id: string) {
+    return this.recipeService.getDetailRecipe(+id);
+  }
+
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2', '1')
   @Get('/ingredient/:id')

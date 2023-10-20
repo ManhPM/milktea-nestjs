@@ -186,9 +186,11 @@ export class RecipeService {
 
       if (res[0]) {
         const data = [{}];
+        let j = 0;
         for (let i = 0; i < res.length; i++) {
           if (res[i].recipe.isActive != 0) {
-            data[i] = res[i].recipe;
+            data[j] = res[i].recipe;
+            j++;
           }
         }
         return {
@@ -216,14 +218,17 @@ export class RecipeService {
       const res = await this.recipeRepository.findOne({
         where: {
           id: id,
-          isActive: Not(0),
         },
         relations: ['type.recipe_types.recipe'],
       });
       if (res) {
         const data = [{}];
+        let j = 0;
         for (let i = 0; i < res.type.recipe_types.length; i++) {
-          data[i] = res.type.recipe_types[i].recipe;
+          if (res.type.recipe_types[i].recipe.isActive != 0) {
+            data[j] = res.type.recipe_types[i].recipe;
+            j++;
+          }
         }
         return {
           data: data,
@@ -275,7 +280,6 @@ export class RecipeService {
       const res = await this.recipeRepository.findOne({
         where: {
           id: id,
-          isActive: Not(0),
         },
         relations: ['recipe_ingredients.ingredient'],
       });
