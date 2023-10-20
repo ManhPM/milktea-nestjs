@@ -744,7 +744,10 @@ export class InvoiceService {
           where: {
             user: Like('%' + req.user.id + '%'),
           },
-          relations: ['user', 'product.product_recipes.recipe'],
+          relations: [
+            'user',
+            'product.product_recipes.recipe.recipe_ingredients.ingredient',
+          ],
         });
         if (!cartProducts[0]) {
           throw new HttpException(

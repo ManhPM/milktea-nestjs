@@ -3,7 +3,7 @@ import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity
 import { Injectable, Request, HttpStatus, HttpException } from '@nestjs/common';
 import { CreateCartProductDto } from './dto/create-cart_product.dto';
 import { UpdateCartProductDto } from './dto/update-cart_product.dto';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Like, Repository, getConnection } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -27,94 +27,194 @@ export class CartProductService {
     private readonly messageService: MessageService,
   ) {}
 
+  // async create(createCartProductDto: CreateCartProductDto, @Request() req) {
+  //   const productString = createCartProductDto.productString;
+  //   const recipeArray = createCartProductDto.productString.split(',');
+  //   const queryRunner = this.dataSource.createQueryRunner();
+
+  //   await queryRunner.connect();
+  //   await queryRunner.startTransaction();
+  //   try {
+  //     const user = await this.userRepository.findOne({
+  //       where: {
+  //         id: req.user.id,
+  //       },
+  //     });
+  //     let product = await this.productRepository.findOne({
+  //       where: {
+  //         productString: productString,
+  //       },
+  //     });
+  //     if (!product) {
+  //       product = await this.productRepository.save({
+  //         size: createCartProductDto.size,
+  //         productString: createCartProductDto.productString,
+  //       });
+  //       for (let i = 0; i < productString.length; i++) {
+  //         const recipe = await this.recipeRepository.findOne({
+  //           where: {
+  //             id: Number(recipeArray[i]),
+  //           },
+  //         });
+  //         if (i == 0) {
+  //           await this.productRecipeRepository.save({
+  //             isMain: 1,
+  //             recipe,
+  //             product,
+  //           });
+  //         } else {
+  //           await this.productRecipeRepository.save({
+  //             isMain: 0,
+  //             recipe,
+  //             product,
+  //           });
+  //         }
+  //       }
+  //     }
+  //     const cartProduct = await this.cartProductRepository.findOne({
+  //       where: {
+  //         user,
+  //         product,
+  //       },
+  //     });
+  //     if (cartProduct) {
+  //       await this.cartProductRepository.update(cartProduct.id, {
+  //         size: createCartProductDto.size,
+  //         quantity:
+  //           Number(cartProduct.quantity) +
+  //           Number(createCartProductDto.quantity),
+  //         product,
+  //         user,
+  //       });
+  //     } else {
+  //       await this.cartProductRepository.save({
+  //         ...createCartProductDto,
+  //         product,
+  //         user,
+  //       });
+  //     }
+  //     await queryRunner.commitTransaction();
+  //     const message = await this.messageService.getMessage(
+  //       'ADD_TO_CART_SUCCESS',
+  //     );
+  //     return {
+  //       message: message,
+  //     };
+  //   } catch (error) {
+  //     await queryRunner.rollbackTransaction();
+  //     const message = await this.messageService.getMessage(
+  //       'INTERNAL_SERVER_ERROR',
+  //     );
+  //     throw new HttpException(
+  //       {
+  //         message: message,
+  //       },
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   } finally {
+  //     // Đảm bảo rằng kết nối luôn được giải phóng
+  //     await queryRunner.release();
+  //   }
+  // }
+
   async create(createCartProductDto: CreateCartProductDto, @Request() req) {
     const productString = createCartProductDto.productString;
     const recipeArray = createCartProductDto.productString.split(',');
-    const queryRunner = this.dataSource.createQueryRunner();
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const user = await this.userRepository.findOne({
-        where: {
-          id: req.user.id,
-        },
-      });
-      let product = await this.productRepository.findOne({
-        where: {
-          productString: productString,
-        },
-      });
-      if (!product) {
-        product = await this.productRepository.save({
-          size: createCartProductDto.size,
-          productString: createCartProductDto.productString,
-        });
-        for (let i = 0; i < productString.length; i++) {
-          const recipe = await this.recipeRepository.findOne({
+    await getConnection().transaction(async (transactionalEntityManager) => {
+      try {
+        const user = await transactionalEntityManager
+          .getRepository(User)
+          .findOne({
             where: {
-              id: Number(recipeArray[i]),
+              id: req.user.id,
             },
           });
-          if (i == 0) {
-            await this.productRecipeRepository.save({
-              isMain: 1,
-              recipe,
-              product,
+        let product = await transactionalEntityManager
+          .getRepository(Product)
+          .findOne({
+            where: {
+              productString: productString,
+            },
+          });
+        if (!product) {
+          product = await transactionalEntityManager
+            .getRepository(Product)
+            .save({
+              size: createCartProductDto.size,
+              productString: createCartProductDto.productString,
             });
-          } else {
-            await this.productRecipeRepository.save({
-              isMain: 0,
-              recipe,
-              product,
-            });
+          for (let i = 0; i < productString.length; i++) {
+            const recipe = await transactionalEntityManager
+              .getRepository(Recipe)
+              .findOne({
+                where: {
+                  id: Number(recipeArray[i]),
+                },
+              });
+            if (i == 0) {
+              await transactionalEntityManager
+                .getRepository(ProductRecipe)
+                .save({
+                  isMain: 1,
+                  recipe,
+                  product,
+                });
+            } else {
+              await transactionalEntityManager
+                .getRepository(ProductRecipe)
+                .save({
+                  isMain: 0,
+                  recipe,
+                  product,
+                });
+            }
           }
         }
-      }
-      const cartProduct = await this.cartProductRepository.findOne({
-        where: {
-          user,
-          product,
-        },
-      });
-      if (cartProduct) {
-        await this.cartProductRepository.update(cartProduct.id, {
-          size: createCartProductDto.size,
-          quantity:
-            Number(cartProduct.quantity) +
-            Number(createCartProductDto.quantity),
-          product,
-          user,
-        });
-      } else {
-        await this.cartProductRepository.save({
-          ...createCartProductDto,
-          product,
-          user,
-        });
-      }
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage(
-        'ADD_TO_CART_SUCCESS',
-      );
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
+        const cartProduct = await transactionalEntityManager
+          .getRepository(CartProduct)
+          .findOne({
+            where: {
+              user,
+              product,
+            },
+          });
+        if (cartProduct) {
+          await transactionalEntityManager
+            .getRepository(CartProduct)
+            .update(cartProduct.id, {
+              size: createCartProductDto.size,
+              quantity:
+                Number(cartProduct.quantity) +
+                Number(createCartProductDto.quantity),
+              product,
+              user,
+            });
+        } else {
+          await transactionalEntityManager.getRepository(CartProduct).save({
+            ...createCartProductDto,
+            product,
+            user,
+          });
+        }
+        const message = await this.messageService.getMessage(
+          'ADD_TO_CART_SUCCESS',
+        );
+        return {
           message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      // Đảm bảo rằng kết nối luôn được giải phóng
-      await queryRunner.release();
-    }
+        };
+      } catch (error) {
+        const message = await this.messageService.getMessage(
+          'INTERNAL_SERVER_ERROR',
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    });
   }
 
   async update(
