@@ -357,6 +357,7 @@ export class AuthService {
       await this.userRepository.update(user.id, {
         address: updateAccountDto.address,
         name: updateAccountDto.name,
+        photo: updateAccountDto.photo,
       });
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
