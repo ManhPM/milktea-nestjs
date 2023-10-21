@@ -489,6 +489,7 @@ export class CheckCreateIngredient implements NestMiddleware {
       const name = req.body.name;
       const unitName = req.body.unitName;
       const exists = await this.service.checkCreate(name, unitName);
+      console.log(exists);
 
       if (exists) {
         throw new HttpException(

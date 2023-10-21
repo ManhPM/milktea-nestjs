@@ -168,7 +168,6 @@ export class InvoiceService {
 
     const id_order = vnp_Params.vnp_TxnRef;
     const amount = vnp_Params.vnp_Amount / 100;
-    console.log(id_order, amount);
     try {
       const invoice = await this.invoiceRepository.findOne({
         where: {
@@ -558,13 +557,14 @@ export class InvoiceService {
             }
           }
         }
-        return {
-          data: data,
-        };
+        if (data[0].id) {
+          return {
+            data: data,
+          };
+        }
       }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
       let message;
@@ -1246,13 +1246,14 @@ export class InvoiceService {
             }
           }
           if (req.role != 0) {
-            if (invoice.status == 0) {
-              await transactionalEntityManager
-                .getRepository(Invoice)
-                .update(id, {
-                  status: 4,
-                });
-            }
+            if (!invoice)
+              if (invoice.status == 0) {
+                await transactionalEntityManager
+                  .getRepository(Invoice)
+                  .update(id, {
+                    status: 4,
+                  });
+              }
             if (
               invoice.status != 0 &&
               invoice.status != 4 &&
@@ -1306,6 +1307,7 @@ export class InvoiceService {
           };
         } catch (error) {
           let message = '';
+          console.log(error);
           if (error.response.messageCode) {
             message = await this.messageService.getMessage(
               error.response.messageCode,

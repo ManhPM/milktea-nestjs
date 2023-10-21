@@ -4,7 +4,7 @@ import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from './entities/staff.entity';
-import { DataSource, Like, Repository, getConnection } from 'typeorm';
+import { DataSource, Like, Not, Repository, getConnection } from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
 import { MessageService } from 'src/common/lib';
 
@@ -70,9 +70,15 @@ export class StaffService {
     try {
       const res = await this.staffRepository.find({
         relations: ['account'],
+        where: {
+          account: {
+            role: Not(2),
+          },
+        },
         select: {
           account: {
             phone: true,
+            role: true,
           },
         },
         order: {
@@ -87,6 +93,7 @@ export class StaffService {
             phone: '',
             address: '',
             gender: '',
+            role: 0,
             birthday: null,
             hiredate: null,
             isActive: 0,
@@ -98,6 +105,7 @@ export class StaffService {
             name: res[i].name,
             address: res[i].address,
             phone: res[i].account.phone,
+            role: res[i].account.role,
             gender: res[i].gender,
             birthday: res[i].birthday,
             hiredate: res[i].hiredate,
