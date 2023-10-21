@@ -6,58 +6,92 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { DeleteRecipeIngredientDto } from './dto/delete-recipe_ingredient.dto';
 import { MessageService } from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 
 @Injectable()
 export class RecipeIngredientService {
   constructor(
     @InjectRepository(RecipeIngredient)
     readonly recipeIngredientRepository: Repository<RecipeIngredient>,
+    @InjectRepository(Recipe)
+    readonly recipeRepository: Repository<Recipe>,
+    @InjectRepository(Ingredient)
+    readonly ingredientRepository: Repository<Ingredient>,
     private readonly messageService: MessageService,
   ) {}
   async create(item: CreateRecipeIngredientDto) {
     try {
+      const check = await this.recipeIngredientRepository.findOne({
+        where: {
+          ingredient: Like('%' + item.ingredientId + '%'),
+          recipe: Like('%' + item.recipeId + '%'),
+        },
+      });
+      if (check) {
+        throw new HttpException(
+          {
+            messageCode: 'IS_EXIST_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: item.ingredientId,
+        },
+      });
+      const recipe = await this.recipeRepository.findOne({
+        where: {
+          id: item.recipeId,
+        },
+      });
+      if (!recipe) {
+        throw new HttpException(
+          {
+            messageCode: 'RECIPE_NOTFOUND',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!ingredient) {
+        throw new HttpException(
+          {
+            messageCode: 'INGREDIENT_NOTFOUND',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       await this.recipeIngredientRepository.save({
-        ...item,
+        ingredient,
+        recipe,
+        quantity: item.quantity,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findAll(id: number): Promise<any> {
-    try {
-      const [res, total] = await this.recipeIngredientRepository.findAndCount({
-        where: {
-          recipe: Like('%' + id + '%'),
-        },
-        relations: ['recipe', 'ingredient'],
-      });
-      return {
-        data: res,
-        total,
-      };
-    } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -81,38 +115,71 @@ export class RecipeIngredientService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   async remove(item: DeleteRecipeIngredientDto) {
     try {
-      await this.recipeIngredientRepository.delete({
-        recipe: Like('%' + item.recipeId + '%'),
-        ingredient: Like('%' + item.ingredientId + '%'),
+      const check = await this.recipeIngredientRepository.findOne({
+        where: {
+          ingredient: Like('%' + item.ingredientId + '%'),
+          recipe: Like('%' + item.recipeId + '%'),
+        },
       });
+      if (!check) {
+        throw new HttpException(
+          {
+            messageCode: 'IS_NOT_EXIST_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      await this.recipeIngredientRepository.delete(check.id);
       const message = await this.messageService.getMessage('DELETE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

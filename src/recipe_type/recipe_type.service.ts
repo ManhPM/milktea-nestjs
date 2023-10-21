@@ -21,18 +21,55 @@ export class RecipeTypeService {
   ) {}
   async create(item: CreateRecipeTypeDto) {
     try {
-      const recipeId = item.recipeId;
-      const typeId = item.typeId;
+      const check = await this.recipeTypeRepository.findOne({
+        where: {
+          type: Like('%' + item.typeId + '%'),
+          recipe: Like('%' + item.recipeId + '%'),
+        },
+      });
+      if (check) {
+        throw new HttpException(
+          {
+            messageCode: 'IS_EXIST_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       const recipe = await this.recipeRepository.findOne({
         where: {
-          id: recipeId,
+          id: item.recipeId,
         },
+        relations: ['type'],
       });
       const type = await this.typeRepository.findOne({
         where: {
-          id: typeId,
+          id: item.typeId,
         },
       });
+      if (!recipe) {
+        throw new HttpException(
+          {
+            messageCode: 'RECIPE_NOTFOUND',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!type) {
+        throw new HttpException(
+          {
+            messageCode: 'TYPE_NOTFOUND',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (recipe.type.id != 5) {
+        throw new HttpException(
+          {
+            messageCode: 'ADD_TOPPING_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       await this.recipeTypeRepository.save({
         type,
         recipe,
@@ -42,65 +79,116 @@ export class RecipeTypeService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async remove(item: DeleteRecipeTypeDto) {
-    try {
-      const recipeId = item.recipeId;
-      const typeId = item.typeId;
-      await this.recipeTypeRepository.delete({
-        recipe: Like('%' + recipeId + '%'),
-        type: Like('%' + typeId + '%'),
-      });
-      const message = await this.messageService.getMessage('DELETE_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   async findAll(id: number): Promise<any> {
     try {
-      const [res, total] = await this.recipeTypeRepository.findAndCount({
+      const res = await this.recipeTypeRepository.find({
         where: {
           type: Like('%' + id + '%'),
         },
-        relations: ['recipe', 'type'],
+        relations: ['recipe'],
       });
+      if (res[0]) {
+        const data = [];
+        for (let i = 0; i < res.length; i++) {
+          data[i] = res[i].recipe;
+        }
+        return {
+          data: data,
+        };
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  async remove(item: DeleteRecipeTypeDto) {
+    try {
+      const check = await this.recipeTypeRepository.findOne({
+        where: {
+          type: Like('%' + item.typeId + '%'),
+          recipe: Like('%' + item.recipeId + '%'),
         },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      });
+      console.log(check);
+      if (!check) {
+        throw new HttpException(
+          {
+            messageCode: 'IS_NOT_EXIST_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      await this.recipeTypeRepository.delete(check.id);
+      const message = await this.messageService.getMessage('DELETE_SUCCESS');
+      return {
+        message: message,
+      };
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 

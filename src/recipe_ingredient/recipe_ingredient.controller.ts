@@ -32,13 +32,6 @@ export class RecipeIngredientController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2')
   @Get(':id')
-  findAll(@Param('id') id: number) {
-    return this.recipeIngredientService.findAll(id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('2')
-  @Get(':id')
   findOne(@Param('id') id: string) {
     return this.recipeIngredientService.findOne(+id);
   }
