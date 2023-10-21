@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { dataSourceOptions } from 'db/data-source';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
@@ -29,9 +28,8 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { ProductRecipeModule } from './product_recipe/product_recipe.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
-import { InvoiceService } from './invoice/invoice.service';
-import { InvoiceProductService } from './invoice_product/invoice_product.service';
 import { VerifyModule } from './verify/verify.module';
+import { dataSourceOptions } from 'db/data-source';
 
 @Module({
   imports: [

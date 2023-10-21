@@ -237,8 +237,18 @@ export class AuthService {
 
   async update(@Request() req, updateAccountDto: UpdateAccountDto) {
     try {
-      await this.accountRepository.update(req.user[0].id, {
-        ...updateAccountDto,
+      const user = await this.userRepository.findOne({
+        where: {
+          id: req.user.id,
+        },
+        relations: ['account'],
+      });
+      await this.accountRepository.update(user.account.id, {
+        phone: updateAccountDto.phone,
+      });
+      await this.userRepository.update(user.id, {
+        address: updateAccountDto.address,
+        name: updateAccountDto.name,
       });
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {

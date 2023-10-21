@@ -9,6 +9,7 @@ export class VerifyService {
   }
 
   findAll() {
+    console.log();
     return `This action returns all verify`;
   }
 
