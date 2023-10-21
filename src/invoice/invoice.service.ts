@@ -15,8 +15,15 @@ import * as moment from 'moment';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { Invoice } from './entities/invoice.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, LessThan, Like, Repository } from 'typeorm';
-import { FilterInvoiceDto } from './dto/filter-invoice.dto';
+import {
+  Between,
+  DataSource,
+  In,
+  LessThan,
+  Like,
+  Not,
+  Repository,
+} from 'typeorm';
 import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
 import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
@@ -24,14 +31,16 @@ import { User } from 'src/user/entities/user.entity';
 import { Shop } from 'src/shop/entities/shop.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { ThongKeDto } from './dto/thongke-invoice.dto';
 import { MessageService } from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Injectable()
 export class InvoiceService {
   constructor(
     @InjectRepository(Invoice)
     readonly invoiceRepository: Repository<Invoice>,
+    @InjectRepository(Recipe)
+    readonly recipeRepository: Repository<Recipe>,
     @InjectRepository(InvoiceProduct)
     readonly invoiceProductRepository: Repository<InvoiceProduct>,
     @InjectRepository(Ingredient)
@@ -97,7 +106,8 @@ export class InvoiceService {
           vnp_Params['vnp_OrderInfo'] =
             'Thanh toán cho mã đơn hàng: ' + id_order;
           vnp_Params['vnp_OrderType'] = 'other';
-          vnp_Params['vnp_Amount'] = invoice.total * 100;
+          vnp_Params['vnp_Amount'] =
+            (invoice.total + invoice.shippingFee) * 100000;
           vnp_Params['vnp_ReturnUrl'] = returnUrl;
           vnp_Params['vnp_IpAddr'] = ipAddr;
           vnp_Params['vnp_CreateDate'] = createDate;
@@ -129,15 +139,26 @@ export class InvoiceService {
         );
       }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -153,7 +174,10 @@ export class InvoiceService {
           id: id_order,
         },
       });
-      if (invoice.isPaid == 0 && amount == invoice.total * 1000) {
+      if (
+        invoice.isPaid == 0 &&
+        amount == (invoice.total + invoice.shippingFee) * 1000
+      ) {
         await this.invoiceRepository.update(invoice.id, {
           isPaid: 1,
         });
@@ -170,15 +194,26 @@ export class InvoiceService {
         );
       }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -216,7 +251,8 @@ export class InvoiceService {
         vnp_Params['vnp_TxnRef'] = id_order;
         vnp_Params['vnp_OrderInfo'] = 'Hoàn tiền cho mã đơn hàng: ' + id_order;
         vnp_Params['vnp_OrderType'] = 'other';
-        vnp_Params['vnp_Amount'] = invoice.total * 100;
+        vnp_Params['vnp_Amount'] =
+          (invoice.total + invoice.shippingFee) * 100000;
         vnp_Params['vnp_ReturnUrl'] = returnUrl;
         vnp_Params['vnp_IpAddr'] = ipAddr;
         vnp_Params['vnp_CreateDate'] = createDate;
@@ -245,15 +281,26 @@ export class InvoiceService {
         );
       }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -267,15 +314,26 @@ export class InvoiceService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -295,74 +353,90 @@ export class InvoiceService {
     return sorted;
   }
 
-  async findAll(query: FilterInvoiceDto, @Request() req): Promise<any> {
+  async findAll(@Query() query, @Request() req): Promise<any> {
     const status = query.status;
-    const date = query.date;
+    const fromDate = query.fromdate;
+    const toDate = query.todate;
     let res = [];
     let total = 0;
-    const today = new Date(date);
-    today.setHours(today.getHours() + 7);
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
     try {
-      if (req.user[0].role == 0) {
+      if (req.role == 0) {
         if (status) {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
-                user: Like('%' + req.user[0].id + '%'),
-                date: Between(today, tomorrow),
+                user: Like('%' + req.user.id + '%'),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
                 status,
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         } else {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
-                date: Between(today, tomorrow),
+                user: Like('%' + req.user.id + '%'),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user[0].id + '%'),
+                user: Like('%' + req.user.id + '%'),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         }
       } else {
         if (status) {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
@@ -372,47 +446,153 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         } else {
-          if (date) {
+          if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                date: Between(today, tomorrow),
+                date: Between(fromDate, toDate),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         }
       }
+      for (const invoice of res) {
+        for (let i = 0; i < invoice.invoice_products.length; i++) {
+          invoice.invoice_products[i].product.product_recipes.sort(
+            (a, b) => b.isMain - a.isMain,
+          );
+        }
+      }
+      if (res) {
+        const data = [
+          {
+            id: 0,
+            shippingFee: 0,
+            total: 0,
+            date: '',
+            status: 0,
+            address: '',
+            phone: '',
+            products: [
+              {
+                quantity: 0,
+                price: 0,
+                size: 0,
+                name: '',
+                image: '',
+                toppings: [
+                  {
+                    name: '',
+                    image: '',
+                    price: 0,
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+        for (let k = 0; k < res.length; k++) {
+          data[k] = {
+            id: res[k].id,
+            shippingFee: res[k].shippingFee,
+            total: res[k].total,
+            date: res[k].date,
+            status: res[k].status,
+            address: res[k].address,
+            phone: res[k].phone,
+            products: [],
+          };
+          for (let g = 0; g < res[k].invoice_products.length; g++) {
+            for (let i = 0; i < res[k].invoice_products.length; i++) {
+              data[k].products[i] = {
+                quantity: res[k].invoice_products[i].quantity,
+                size: res[k].invoice_products[i].size,
+                price: res[k].invoice_products[i].price,
+                name: res[k].invoice_products[i].product.product_recipes[0]
+                  .recipe.name,
+                image:
+                  res[k].invoice_products[i].product.product_recipes[0].recipe
+                    .image,
+                toppings: [],
+              };
+            }
+            for (
+              let j = 1;
+              j < res[k].invoice_products[g].product.product_recipes.length;
+              j++
+            ) {
+              data[k].products[g].toppings[j - 1] = {
+                name: res[k].invoice_products[g].product.product_recipes[j]
+                  .recipe.name,
+                image:
+                  res[k].invoice_products[g].product.product_recipes[j].recipe
+                    .image,
+                price:
+                  res[k].invoice_products[g].product.product_recipes[j].recipe
+                    .price,
+              };
+            }
+          }
+        }
+        if (data[0].id) {
+          return {
+            data: data,
+          };
+        }
+      }
       return {
-        data: res,
-        total,
+        data: null,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
-  async thongKe(item: ThongKeDto): Promise<any> {
-    const fromDate = item.fromDate;
-    const toDate = item.toDate;
+  async thongKe(@Query() query): Promise<any> {
+    const fromDate = query.fromdate;
+    const toDate = query.todate;
     let invoices = [];
     let revenue = 0;
     let countRecipes = 0;
@@ -421,13 +601,22 @@ export class InvoiceService {
     const recipeCounts = {};
     const toppingCounts = {};
     try {
-      [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
-        where: {
-          date: Between(fromDate, toDate),
-          status: 3,
-        },
-        relations: ['invoice_products.product.product_recipes.recipe'],
-      });
+      if (fromDate && toDate) {
+        [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
+          where: {
+            date: Between(fromDate, toDate),
+            status: 3,
+          },
+          relations: ['invoice_products.product.product_recipes.recipe'],
+        });
+      } else {
+        [invoices, countInvoices] = await this.invoiceRepository.findAndCount({
+          where: {
+            status: 3,
+          },
+          relations: ['invoice_products.product.product_recipes.recipe'],
+        });
+      }
       for (const invoice of invoices) {
         for (const invoiceProduct of invoice.invoice_products) {
           countRecipes += invoiceProduct.quantity;
@@ -491,22 +680,32 @@ export class InvoiceService {
         countInvoices: countInvoices,
       };
     } catch (error) {
-      console.log(error);
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   async findOne(id: number) {
     try {
-      const [res, total] = await this.invoiceRepository
+      const res = await this.invoiceRepository
         .createQueryBuilder('invoice')
         .leftJoinAndSelect('invoice.user', 'user')
         .leftJoinAndSelect('invoice.staff', 'staff')
@@ -527,7 +726,7 @@ export class InvoiceService {
         ])
         .orderBy('product_recipes.isMain', 'DESC')
         .where('invoice.id = :id', { id: id })
-        .getMany();
+        .getOne();
       if (res) {
         const data = {
           invoice: {},
@@ -558,7 +757,7 @@ export class InvoiceService {
         data.user.phone = res.user.account.phone;
         delete res.user;
         data.invoice = res;
-        for (let i = 0; i < res.invoice_products.length; i++) {
+        for (let g = 0; g < res.invoice_products.length; g++) {
           for (let i = 0; i < res.invoice_products.length; i++) {
             data.products[i] = {
               quantity: res.invoice_products[i].quantity,
@@ -573,16 +772,16 @@ export class InvoiceService {
           }
           for (
             let j = 1;
-            j < res.invoice_products[i].product.product_recipes.length;
+            j < res.invoice_products[g].product.product_recipes.length;
             j++
           ) {
-            data.products[i].toppings[j - 1] = {
-              name: res.invoice_products[i].product.product_recipes[j].recipe
+            data.products[g].toppings[j - 1] = {
+              name: res.invoice_products[g].product.product_recipes[j].recipe
                 .name,
               image:
-                res.invoice_products[i].product.product_recipes[j].recipe.image,
+                res.invoice_products[g].product.product_recipes[j].recipe.image,
               price:
-                res.invoice_products[i].product.product_recipes[j].recipe.price,
+                res.invoice_products[g].product.product_recipes[j].recipe.price,
             };
           }
         }
@@ -595,15 +794,26 @@ export class InvoiceService {
         data: null,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -629,7 +839,7 @@ export class InvoiceService {
           'recipe',
         ])
         .where('invoice.status < :status', { status: 3 })
-        .andWhere('invoice.user.id = :user', { user: req.user[0].id })
+        .andWhere('invoice.user.id = :user', { user: req.user.id })
         .getOne();
 
       if (res) {
@@ -697,227 +907,247 @@ export class InvoiceService {
         data: null,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async checkout(item: CreateInvoiceDto, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    item.status = 0;
-    item.isPaid = 0;
-    item.total = 0;
-    item.isPrepared = 0;
-    const date = new Date();
-    date.setHours(date.getHours() + 7);
-    item.date = date;
-    try {
-      const checkCreate = await this.invoiceRepository.findOne({
-        where: {
-          user: Like('%' + req.user[0].id + '%'),
-          isPaid: 0,
-        },
-      });
-      if (!checkCreate) {
-        const shippingCompany = await this.shippingCompanyRepository.findOne({
-          where: {
-            id: item.shippingCompanyId,
-          },
-        });
-        const user = await this.userRepository.findOne({
-          where: {
-            id: req.user[0].id,
-          },
-        });
-        const invoice = await this.invoiceRepository.save({
-          ...item,
-          user,
-          shippingCompany,
-        });
-        const cartProducts = await this.cartProductRepository.find({
-          where: {
-            user: req.user[0].id,
-          },
-          relations: ['user', 'product.product_recipes.recipe'],
-        });
-        const shop = await this.shopRepository.find({});
-        let total = 0;
-        for (const cartProduct of cartProducts) {
-          let price = 0;
-          for (const productRecipe of cartProduct.product.product_recipes) {
-            total += cartProduct.quantity * productRecipe.recipe.price;
-            price += cartProduct.quantity * productRecipe.recipe.price;
-          }
-          const product = await this.productRepository.findOne({
-            where: {
-              id: cartProduct.product.id,
-            },
-          });
-          if (cartProduct.size != 0) {
-            await this.invoiceProductRepository.save({
-              size: cartProduct.size,
-              quantity: cartProduct.quantity,
-              price: price + shop[0].upSizePrice,
-              invoice: invoice,
-              product: product,
-              isReviewed: 0,
-            });
-          } else {
-            await this.invoiceProductRepository.save({
-              size: 0,
-              quantity: cartProduct.quantity,
-              price: price,
-              invoice: invoice,
-              product: product,
-              isReviewed: 0,
-            });
-          }
-          if (cartProduct.size != 0) {
-            total += shop[0].upSizePrice * cartProduct.quantity;
-          }
-          await this.cartProductRepository.delete(cartProduct.id);
-        }
-        await this.invoiceRepository.update(invoice.id, {
-          total: total,
-        });
-        await queryRunner.commitTransaction();
-        const message =
-          await this.messageService.getMessage('CHECKOUT_SUCCESS');
-        return {
-          message: message,
-        };
-      }
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async confirmInvoice(id: number, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const invoiceProducts = await this.invoiceProductRepository.find({
-        where: {
-          invoice: Like('%' + id + '%'),
-        },
-        relations: [
-          'product.product_recipes.recipe.recipe_ingredients.ingredient',
-        ],
-      });
-      for (const invoiceProduct of invoiceProducts) {
-        for (const productRecipe of invoiceProduct.product.product_recipes) {
-          for (const recipeIngredient of productRecipe.recipe
-            .recipe_ingredients) {
-            const decreQuantity =
-              recipeIngredient.quantity * invoiceProduct.quantity;
-            const ingredient = await this.ingredientRepository.findOne({
-              where: {
-                id: recipeIngredient.ingredient.id,
-              },
-            });
-            if (decreQuantity > ingredient.quantity) {
-              throw new HttpException(
-                {
-                  messageCode: 'QUANTITY_NOTENOUGH_ERROR',
-                },
-                HttpStatus.BAD_REQUEST,
-              );
-            }
-            await this.ingredientRepository.decrement(
-              { id: recipeIngredient.ingredient.id },
-              'quantity',
-              decreQuantity,
-            );
-          }
-        }
-      }
-      await this.invoiceRepository.update(id, {
-        status: 1,
-        staff: req.user[0].id,
-      });
-      await queryRunner.commitTransaction();
-      const message = await this.messageService.getMessage('CONFIRM_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      let message = '';
+      let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       } else {
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
     }
   }
 
-  async cancelInvoice(id: number, @Request() req) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const invoice = await this.invoiceRepository.findOne({
-        where: {
-          id: id,
-        },
-      });
-      if (invoice.status == 0) {
-        await this.invoiceRepository.update(id, {
-          status: 4,
-        });
-        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
-        return {
-          message: message,
-        };
-      } else if (invoice.status == 0 && invoice.user.id == req.user.id) {
-        await this.invoiceRepository.update(id, {
-          status: 4,
-        });
-        const message = await this.messageService.getMessage('CANCEL_SUCCESS');
-        return {
-          message: message,
-        };
-      } else {
-        if (req.user.role != 0 && invoice.status != 0 && invoice.status != 4) {
-          const invoiceProducts = await this.invoiceProductRepository.find({
-            where: {
-              invoice: Like('%' + id + '%'),
-            },
-            relations: [
-              'product.product_recipes.recipe.recipe_ingredients.ingredient',
-            ],
-          });
+  async checkout(item: CreateInvoiceDto, @Request() req) {
+    item.status = 0;
+    item.isPaid = 0;
+    item.total = 0;
+    const date = new Date();
+    date.setHours(date.getHours() + 7);
+    item.date = date;
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const checkCreate = await transactionalEntityManager
+            .getRepository(Invoice)
+            .findOne({
+              where: {
+                user: Like('%' + req.user.id + '%'),
+                status: Not(In([3, 4])),
+              },
+            });
+          if (!checkCreate) {
+            const cartProducts = await transactionalEntityManager
+              .getRepository(CartProduct)
+              .find({
+                where: {
+                  user: Like('%' + req.user.id + '%'),
+                },
+                relations: [
+                  'user',
+                  'product.product_recipes.recipe.recipe_ingredients.ingredient',
+                ],
+              });
+            if (!cartProducts[0]) {
+              throw new HttpException(
+                {
+                  messageCode: 'CHECKOUT_ERROR2',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+            for (const cartProduct of cartProducts) {
+              let isFail = 0;
+              for (const productRecipe of cartProduct.product.product_recipes) {
+                if (productRecipe.recipe.isActive == 0) {
+                  isFail = 1;
+                  await transactionalEntityManager
+                    .getRepository(CartProduct)
+                    .delete(cartProduct.id);
+                }
+                for (const recipeIngredient of productRecipe.recipe
+                  .recipe_ingredients) {
+                  const decreQuantity =
+                    recipeIngredient.quantity * cartProduct.quantity;
+                  const ingredient = await transactionalEntityManager
+                    .getRepository(Ingredient)
+                    .findOne({
+                      where: {
+                        id: recipeIngredient.ingredient.id,
+                      },
+                    });
+                  if (decreQuantity > ingredient.quantity) {
+                    await transactionalEntityManager
+                      .getRepository(Recipe)
+                      .update(recipeIngredient.recipe.id, {
+                        isActive: 2,
+                      });
+                    throw new HttpException(
+                      {
+                        messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                      },
+                      HttpStatus.BAD_REQUEST,
+                    );
+                  }
+                }
+              }
+              if (isFail) {
+                throw new HttpException(
+                  {
+                    messageCode: 'CHECKOUT_ERROR',
+                  },
+                  HttpStatus.BAD_REQUEST,
+                );
+              }
+            }
+            const shippingCompany = await transactionalEntityManager
+              .getRepository(ShippingCompany)
+              .findOne({
+                where: {
+                  id: item.shippingCompanyId,
+                },
+              });
+            const user = await transactionalEntityManager
+              .getRepository(User)
+              .findOne({
+                where: {
+                  id: req.user.id,
+                },
+              });
+            const invoice = await transactionalEntityManager
+              .getRepository(Invoice)
+              .save({
+                ...item,
+                user,
+                shippingCompany,
+              });
+            const shop = await transactionalEntityManager
+              .getRepository(Shop)
+              .find({});
+            let total = 0;
+            for (const cartProduct of cartProducts) {
+              let price = 0;
+              for (const productRecipe of cartProduct.product.product_recipes) {
+                total +=
+                  (cartProduct.quantity *
+                    productRecipe.recipe.price *
+                    productRecipe.recipe.discount) /
+                  100;
+                price +=
+                  (cartProduct.quantity *
+                    productRecipe.recipe.price *
+                    productRecipe.recipe.discount) /
+                  100;
+              }
+              const product = await transactionalEntityManager
+                .getRepository(Product)
+                .findOne({
+                  where: {
+                    id: cartProduct.product.id,
+                  },
+                });
+              if (cartProduct.size != 0) {
+                await transactionalEntityManager
+                  .getRepository(InvoiceProduct)
+                  .save({
+                    size: cartProduct.size,
+                    quantity: cartProduct.quantity,
+                    price: price + shop[0].upSizePrice,
+                    invoice: invoice,
+                    product: product,
+                    isReviewed: 0,
+                  });
+                total += shop[0].upSizePrice * cartProduct.quantity;
+              } else {
+                await transactionalEntityManager
+                  .getRepository(InvoiceProduct)
+                  .save({
+                    size: 0,
+                    quantity: cartProduct.quantity,
+                    price: price,
+                    invoice: invoice,
+                    product: product,
+                    isReviewed: 0,
+                  });
+              }
+              if (cartProduct.size != 0) {
+                total += shop[0].upSizePrice * cartProduct.quantity;
+              }
+              await transactionalEntityManager
+                .getRepository(CartProduct)
+                .delete(cartProduct.id);
+            }
+            await transactionalEntityManager
+              .getRepository(Invoice)
+              .update(invoice.id, { total: total });
+            const message =
+              await this.messageService.getMessage('CHECKOUT_SUCCESS');
+            return {
+              data: invoice,
+              message: message,
+            };
+          } else {
+            throw new HttpException(
+              {
+                messageCode: 'CHECKOUT_ERROR1',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+        } catch (error) {
+          let message = '';
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
+        }
+      },
+    );
+  }
+
+  async confirmInvoice(id: number, @Request() req) {
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const invoiceProducts = await transactionalEntityManager
+            .getRepository(InvoiceProduct)
+            .find({
+              where: {
+                invoice: Like('%' + id + '%'),
+              },
+              relations: [
+                'product.product_recipes.recipe.recipe_ingredients.ingredient',
+              ],
+            });
           for (const invoiceProduct of invoiceProducts) {
             for (const productRecipe of invoiceProduct.product
               .product_recipes) {
@@ -925,52 +1155,183 @@ export class InvoiceService {
                 .recipe_ingredients) {
                 const decreQuantity =
                   recipeIngredient.quantity * invoiceProduct.quantity;
-                await this.ingredientRepository.increment(
-                  { id: recipeIngredient.ingredient.id },
-                  'quantity',
-                  decreQuantity,
-                );
+                const ingredient = await transactionalEntityManager
+                  .getRepository(Ingredient)
+                  .findOne({
+                    where: {
+                      id: recipeIngredient.ingredient.id,
+                    },
+                  });
+                if (decreQuantity > ingredient.quantity) {
+                  throw new HttpException(
+                    {
+                      messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                    },
+                    HttpStatus.BAD_REQUEST,
+                  );
+                }
+                await transactionalEntityManager
+                  .getRepository(Ingredient)
+                  .decrement(
+                    { id: recipeIngredient.ingredient.id },
+                    'quantity',
+                    decreQuantity,
+                  );
               }
             }
           }
-          await this.invoiceRepository.update(id, {
-            status: 4,
+          await transactionalEntityManager.getRepository(Invoice).update(id, {
+            status: 1,
+            staff: req.user.id,
           });
-          await queryRunner.commitTransaction();
+
+          const message =
+            await this.messageService.getMessage('CONFIRM_SUCCESS');
+          return {
+            message: message,
+          };
+        } catch (error) {
+          let message = '';
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
+        }
+      },
+    );
+  }
+
+  async cancelInvoice(id: number, @Request() req) {
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const invoice = await transactionalEntityManager
+            .getRepository(Invoice)
+            .findOne({
+              where: {
+                id: id,
+              },
+            });
+          if (req.role == 0) {
+            if (invoice.status == 0) {
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            } else {
+              throw new HttpException(
+                {
+                  messageCode: 'CANCEL_INVOICE_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+          }
+          if (req.role != 0) {
+            if (!invoice)
+              if (invoice.status == 0) {
+                await transactionalEntityManager
+                  .getRepository(Invoice)
+                  .update(id, {
+                    status: 4,
+                  });
+              }
+            if (
+              invoice.status != 0 &&
+              invoice.status != 4 &&
+              invoice.status != 3
+            ) {
+              const invoiceProducts = await transactionalEntityManager
+                .getRepository(InvoiceProduct)
+                .find({
+                  where: {
+                    invoice: Like('%' + id + '%'),
+                  },
+                  relations: [
+                    'product.product_recipes.recipe.recipe_ingredients.ingredient',
+                  ],
+                });
+              for (const invoiceProduct of invoiceProducts) {
+                for (const productRecipe of invoiceProduct.product
+                  .product_recipes) {
+                  for (const recipeIngredient of productRecipe.recipe
+                    .recipe_ingredients) {
+                    const decreQuantity =
+                      recipeIngredient.quantity * invoiceProduct.quantity;
+                    await transactionalEntityManager
+                      .getRepository(Ingredient)
+                      .increment(
+                        { id: recipeIngredient.ingredient.id },
+                        'quantity',
+                        decreQuantity,
+                      );
+                  }
+                }
+              }
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            } else {
+              throw new HttpException(
+                {
+                  messageCode: 'CANCEL_INVOICE_ERROR',
+                },
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+          }
           const message =
             await this.messageService.getMessage('CANCEL_SUCCESS');
           return {
             message: message,
           };
-        } else {
-          await queryRunner.rollbackTransaction();
-          throw new HttpException(
-            {
-              messageCode: 'CANCEL_INVOICE_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
+        } catch (error) {
+          let message = '';
+          console.log(error);
+          if (error.response.messageCode) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
         }
-      }
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      let message = '';
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-      }
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+      },
+    );
   }
 
   async receiveInvoice(id: number) {
@@ -980,7 +1341,7 @@ export class InvoiceService {
           id: id,
         },
       });
-      if (invoice.status == 1 && invoice.isPrepared == 1) {
+      if (invoice.status == 1) {
         await this.invoiceRepository.update(id, {
           status: 2,
         });
@@ -1059,28 +1420,28 @@ export class InvoiceService {
 
   async prepareInvoice(id: number) {
     try {
-      const invoice = await this.invoiceRepository.findOne({
-        where: {
-          id: id,
-        },
-      });
-      if (invoice.status == 1 && invoice.isPrepared == 0) {
-        await this.invoiceRepository.update(id, {
-          isPrepared: 1,
-        });
-        const message =
-          await this.messageService.getMessage('PREPARED_SUCCESS');
-        return {
-          message: message,
-        };
-      } else {
-        throw new HttpException(
-          {
-            messageCode: 'PREPARED_INVOICE_ERROR',
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      // const invoice = await this.invoiceRepository.findOne({
+      //   where: {
+      //     id: id,
+      //   },
+      // });
+      // if (invoice.status == 1) {
+      //   await this.invoiceRepository.update(id, {
+      //     isPrepared: 1,
+      //   });
+      //   const message =
+      //     await this.messageService.getMessage('PREPARED_SUCCESS');
+      //   return {
+      //     message: message,
+      //   };
+      // } else {
+      //   throw new HttpException(
+      //     {
+      //       messageCode: 'PREPARED_INVOICE_ERROR',
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
     } catch (error) {
       let message = '';
       if (error.response.messageCode) {
@@ -1105,15 +1466,26 @@ export class InvoiceService {
         where: { id },
       });
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
   async handleAutoDeleteInvoice(): Promise<any> {
@@ -1141,15 +1513,26 @@ export class InvoiceService {
         }
       }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

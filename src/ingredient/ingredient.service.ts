@@ -17,7 +17,7 @@ export class IngredientService {
 
   async checkCreate(name: string, unitName: string) {
     try {
-      return await this.ingredientRepository.find({
+      return await this.ingredientRepository.findOne({
         where: {
           name: name,
           unitName: unitName,
@@ -63,13 +63,16 @@ export class IngredientService {
   async update(id: number, updateIngredientDto: UpdateIngredientDto) {
     try {
       await this.ingredientRepository.update(id, {
-        ...updateIngredientDto,
+        name: updateIngredientDto.name,
+        image: updateIngredientDto.image,
+        unitName: updateIngredientDto.unitName,
       });
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );

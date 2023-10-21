@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ImportService } from './import.service';
 import { CreateImportDto } from './dto/create-import.dto';
@@ -46,8 +47,8 @@ export class ImportController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('2', '1')
   @Get()
-  findAll() {
-    return this.importService.findAll();
+  findAll(@Query() query) {
+    return this.importService.findAll(query);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

@@ -478,95 +478,6 @@ export class CheckExistType implements NestMiddleware {
 }
 
 @Injectable()
-export class CheckCreateExport implements NestMiddleware {
-  constructor(
-    private service: ExportService,
-    private readonly messageService: MessageService,
-  ) {}
-
-  async use(req: Request, res: Response, next: NextFunction) {
-    try {
-      const exists = await this.service.checkCreate(req);
-      if (exists) {
-        throw new HttpException(
-          {
-            messageCode: 'EXPORT_ISEXIST_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      next();
-    } catch (error) {
-      let message;
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
-  }
-}
-
-@Injectable()
-export class CheckCreateImport implements NestMiddleware {
-  constructor(
-    private service: ImportService,
-    private readonly messageService: MessageService,
-  ) {}
-
-  async use(req: Request, res: Response, next: NextFunction) {
-    try {
-      const exists = await this.service.checkCreate(req);
-
-      if (exists) {
-        throw new HttpException(
-          {
-            messageCode: 'IMPORT_ISEXIST_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      next();
-    } catch (error) {
-      let message;
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
-  }
-}
-
-@Injectable()
 export class CheckCreateIngredient implements NestMiddleware {
   constructor(
     private service: IngredientService,
@@ -578,6 +489,7 @@ export class CheckCreateIngredient implements NestMiddleware {
       const name = req.body.name;
       const unitName = req.body.unitName;
       const exists = await this.service.checkCreate(name, unitName);
+      console.log(exists);
 
       if (exists) {
         throw new HttpException(

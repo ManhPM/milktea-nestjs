@@ -4,6 +4,7 @@ import { Import } from 'src/import/entities/import.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,

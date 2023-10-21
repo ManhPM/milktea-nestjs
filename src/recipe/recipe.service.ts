@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { Recipe } from './entities/recipe.entity';
@@ -9,6 +9,7 @@ import { FilterRecipeDto } from './dto/filter-recipe.dto';
 import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
 import { Type } from 'src/type/entities/type.entity';
 import { MessageService } from 'src/common/lib';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 
 @Injectable()
 export class RecipeService {
@@ -19,6 +20,8 @@ export class RecipeService {
     readonly productRecipeRepository: Repository<ProductRecipe>,
     @InjectRepository(RecipeType)
     readonly recipeTypeRepository: Repository<RecipeType>,
+    @InjectRepository(Wishlist)
+    readonly wishlistRepository: Repository<Wishlist>,
     @InjectRepository(Type)
     readonly typeRepository: Repository<Type>,
     private readonly messageService: MessageService,
@@ -60,6 +63,29 @@ export class RecipeService {
     }
   }
 
+  async getDetailRecipe(id: number): Promise<any> {
+    try {
+      const res = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      return {
+        data: res,
+      };
+    } catch (error) {
+      const message = await this.messageService.getMessage(
+        'INTERNAL_SERVER_ERROR',
+      );
+      throw new HttpException(
+        {
+          message: message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getAllRecipe(query: FilterRecipeDto): Promise<any> {
     try {
       const keyword = query.keyword || undefined;
@@ -69,6 +95,7 @@ export class RecipeService {
           where: {
             type: Not(5),
             name: Like('%' + keyword + '%'),
+            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -96,18 +123,46 @@ export class RecipeService {
     }
   }
 
-  async getRecipeByType(id: number) {
+  async getRecipeByType(id: number, @Request() req) {
     try {
-      const [res, total] = await this.recipeRepository.findAndCount({
+      const res = await this.recipeRepository.find({
         where: {
           type: Like('%' + id + '%'),
+          isActive: Not(0),
         },
       });
+      const wishlist = await this.wishlistRepository.find({
+        where: {
+          user: Like('%' + req.query.id + '%'),
+        },
+        relations: ['recipe'],
+      });
+      if (wishlist[0]) {
+        let wishlistIds;
+        if (wishlist[0]) {
+          wishlistIds = wishlist.map((item) => item.recipe.id);
+        }
+        const newData = res.map((item) => {
+          return {
+            ...item,
+            isLiked: wishlistIds.includes(item.id) ? 1 : 0,
+          };
+        });
+        return {
+          data: newData,
+        };
+      }
+      const newData = res.map((item) => {
+        return {
+          ...item,
+          isLiked: 0,
+        };
+      });
       return {
-        data: res,
-        total,
+        data: newData,
       };
     } catch (error) {
+      console.log(error);
       const message = await this.messageService.getMessage(
         'INTERNAL_SERVER_ERROR',
       );
@@ -129,10 +184,14 @@ export class RecipeService {
         relations: ['recipe'],
       });
 
-      if (res) {
+      if (res[0]) {
         const data = [{}];
+        let j = 0;
         for (let i = 0; i < res.length; i++) {
-          data[i] = res[i].recipe;
+          if (res[i].recipe.isActive != 0) {
+            data[j] = res[i].recipe;
+            j++;
+          }
         }
         return {
           data: data,
@@ -164,8 +223,12 @@ export class RecipeService {
       });
       if (res) {
         const data = [{}];
+        let j = 0;
         for (let i = 0; i < res.type.recipe_types.length; i++) {
-          data[i] = res.type.recipe_types[i].recipe;
+          if (res.type.recipe_types[i].recipe.isActive != 0) {
+            data[j] = res.type.recipe_types[i].recipe;
+            j++;
+          }
         }
         return {
           data: data,
@@ -192,6 +255,7 @@ export class RecipeService {
       const [res, total] = await this.recipeRepository.findAndCount({
         where: {
           type: Like('%' + 5 + '%'),
+          isActive: Not(0),
         },
       });
       return {

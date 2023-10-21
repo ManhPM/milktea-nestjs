@@ -27,7 +27,7 @@ export class UserService {
           },
         },
       });
-      if (res) {
+      if (res[0]) {
         const data = [
           {
             id: 0,
@@ -114,7 +114,7 @@ export class UserService {
 
   async update(@Request() req, updateUserDto: UpdateUserDto) {
     try {
-      await this.userRepository.update(req.user[0].id, {
+      await this.userRepository.update(req.user.id, {
         ...updateUserDto,
       });
     } catch (error) {

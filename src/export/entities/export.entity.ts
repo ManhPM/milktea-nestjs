@@ -2,6 +2,7 @@ import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredie
 import { Staff } from 'src/staff/entities/staff.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,

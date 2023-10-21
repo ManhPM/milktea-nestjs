@@ -195,11 +195,11 @@ export class ShippingCompanyService {
         if (distance < 2) {
           feeShip = shippingCompany.costPerKm * 5;
         } else if (distance >= 2 && distance < 5) {
-          feeShip = shippingCompany.costPerKm * 5 + 5000;
+          feeShip = shippingCompany.costPerKm * 5 + 5;
         } else if (distance >= 5 && distance < 10) {
-          feeShip = shippingCompany.costPerKm * 5 + 10000;
+          feeShip = shippingCompany.costPerKm * 5 + 10;
         } else {
-          feeShip = shippingCompany.costPerKm * 5 + 10000;
+          feeShip = shippingCompany.costPerKm * 5 + 10;
         }
         return {
           data: feeShip,
