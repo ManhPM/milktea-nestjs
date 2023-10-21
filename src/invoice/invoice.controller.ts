@@ -49,7 +49,7 @@ export class InvoiceController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('0')
-  @Post('/payment')
+  @Post('/payment/init')
   handlePayment(@Body('id_order') id_order: number, @Ip() ip) {
     return this.invoiceService.handlePayment(id_order, ip);
   }
