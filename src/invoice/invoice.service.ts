@@ -106,7 +106,8 @@ export class InvoiceService {
           vnp_Params['vnp_OrderInfo'] =
             'Thanh toán cho mã đơn hàng: ' + id_order;
           vnp_Params['vnp_OrderType'] = 'other';
-          vnp_Params['vnp_Amount'] = invoice.total * 100000;
+          vnp_Params['vnp_Amount'] =
+            (invoice.total + invoice.shippingFee) * 100000;
           vnp_Params['vnp_ReturnUrl'] = returnUrl;
           vnp_Params['vnp_IpAddr'] = ipAddr;
           vnp_Params['vnp_CreateDate'] = createDate;
@@ -167,13 +168,17 @@ export class InvoiceService {
 
     const id_order = vnp_Params.vnp_TxnRef;
     const amount = vnp_Params.vnp_Amount / 100;
+    console.log(id_order, amount);
     try {
       const invoice = await this.invoiceRepository.findOne({
         where: {
           id: id_order,
         },
       });
-      if (invoice.isPaid == 0 && amount == invoice.total * 1000) {
+      if (
+        invoice.isPaid == 0 &&
+        amount == (invoice.total + invoice.shippingFee) * 1000
+      ) {
         await this.invoiceRepository.update(invoice.id, {
           isPaid: 1,
         });
@@ -247,7 +252,8 @@ export class InvoiceService {
         vnp_Params['vnp_TxnRef'] = id_order;
         vnp_Params['vnp_OrderInfo'] = 'Hoàn tiền cho mã đơn hàng: ' + id_order;
         vnp_Params['vnp_OrderType'] = 'other';
-        vnp_Params['vnp_Amount'] = invoice.total * 100000;
+        vnp_Params['vnp_Amount'] =
+          (invoice.total + invoice.shippingFee) * 100000;
         vnp_Params['vnp_ReturnUrl'] = returnUrl;
         vnp_Params['vnp_IpAddr'] = ipAddr;
         vnp_Params['vnp_CreateDate'] = createDate;
@@ -367,6 +373,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
@@ -377,6 +387,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         } else {
@@ -389,6 +403,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
@@ -398,6 +416,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         }
@@ -412,6 +434,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
@@ -421,6 +447,10 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         } else {
@@ -432,15 +462,105 @@ export class InvoiceService {
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
+              relations: [
+                'invoice_products.product.product_recipes.recipe',
+                'user.account',
+              ],
             });
           }
         }
+      }
+      for (const invoice of res) {
+        for (let i = 0; i < invoice.invoice_products.length; i++) {
+          invoice.invoice_products[i].product.product_recipes.sort(
+            (a, b) => b.isMain - a.isMain,
+          );
+        }
+      }
+      if (res) {
+        const data = [
+          {
+            id: 0,
+            shippingFee: 0,
+            total: 0,
+            date: '',
+            status: 0,
+            address: '',
+            phone: '',
+            products: [
+              {
+                quantity: 0,
+                price: 0,
+                size: 0,
+                name: '',
+                image: '',
+                toppings: [
+                  {
+                    name: '',
+                    image: '',
+                    price: 0,
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+        for (let k = 0; k < res.length; k++) {
+          data[k] = {
+            id: res[k].id,
+            shippingFee: res[k].shippingFee,
+            total: res[k].total,
+            date: res[k].date,
+            status: res[k].status,
+            address: res[k].address,
+            phone: res[k].phone,
+            products: [],
+          };
+          for (let g = 0; g < res[k].invoice_products.length; g++) {
+            for (let i = 0; i < res[k].invoice_products.length; i++) {
+              data[k].products[i] = {
+                quantity: res[k].invoice_products[i].quantity,
+                size: res[k].invoice_products[i].size,
+                price: res[k].invoice_products[i].price,
+                name: res[k].invoice_products[i].product.product_recipes[0]
+                  .recipe.name,
+                image:
+                  res[k].invoice_products[i].product.product_recipes[0].recipe
+                    .image,
+                toppings: [],
+              };
+            }
+            for (
+              let j = 1;
+              j < res[k].invoice_products[g].product.product_recipes.length;
+              j++
+            ) {
+              data[k].products[g].toppings[j - 1] = {
+                name: res[k].invoice_products[g].product.product_recipes[j]
+                  .recipe.name,
+                image:
+                  res[k].invoice_products[g].product.product_recipes[j].recipe
+                    .image,
+                price:
+                  res[k].invoice_products[g].product.product_recipes[j].recipe
+                    .price,
+              };
+            }
+          }
+        }
+        return {
+          data: data,
+        };
       }
       return {
         data: res,
@@ -585,7 +705,7 @@ export class InvoiceService {
 
   async findOne(id: number) {
     try {
-      const [res, total] = await this.invoiceRepository
+      const res = await this.invoiceRepository
         .createQueryBuilder('invoice')
         .leftJoinAndSelect('invoice.user', 'user')
         .leftJoinAndSelect('invoice.staff', 'staff')
@@ -606,7 +726,7 @@ export class InvoiceService {
         ])
         .orderBy('product_recipes.isMain', 'DESC')
         .where('invoice.id = :id', { id: id })
-        .getMany();
+        .getOne();
       if (res) {
         const data = {
           invoice: {},
@@ -637,7 +757,7 @@ export class InvoiceService {
         data.user.phone = res.user.account.phone;
         delete res.user;
         data.invoice = res;
-        for (let i = 0; i < res.invoice_products.length; i++) {
+        for (let g = 0; g < res.invoice_products.length; g++) {
           for (let i = 0; i < res.invoice_products.length; i++) {
             data.products[i] = {
               quantity: res.invoice_products[i].quantity,
@@ -652,16 +772,16 @@ export class InvoiceService {
           }
           for (
             let j = 1;
-            j < res.invoice_products[i].product.product_recipes.length;
+            j < res.invoice_products[g].product.product_recipes.length;
             j++
           ) {
-            data.products[i].toppings[j - 1] = {
-              name: res.invoice_products[i].product.product_recipes[j].recipe
+            data.products[g].toppings[j - 1] = {
+              name: res.invoice_products[g].product.product_recipes[j].recipe
                 .name,
               image:
-                res.invoice_products[i].product.product_recipes[j].recipe.image,
+                res.invoice_products[g].product.product_recipes[j].recipe.image,
               price:
-                res.invoice_products[i].product.product_recipes[j].recipe.price,
+                res.invoice_products[g].product.product_recipes[j].recipe.price,
             };
           }
         }
@@ -920,8 +1040,16 @@ export class InvoiceService {
             for (const cartProduct of cartProducts) {
               let price = 0;
               for (const productRecipe of cartProduct.product.product_recipes) {
-                total += cartProduct.quantity * productRecipe.recipe.price;
-                price += cartProduct.quantity * productRecipe.recipe.price;
+                total +=
+                  (cartProduct.quantity *
+                    productRecipe.recipe.price *
+                    productRecipe.recipe.discount) /
+                  100;
+                price +=
+                  (cartProduct.quantity *
+                    productRecipe.recipe.price *
+                    productRecipe.recipe.discount) /
+                  100;
               }
               const product = await transactionalEntityManager
                 .getRepository(Product)

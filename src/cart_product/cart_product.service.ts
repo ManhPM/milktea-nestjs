@@ -251,7 +251,11 @@ export class CartProductService {
             name: res[i].product.product_recipes[0].recipe.name,
             discount: res[i].product.product_recipes[0].recipe.discount,
             image: res[i].product.product_recipes[0].recipe.image,
-            price: res[i].product.product_recipes[0].recipe.price + res[i].size,
+            price:
+              (res[i].product.product_recipes[0].recipe.price *
+                res[i].product.product_recipes[0].recipe.discount) /
+                100 +
+              res[i].size,
             isActive: res[i].product.product_recipes[0].recipe.isActive,
             toppings: [],
           };
@@ -263,16 +267,30 @@ export class CartProductService {
               id: res[i].product.product_recipes[j].recipe.id,
               name: res[i].product.product_recipes[j].recipe.name,
               image: res[i].product.product_recipes[j].recipe.image,
-              price: res[i].product.product_recipes[j].recipe.price,
+              price:
+                (res[i].product.product_recipes[j].recipe.price *
+                  res[i].product.product_recipes[j].recipe.discount) /
+                100,
             };
             totalCart +=
-              res[i].quantity * res[i].product.product_recipes[j].recipe.price;
-            toppingPrice += res[i].product.product_recipes[j].recipe.price;
+              (res[i].quantity *
+                res[i].product.product_recipes[j].recipe.price *
+                res[i].product.product_recipes[j].recipe.discount) /
+              100;
+            toppingPrice +=
+              (res[i].product.product_recipes[j].recipe.price *
+                res[i].product.product_recipes[j].recipe.price) /
+              100;
           }
           totalCart +=
-            res[i].quantity * res[i].product.product_recipes[0].recipe.price;
+            (res[i].quantity *
+              res[i].product.product_recipes[0].recipe.price *
+              res[i].product.product_recipes[0].recipe.discount) /
+            100;
           data[i].price =
-            res[i].product.product_recipes[0].recipe.price +
+            (res[i].product.product_recipes[0].recipe.price *
+              res[i].product.product_recipes[0].recipe.discount) /
+              100 +
             res[i].size +
             toppingPrice;
         }
