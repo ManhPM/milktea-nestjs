@@ -44,7 +44,6 @@ export class MessageService {
     } catch (error) {
       if (error.response.messageCode) {
         const message = await this.getMessage(error.response.messageCode);
-        //getMessage(error
         throw new HttpException(
           {
             message: message,
@@ -53,7 +52,6 @@ export class MessageService {
         );
       } else {
         const message = await this.getMessage('INTERNAL_SERVER_ERROR');
-        //getMessage('
         throw new HttpException(
           {
             message: message,

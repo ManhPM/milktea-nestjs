@@ -31,6 +31,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { VerifyModule } from './verify/verify.module';
 import { dataSourceOptions } from 'db/data-source';
 
+const SECRET = 'SECRETMILKTEANESTJS';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
@@ -56,8 +58,7 @@ import { dataSourceOptions } from 'db/data-source';
     ExportIngredientModule,
     JwtModule.register({
       global: true,
-      secret: process.env.SECRET,
-      signOptions: { expiresIn: `${process.env.EXP_IN_ACCESS_TOKEN}` },
+      secret: SECRET,
     }),
     IngredientModule,
     ReviewModule,

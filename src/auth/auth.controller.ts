@@ -57,11 +57,73 @@ export class AuthController {
         url: cldRes.url,
       };
     } catch (error) {
-      console.log(error);
       return {
         message: error.message,
       };
     }
+  }
+
+  @Get('refresh-token')
+  async refreshToken(
+    @Request() req,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const oldToken = req.cookies['refreshToken'];
+    const payload = await this.jwtService.verifyAsync(oldToken, {
+      secret: process.env.SECRET,
+    });
+    if (payload) {
+      const account = await this.authService.findOne(
+        `${payload.account.phone}`,
+      );
+      const token = await this.jwtService.signAsync({ account });
+      const userInfo = {
+        phone: '',
+        accountId: 1,
+        userId: 1,
+        role: 0,
+        name: '',
+        address: '',
+        photo: '',
+      };
+      userInfo.phone = account.phone;
+      userInfo.accountId = account.id;
+      userInfo.role = account.role;
+      if (account.role == 0) {
+        userInfo.userId = account.user[0].id;
+        userInfo.name = account.user[0].name;
+        userInfo.address = account.user[0].address;
+        userInfo.photo = account.user[0].photo;
+      } else {
+        userInfo.userId = account.staff[0].id;
+        userInfo.name = account.staff[0].name;
+        userInfo.address = account.staff[0].address;
+      }
+      const refreshToken = await this.jwtService.signAsync({ account });
+      const dateToken = new Date();
+      dateToken.setHours(dateToken.getHours() + 7);
+      dateToken.setDate(dateToken.getDate() + 7);
+      const dateRefreshToken = new Date();
+      dateRefreshToken.setHours(dateRefreshToken.getHours() + 7);
+      dateRefreshToken.setDate(dateRefreshToken.getDate() + 14);
+      response
+        .cookie('token', token, {
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          expires: dateToken,
+        })
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          expires: dateRefreshToken,
+        });
+      return {
+        userInfo: userInfo,
+      };
+    }
+    return null;
   }
 
   @Post('login')
@@ -105,7 +167,7 @@ export class AuthController {
       photo: '',
     };
     userInfo.phone = account.phone;
-    userInfo.accountId = account.accountId;
+    userInfo.accountId = account.id;
     userInfo.role = account.role;
     if (account.role == 0) {
       userInfo.userId = account.user[0].id;
@@ -117,11 +179,26 @@ export class AuthController {
       userInfo.name = account.staff[0].name;
       userInfo.address = account.staff[0].address;
     }
-    response.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-    });
+    const refreshToken = await this.jwtService.signAsync({ account });
+    const dateToken = new Date();
+    dateToken.setHours(dateToken.getHours() + 7);
+    dateToken.setDate(dateToken.getDate() + 7);
+    const dateRefreshToken = new Date();
+    dateRefreshToken.setHours(dateRefreshToken.getHours() + 7);
+    dateRefreshToken.setDate(dateRefreshToken.getDate() + 14);
+    response
+      .cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        expires: dateToken,
+      })
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        expires: dateRefreshToken,
+      });
     const message = await this.messageService.getMessage('LOGIN_SUCCESS');
     return {
       userInfo: userInfo,
