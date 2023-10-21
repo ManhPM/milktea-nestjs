@@ -1,21 +1,16 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import * as twilio from 'twilio';
-import {
-  HttpException,
-  Injectable,
-  HttpStatus,
-  Request,
-  Body,
-} from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from 'src/account/entities/account.entity';
 import { User } from 'src/user/entities/user.entity';
-import { LessThan, Repository } from 'typeorm';
+import { LessThan, Like, Repository } from 'typeorm';
 import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
 import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
 import { MessageService, convertPhoneNumber, isNumberic } from 'src/common/lib';
 import { Verify } from 'src/verify/entities/verify.entity';
+import { ChangePassword } from 'src/user/dto/changepassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -143,7 +138,7 @@ export class AuthService {
         );
       }
       const date = new Date();
-      date.setHours(date.getHours() + 7);
+      date.setHours(date.getHours() - 3);
       const phoneVerify = await this.verifyRepository.findOne({
         where: {
           phone: phoneNumber,
@@ -159,6 +154,7 @@ export class AuthService {
         );
       }
       if (phoneVerify.expireAt <= date) {
+        console.log(phoneVerify);
         throw new HttpException(
           {
             messageCode: 'VERIFY_ERROR3',
@@ -202,6 +198,107 @@ export class AuthService {
     }
   }
 
+  async changePassword(@Request() req, item: ChangePassword) {
+    try {
+      const account = await this.accountRepository.findOne({
+        where: {
+          phone: Like('%' + req.user.phone + '%'),
+        },
+      });
+      if (!(await bcrypt.compare(item.oldPassword, account.password))) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR5',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (item.newPassword == item.oldPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'CHANGE_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const salt = bcrypt.genSaltSync(10);
+      const hashPassword = await bcrypt.hash(item.newPassword, salt);
+      await this.accountRepository.update(account.id, {
+        password: hashPassword,
+      });
+      const message = await this.messageService.getMessage(
+        'CHANGE_PASSWORD_SUCCESS',
+      );
+      return {
+        message: message,
+      };
+    } catch (error) {
+      console.log(error);
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  async forgotPassword(item: ChangePassword) {
+    try {
+      const account = await this.accountRepository.findOne({
+        where: {
+          phone: Like('%' + item.phone + '%'),
+        },
+      });
+      const salt = bcrypt.genSaltSync(10);
+      const hashPassword = await bcrypt.hash(item.newPassword, salt);
+      await this.accountRepository.update(account.id, {
+        password: hashPassword,
+      });
+      const message = await this.messageService.getMessage(
+        'FORGOT_PASSWORD_SUCCESS',
+      );
+      return {
+        message: message,
+      };
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
   async create(createAccountDto: CreateAccountDto) {
     try {
       const salt = bcrypt.genSaltSync(10);
@@ -223,15 +320,26 @@ export class AuthService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -255,15 +363,27 @@ export class AuthService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.log(error);
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -274,15 +394,26 @@ export class AuthService {
         relations: ['user', 'staff'],
       });
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -292,15 +423,26 @@ export class AuthService {
         where: { phone },
       });
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

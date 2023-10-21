@@ -29,6 +29,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
 import { ProductService } from 'src/product/product.service';
 import { MessageService } from 'src/common/lib';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { MessageService } from 'src/common/lib';
       Shop,
       Product,
       ShippingCompany,
+      Wishlist,
     ]),
   ],
   controllers: [ReviewController],

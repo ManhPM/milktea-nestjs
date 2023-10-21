@@ -4,6 +4,7 @@ import { Staff } from 'src/staff/entities/staff.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -32,9 +33,6 @@ export class Invoice {
 
   @Column()
   isPaid: number;
-
-  @Column()
-  isPrepared: number;
 
   @ManyToOne(() => User, (item) => item.invoices)
   user: User;

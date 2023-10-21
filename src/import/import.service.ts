@@ -1,20 +1,33 @@
-import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { CreateImportDto } from './dto/create-import.dto';
 import { UpdateImportDto } from './dto/update-import.dto';
 import { Import } from './entities/import.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Like, MoreThan, Repository } from 'typeorm';
+import { Between, DataSource, Like, MoreThan, Repository } from 'typeorm';
 import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
 import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
 import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
-import { MessageService } from 'src/common/lib';
+import {
+  MessageService,
+  isDateGreaterThanNow,
+  isValidDate,
+} from 'src/common/lib';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Injectable()
 export class ImportService {
   constructor(
     @InjectRepository(Import)
     readonly importRepository: Repository<Import>,
+    @InjectRepository(Recipe)
+    readonly recipeRepository: Repository<Recipe>,
     @InjectRepository(Ingredient)
     readonly ingredientRepository: Repository<Ingredient>,
     @InjectRepository(ImportIngredient)
@@ -23,52 +36,79 @@ export class ImportService {
     private readonly messageService: MessageService,
   ) {}
 
-  async findAll(): Promise<any> {
+  async findAll(@Query() query): Promise<any> {
     try {
-      const [res, total] = await this.importRepository.findAndCount({
-        relations: ['staff'],
-        where: {
-          isCompleted: MoreThan(0),
-        },
-        order: {
-          date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
-        },
-      });
+      const fromDate = query.fromdate;
+      const toDate = query.todate;
+      const status = query.status;
+      let res = [];
+      if (fromDate && toDate) {
+        if (status) {
+          res = await this.importRepository.find({
+            relations: ['staff'],
+            where: {
+              isCompleted: status,
+              date: Between(fromDate, toDate),
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        } else {
+          res = await this.importRepository.find({
+            relations: ['staff'],
+            where: {
+              date: Between(fromDate, toDate),
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        }
+      } else {
+        if (status) {
+          res = await this.importRepository.find({
+            relations: ['staff'],
+            where: {
+              isCompleted: status,
+            },
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        } else {
+          res = await this.importRepository.find({
+            relations: ['staff'],
+            order: {
+              date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+            },
+          });
+        }
+      }
       return {
         data: res,
-        total,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async checkCreate(@Request() req) {
-    try {
-      return await this.importRepository.find({
-        where: {
-          staff: req.user[0].id,
-          isCompleted: 0,
-        },
-      });
-    } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -90,15 +130,26 @@ export class ImportService {
         data: nonImportedIngredients,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -138,68 +189,105 @@ export class ImportService {
       }
       return null;
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   async completeImport(id: number) {
-    const queryRunner = this.dataSource.createQueryRunner();
+    return await this.dataSource.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const importIngredients = await transactionalEntityManager
+            .getRepository(ImportIngredient)
+            .find({
+              where: {
+                import: Like('%' + id + '%'),
+              },
+              relations: ['ingredient'],
+            });
+          let totalAmount = 0;
+          for (const importIngredient of importIngredients) {
+            totalAmount += importIngredient.price;
+            await transactionalEntityManager
+              .createQueryBuilder()
+              .update(Ingredient)
+              .set({ quantity: () => '`quantity` + :newQuantity' })
+              .where('id = :id', { id: importIngredient.ingredient.id })
+              .setParameter('newQuantity', importIngredient.quantity)
+              .execute();
+          }
+          const recipes = await transactionalEntityManager
+            .getRepository(Recipe)
+            .find({
+              where: {
+                isActive: 2,
+              },
+              relations: ['recipe_ingredients.ingredient'],
+            });
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const importIngredients = await this.importIngredientRepository.find({
-        where: {
-          import: Like('%' + id + '%'),
-        },
-        relations: ['ingredient'],
-      });
-      let totalAmount = 0;
-      for (const importIngredient of importIngredients) {
-        totalAmount += importIngredient.price;
-        await queryRunner.manager
-          .createQueryBuilder()
-          .update(Ingredient)
-          .set({ quantity: () => '`quantity` + :newQuantity' })
-          .where('id = :id', { id: importIngredient.ingredient.id })
-          .setParameter('newQuantity', importIngredient.quantity)
-          .execute();
-      }
-      await queryRunner.manager.update(Import, id, {
-        total: totalAmount,
-        isCompleted: 1,
-      });
+          if (recipes[0]) {
+            for (const recipe of recipes) {
+              let canActive = 1;
+              for (let i = 0; i < recipe.recipe_ingredients.length; i++) {
+                if (
+                  recipe.recipe_ingredients[i].quantity >
+                  recipe.recipe_ingredients[i].ingredient.quantity
+                ) {
+                  canActive = 0;
+                }
+                if (canActive) {
+                  await transactionalEntityManager
+                    .getRepository(Recipe)
+                    .update(recipe.id, {
+                      isActive: 1,
+                    });
+                }
+              }
+            }
+          }
+          await transactionalEntityManager.update(Import, id, {
+            total: totalAmount,
+            isCompleted: 1,
+          });
 
-      await queryRunner.commitTransaction();
-
-      const message = await this.messageService.getMessage(
-        'COMPLETE_IMPORT_SUCCESS',
-      );
-      return {
-        message: message,
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
+          const message = await this.messageService.getMessage(
+            'COMPLETE_IMPORT_SUCCESS',
+          );
+          return {
+            message: message,
+          };
+        } catch (error) {
+          const message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      },
+    );
   }
 
   async create(createImportDto: CreateImportDto, @Request() req) {
@@ -207,24 +295,52 @@ export class ImportService {
       const date = new Date();
       date.setHours(date.getHours() + 7);
       createImportDto.date = date;
+      const check = await this.importRepository.findOne({
+        where: {
+          staff: req.user.id,
+          isCompleted: 0,
+        },
+      });
+      if (!createImportDto.description) {
+        createImportDto.description = 'Mô tả';
+      }
+      if (check) {
+        throw new HttpException(
+          {
+            messageCode: 'IMPORT_ISEXIST_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.importRepository.save({
         ...createImportDto,
-        staff: req.user[0].id,
+        staff: req.user.id,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -239,15 +355,26 @@ export class ImportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -263,26 +390,52 @@ export class ImportService {
           id: item.ingredientId,
         },
       });
+      const importIngredient = await this.importIngredientRepository.findOne({
+        where: {
+          import: Like('%' + importInvoice.id + '%'),
+          ingredient: Like('%' + ingredient.id + '%'),
+        },
+      });
+      if (importIngredient) {
+        throw new HttpException(
+          {
+            messageCode: 'IMPORT_EXPORT_INGREDIENT_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.importIngredientRepository.save({
         ...item,
         import: importInvoice,
         ingredient: ingredient,
       });
+
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
 
       return {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -307,20 +460,44 @@ export class ImportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
   async remove(id: number) {
     try {
+      const check = await this.importRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      if (check.isCompleted != 0) {
+        throw new HttpException(
+          {
+            messageCode: 'CANCEL_INVOICE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       await this.importRepository.update(id, {
         isCompleted: -1,
       });
@@ -329,15 +506,27 @@ export class ImportService {
         message: message,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      if (error.response.messageCode) {
+        const message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        const message = await this.messageService.getMessage(
+          'INTERNAL_SERVER_ERROR',
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -347,15 +536,26 @@ export class ImportService {
         where: { id },
       });
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 }

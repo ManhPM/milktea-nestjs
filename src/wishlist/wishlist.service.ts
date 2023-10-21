@@ -22,7 +22,7 @@ export class WishlistService {
     try {
       const item = await this.wishlistRepository.findOne({
         where: {
-          user: req.user[0].id,
+          user: Like('%' + req.user.id + '%'),
           recipe: Like('%' + id + '%'),
         },
         relations: ['user', 'recipe'],
@@ -33,7 +33,7 @@ export class WishlistService {
           recipe: item.recipe,
         });
         const message = await this.messageService.getMessage(
-          'ADD_TO_WISHLIST_SUCCESS',
+          'DELETE_FROM_WISHLIST_SUCCESS',
         );
         return {
           message: message,
@@ -41,7 +41,7 @@ export class WishlistService {
       } else {
         const user = await this.userRepository.findOne({
           where: {
-            id: req.user[0].id,
+            id: req.user.id,
           },
         });
         const recipe = await this.recipeRepository.findOne({
@@ -54,22 +54,33 @@ export class WishlistService {
           recipe: recipe,
         });
         const message = await this.messageService.getMessage(
-          'DELETE_FROM_WISHLIST_SUCCESS',
+          'ADD_TO_WISHLIST_SUCCESS',
         );
         return {
           message: message,
         };
       }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -77,11 +88,11 @@ export class WishlistService {
     try {
       const [res, total] = await this.wishlistRepository.findAndCount({
         where: {
-          user: req.user[0].id,
+          user: Like('%' + req.user.id + '%'),
         },
         relations: ['recipe'],
       });
-      if (res) {
+      if (res[0]) {
         const data = [res[0].recipe];
         for (let i = 0; i < res.length; i++) {
           data[i] = res[i].recipe;
@@ -94,15 +105,26 @@ export class WishlistService {
         data: res,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 

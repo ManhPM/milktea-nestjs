@@ -46,33 +46,63 @@ export class ReviewService {
         },
         relations: ['product.product_recipes.recipe'],
       });
-      const recipe = await this.recipeRepository.findOne({
-        where: {
-          id: invoiceProducts.product.product_recipes[0].recipe.id,
-        },
-      });
-      await this.reviewRepository.save({
-        ...createReviewDto,
-        user,
-        recipe,
-      });
-      await this.invoiceProductRepository.update(invoiceProducts.id, {
-        isReviewed: 1,
-      });
-      const message = await this.messageService.getMessage('RATING_SUCCESS');
-      return {
-        message: message,
-      };
+      if (invoiceProducts) {
+        if (!invoiceProducts.isReviewed) {
+          const recipe = await this.recipeRepository.findOne({
+            where: {
+              id: invoiceProducts.product.product_recipes[0].recipe.id,
+            },
+          });
+          await this.reviewRepository.save({
+            ...createReviewDto,
+            user,
+            recipe,
+          });
+          await this.invoiceProductRepository.update(invoiceProducts.id, {
+            isReviewed: 1,
+          });
+          const message =
+            await this.messageService.getMessage('RATING_SUCCESS');
+          return {
+            message: message,
+          };
+        } else {
+          throw new HttpException(
+            {
+              messageCode: 'INVOICE_PRODUCT_RATED_ERROR',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      } else {
+        throw new HttpException(
+          {
+            messageCode: 'INVOICE_PRODUCT_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 
@@ -92,15 +122,26 @@ export class ReviewService {
         total,
       };
     } catch (error) {
-      const message = await this.messageService.getMessage(
-        'INTERNAL_SERVER_ERROR',
-      );
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 

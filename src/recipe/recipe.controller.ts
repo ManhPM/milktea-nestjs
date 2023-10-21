@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
@@ -34,8 +35,13 @@ export class RecipeController {
   }
 
   @Get('/menu/:id')
-  getRecipeByType(@Param('id') id: string) {
-    return this.recipeService.getRecipeByType(+id);
+  getRecipeByType(@Param('id') id: string, @Request() req) {
+    return this.recipeService.getRecipeByType(+id, req);
+  }
+
+  @Get(':id')
+  getDetail(@Param('id') id: string) {
+    return this.recipeService.getDetailRecipe(+id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

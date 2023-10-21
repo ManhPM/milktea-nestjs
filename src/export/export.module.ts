@@ -15,6 +15,7 @@ import {
   validateCompleteImportExport,
   validateCreateExportIngredient,
   validateDeleteExportIngredient,
+  validateFromDateToDate,
 } from 'src/common/middlewares/validate';
 import { Import } from 'src/import/entities/import.entity';
 import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
@@ -22,6 +23,10 @@ import { ImportService } from 'src/import/import.service';
 import { ImportIngredientService } from 'src/import_ingredient/import_ingredient.service';
 import { IngredientService } from 'src/ingredient/ingredient.service';
 import { MessageService } from 'src/common/lib';
+import { ShippingCompanyService } from 'src/shipping_company/shipping_company.service';
+import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
+import { Shop } from 'src/shop/entities/shop.entity';
+import { Recipe } from 'src/recipe/entities/recipe.entity';
 
 @Module({
   imports: [
@@ -32,6 +37,9 @@ import { MessageService } from 'src/common/lib';
       Import,
       ImportIngredient,
       Ingredient,
+      ShippingCompany,
+      Shop,
+      Recipe,
     ]),
   ],
   controllers: [ExportController],
@@ -41,6 +49,7 @@ import { MessageService } from 'src/common/lib';
     ImportService,
     IngredientService,
     MessageService,
+    ShippingCompanyService,
   ],
 })
 export class ExportModule implements NestModule {
@@ -62,5 +71,8 @@ export class ExportModule implements NestModule {
     consumer
       .apply(validateDeleteExportIngredient)
       .forRoutes({ path: 'export/ingredient', method: RequestMethod.DELETE });
+    consumer
+      .apply(validateFromDateToDate)
+      .forRoutes({ path: 'export', method: RequestMethod.GET });
   }
 }

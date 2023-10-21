@@ -21,10 +21,17 @@ import {
   validateUpdateRecipe,
 } from 'src/common/middlewares/validate';
 import { MessageService } from 'src/common/lib';
+import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Recipe, ProductRecipe, RecipeType, Type]),
+    TypeOrmModule.forFeature([
+      Recipe,
+      ProductRecipe,
+      RecipeType,
+      Type,
+      Wishlist,
+    ]),
   ],
   controllers: [RecipeController],
   providers: [RecipeService, TypeService, MessageService],

@@ -109,11 +109,20 @@ export class validateRegister implements NestMiddleware {
     try {
       const phone = req.body.phone;
       const password = req.body.password;
+      const repeatPassword = req.body.repeatPassword;
       const name = req.body.name;
       if (!phone) {
         throw new HttpException(
           {
             messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!password) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -126,18 +135,34 @@ export class validateRegister implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!name) {
+      if (!repeatPassword) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_USERNAME_ERROR',
+            messageCode: 'INPUT_PASSWORD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!password) {
+      if (repeatPassword.length < 6) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_PASSWORD_ERROR',
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (password != repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!name) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_USERNAME_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -162,7 +187,7 @@ export class validateRegister implements NestMiddleware {
       if (exists) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_PHONE_ERROR3',
+            messageCode: 'PHONE_ISEXIST_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -199,8 +224,6 @@ export class validateUpdateUser implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const phone = req.body.phone;
-      const password = req.body.password;
-      const repeatPassword = req.body.repeatPassword;
       if (phone) {
         if (phone.length != 10) {
           throw new HttpException(
@@ -210,44 +233,150 @@ export class validateUpdateUser implements NestMiddleware {
             HttpStatus.BAD_REQUEST,
           );
         }
-      }
-      if (password) {
-        if (!repeatPassword) {
+        if (!isNumberic(phone)) {
           throw new HttpException(
             {
-              messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+              messageCode: 'INPUT_PHONE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (phone.length != 10) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PHONE_ERROR2',
             },
             HttpStatus.BAD_REQUEST,
           );
         }
       }
-      if (repeatPassword) {
-        if (!password) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+      next();
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-      if (password && repeatPassword) {
-        if (password.length < 6 || repeatPassword < 6) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR2',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (password != repeatPassword) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_PASSWORD_ERROR3',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
+    }
+  }
+}
+
+@Injectable()
+export class validateChangePassword implements NestMiddleware {
+  constructor(private readonly messageService: MessageService) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const oldPassword = req.body.oldPassword;
+      const newPassword = req.body.newPassword;
+      const repeatPassword = req.body.repeatPassword;
+      if (!oldPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR4',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR6',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (
+        oldPassword.length < 6 ||
+        newPassword.length < 6 ||
+        repeatPassword.length < 6
+      ) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (repeatPassword != newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      next();
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
+
+@Injectable()
+export class validateForgotPassword implements NestMiddleware {
+  constructor(private readonly messageService: MessageService) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const newPassword = req.body.newPassword;
+      const phone = req.body.phone;
+      const repeatPassword = req.body.repeatPassword;
+      if (!phone) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (phone.length != 10) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       if (!isNumberic(phone)) {
         throw new HttpException(
@@ -261,6 +390,38 @@ export class validateUpdateUser implements NestMiddleware {
         throw new HttpException(
           {
             messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR6',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!repeatPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_REPEAT_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (newPassword.lengh < 6 || repeatPassword.length < 6) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (repeatPassword != newPassword) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR3',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -315,7 +476,7 @@ export class validateCreateCartProduct implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!size) {
+      if (!size && size != 0) {
         throw new HttpException(
           {
             messageCode: 'INPUT_SIZE_ERROR',
@@ -528,8 +689,8 @@ export class validateCreateImportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkImport = await this.service2.checkExist(importId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkImport = await this.service1.checkExist(importId);
       if (!ingredient) {
         throw new HttpException(
           {
@@ -592,8 +753,8 @@ export class validateDeleteImportIngredient implements NestMiddleware {
     try {
       const importId = req.body.importId;
       const ingredientId = req.body.ingredientId;
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkImport = await this.service2.checkExist(importId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkImport = await this.service1.checkExist(importId);
       if (!ingredient) {
         throw new HttpException(
           {
@@ -721,8 +882,8 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkExport = await this.service2.checkExist(exportId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkExport = await this.service1.checkExist(exportId);
 
       if (!ingredient) {
         throw new HttpException(
@@ -793,8 +954,8 @@ export class validateDeleteExportIngredient implements NestMiddleware {
     try {
       const exportId = req.body.exportId;
       const ingredientId = req.body.ingredientId;
-      const ingredient = await this.service1.checkExist(ingredientId);
-      const checkExport = await this.service2.checkExist(exportId);
+      const ingredient = await this.service2.checkExist(ingredientId);
+      const checkExport = await this.service1.checkExist(exportId);
       if (!exportId) {
         throw new HttpException(
           {
@@ -950,7 +1111,7 @@ export class validateCheckOut implements NestMiddleware {
       if (!paymentMethod) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_IMAGE_ERROR',
+            messageCode: 'PAYMENT_METHOD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -1008,65 +1169,152 @@ export class validateCheckOut implements NestMiddleware {
 }
 
 @Injectable()
-export class validateStatistical implements NestMiddleware {
+export class validateCheckOut1 implements NestMiddleware {
   constructor(
     private service: ShippingCompanyService,
     private readonly messageService: MessageService,
   ) {}
+
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      const fromDate = req.body.fromDate;
-      const toDate = req.body.toDate;
-      if (!fromDate) {
+      const shippingFee = req.body.shippingFee;
+      const shippingCompanyId = req.body.shippingCompanyId;
+      const paymentMethod = req.body.paymentMethod;
+      if (!shippingFee) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_FROMDATE_ERROR',
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!toDate) {
+      if (!shippingCompanyId) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_TODATE_ERROR',
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!isValidDate(fromDate)) {
+      if (!paymentMethod) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_FROMDATE_ERROR1',
+            messageCode: 'PAYMENT_METHOD_ERROR',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!isValidDate(toDate)) {
+      if (!isNumberic(shippingFee)) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_TODATE_ERROR1',
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR1',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (isDateGreaterThanNow(fromDate)) {
+      if (shippingFee < 0) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_FROMDATE_ERROR2',
+            messageCode: 'INPUT_SHIPPINGFEE_ERROR2',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (isDateGreaterThanNow(toDate)) {
+      const checkShippingCompany =
+        await this.service.checkExist(shippingCompanyId);
+      if (!checkShippingCompany) {
         throw new HttpException(
           {
-            messageCode: 'INPUT_TODATE_ERROR2',
+            messageCode: 'SHIPPING_COMPANY_NOTFOUND',
           },
           HttpStatus.BAD_REQUEST,
         );
       }
       next();
     } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
+
+@Injectable()
+export class validateFromDateToDate implements NestMiddleware {
+  constructor(
+    private service: ShippingCompanyService,
+    private readonly messageService: MessageService,
+  ) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const fromDate = req.query.fromdate;
+      const toDate = req.query.todate;
+      if (fromDate) {
+        if (!isValidDate(fromDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_FROMDATE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (isDateGreaterThanNow(fromDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_FROMDATE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+      if (toDate) {
+        if (!isValidDate(toDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_TODATE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (isDateGreaterThanNow(toDate)) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_TODATE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+      if (toDate && fromDate) {
+        if (toDate < fromDate) {
+          throw new HttpException(
+            {
+              messageCode: 'FROMDATE_TODATE_ERROR',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+      next();
+    } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
@@ -1587,7 +1835,7 @@ export class validateCreateStaff implements NestMiddleware {
       if (gender !== 'Mam' && gender !== 'Nữ') {
         throw new HttpException(
           {
-            messageCode: 'INPUT_STAFF_GENDER_ERROR',
+            messageCode: 'INPUT_STAFF_GENDER_ERROR1',
           },
           HttpStatus.BAD_REQUEST,
         );
