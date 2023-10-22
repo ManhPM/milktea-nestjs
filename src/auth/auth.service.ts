@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import * as twilioConfig from 'twilio';
+// import * as twilioConfig from 'twilio';
 import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -23,103 +23,103 @@ export class AuthService {
   ) {}
 
   async sendSms(phoneNumber: string) {
-    try {
-      if (!phoneNumber) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PHONE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isNumberic(phoneNumber)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PHONE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (phoneNumber.length != 10) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PHONE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      const phone = await this.accountRepository.findOne({
-        where: {
-          phone: phoneNumber,
-        },
-      });
-      if (phone) {
-        throw new HttpException(
-          {
-            messageCode: 'PHONE_ISEXIST_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      const date = new Date();
-      date.setHours(date.getHours() + 7);
-      const phoneVerify = await this.verifyRepository.findOne({
-        where: {
-          phone: phoneNumber,
-          expireAt: LessThan(date),
-        },
-      });
-      if (phoneVerify) {
-        throw new HttpException(
-          {
-            messageCode: 'SMS_SEND_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      date.setMinutes(date.getMinutes() + 5);
-      const randomID = Math.floor(100000 + Math.random() * 900000);
-      await this.verifyRepository.save({
-        phone: phoneNumber,
-        verifyID: randomID.toString(),
-        expireAt: date,
-      });
-      const convertPhone = convertPhoneNumber(phoneNumber);
-      const client = twilioConfig(
-        process.env.ACCOUNTSID,
-        process.env.AUTHTOKEN,
-      );
-      await client.messages.create({
-        body: `Mã xác minh của bạn là ${randomID}`,
-        to: convertPhone,
-        from: `${process.env.PHONE}`,
-      });
-      const message = await this.messageService.getMessage('SMS_SEND_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      let message = '';
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
+    // try {
+    //   if (!phoneNumber) {
+    //     throw new HttpException(
+    //       {
+    //         messageCode: 'INPUT_PHONE_ERROR',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    //   if (!isNumberic(phoneNumber)) {
+    //     throw new HttpException(
+    //       {
+    //         messageCode: 'INPUT_PHONE_ERROR1',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    //   if (phoneNumber.length != 10) {
+    //     throw new HttpException(
+    //       {
+    //         messageCode: 'INPUT_PHONE_ERROR2',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    //   const phone = await this.accountRepository.findOne({
+    //     where: {
+    //       phone: phoneNumber,
+    //     },
+    //   });
+    //   if (phone) {
+    //     throw new HttpException(
+    //       {
+    //         messageCode: 'PHONE_ISEXIST_ERROR',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    //   const date = new Date();
+    //   date.setHours(date.getHours() + 7);
+    //   const phoneVerify = await this.verifyRepository.findOne({
+    //     where: {
+    //       phone: phoneNumber,
+    //       expireAt: LessThan(date),
+    //     },
+    //   });
+    //   if (phoneVerify) {
+    //     throw new HttpException(
+    //       {
+    //         messageCode: 'SMS_SEND_ERROR',
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   }
+    //   date.setMinutes(date.getMinutes() + 5);
+    //   const randomID = Math.floor(100000 + Math.random() * 900000);
+    //   await this.verifyRepository.save({
+    //     phone: phoneNumber,
+    //     verifyID: randomID.toString(),
+    //     expireAt: date,
+    //   });
+    //   const convertPhone = convertPhoneNumber(phoneNumber);
+    //   const client = twilioConfig(
+    //     process.env.ACCOUNTSID,
+    //     process.env.AUTHTOKEN,
+    //   );
+    //   await client.messages.create({
+    //     body: `Mã xác minh của bạn là ${randomID}`,
+    //     to: convertPhone,
+    //     from: `${process.env.PHONE}`,
+    //   });
+    //   const message = await this.messageService.getMessage('SMS_SEND_SUCCESS');
+    //   return {
+    //     message: message,
+    //   };
+    // } catch (error) {
+    //   let message = '';
+    //   if (error.response.messageCode) {
+    //     message = await this.messageService.getMessage(
+    //       error.response.messageCode,
+    //     );
+    //     throw new HttpException(
+    //       {
+    //         message: message,
+    //       },
+    //       HttpStatus.BAD_REQUEST,
+    //     );
+    //   } else {
+    //     message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+    //     throw new HttpException(
+    //       {
+    //         message: message,
+    //       },
+    //       HttpStatus.INTERNAL_SERVER_ERROR,
+    //     );
+    //   }
+    // }
   }
 
   async verify(phoneNumber: string, verifyID: string) {

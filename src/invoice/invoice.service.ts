@@ -11,7 +11,7 @@ import {
 import * as querystring from 'qs';
 import vnpayConfig from '../../config/vnpayConfig';
 import * as crypto from 'crypto';
-import * as momentConfig from 'moment';
+import momentConfig = require('moment');
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { Invoice } from './entities/invoice.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -85,7 +85,9 @@ export class InvoiceService {
           process.env.TZ = 'Asia/Ho_Chi_Minh';
 
           const date = new Date();
-          const createDate = momentConfig(date).format('YYYYMMDDHHmmss');
+          const createDate = (momentConfig as any)(date).format(
+            'YYYYMMDDHHmmss',
+          );
 
           const ipAddr = ip;
 
@@ -231,7 +233,7 @@ export class InvoiceService {
         process.env.TZ = 'Asia/Ho_Chi_Minh';
 
         const date = new Date();
-        const createDate = momentConfig(date).format('YYYYMMDDHHmmss');
+        const createDate = (momentConfig as any)(date).format('YYYYMMDDHHmmss');
 
         const ipAddr = ip;
 
