@@ -431,7 +431,7 @@ export class InvoiceService {
                 date: Between(fromDate, toDate),
               },
               order: {
-                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
@@ -444,7 +444,7 @@ export class InvoiceService {
                 status,
               },
               order: {
-                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
@@ -459,7 +459,7 @@ export class InvoiceService {
                 date: Between(fromDate, toDate),
               },
               order: {
-                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
@@ -469,7 +469,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               order: {
-                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
