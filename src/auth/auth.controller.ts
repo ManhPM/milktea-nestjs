@@ -16,6 +16,7 @@ import {
   Get,
   Request,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
@@ -63,8 +64,8 @@ export class AuthController {
     }
   }
 
-  @Get('check-phone')
-  async checkPhone(@Body('phone') phone: string) {
+  @Get('check-phone/:phone')
+  async checkPhone(@Param('phone') phone: string) {
     return await this.authService.checkCreatePhone(phone);
   }
 
