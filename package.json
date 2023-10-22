@@ -33,7 +33,7 @@
     "@nestjs/jwt": "^10.0.3",
     "@nestjs/platform-express": "^10.2.7",
     "@nestjs/schedule": "^3.0.4",
-    "@nestjs/swagger": "^6.3.0",
+    "@nestjs/swagger": "^7.1.13",
     "@nestjs/typeorm": "^9.0.1",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.4",
