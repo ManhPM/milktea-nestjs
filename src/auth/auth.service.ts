@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import * as twilio from 'twilio';
+import * as twilioConfig from 'twilio';
 import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -85,7 +85,10 @@ export class AuthService {
         expireAt: date,
       });
       const convertPhone = convertPhoneNumber(phoneNumber);
-      const client = twilio(process.env.ACCOUNTSID, process.env.AUTHTOKEN);
+      const client = twilioConfig(
+        process.env.ACCOUNTSID,
+        process.env.AUTHTOKEN,
+      );
       await client.messages.create({
         body: `Mã xác minh của bạn là ${randomID}`,
         to: convertPhone,
