@@ -6,7 +6,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { MessageService } from 'src/common/lib';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

@@ -10,9 +10,9 @@ import {
 import { RecipeTypeService } from './recipe_type.service';
 import { CreateRecipeTypeDto } from './dto/create-recipe_type.dto';
 import { DeleteRecipeTypeDto } from './dto/delete-recipe_type.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles } from 'src/auth/roles.decorator';
-import { RolesGuard } from 'src/auth/roles.guard';
+import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('recipe-type')
 export class RecipeTypeController {

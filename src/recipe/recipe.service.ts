@@ -4,12 +4,12 @@ import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { Recipe } from './entities/recipe.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Not, Repository } from 'typeorm';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
+import { ProductRecipe } from '../product_recipe/entities/product_recipe.entity';
 import { FilterRecipeDto } from './dto/filter-recipe.dto';
-import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
-import { Type } from 'src/type/entities/type.entity';
-import { MessageService } from 'src/common/lib';
-import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+import { RecipeType } from '../recipe_type/entities/recipe_type.entity';
+import { Type } from '../type/entities/type.entity';
+import { MessageService } from '../common/lib';
+import { Wishlist } from '../wishlist/entities/wishlist.entity';
 
 @Injectable()
 export class RecipeService {

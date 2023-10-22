@@ -20,14 +20,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
-import { CreateAccountDto } from 'src/account/dto/create-account.dto';
-import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
+import { CreateAccountDto } from '../account/dto/create-account.dto';
+import { UpdateAccountDto } from '../account/dto/update-account.dto';
 import { v2 as cloudinary } from 'cloudinary';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './roles.guard';
 import { Roles } from './roles.decorator';
-import { MessageService } from 'src/common/lib';
-import { ChangePassword } from 'src/user/dto/changepassword.dto';
+import { MessageService } from '../common/lib';
+import { ChangePassword } from '../user/dto/changepassword.dto';
 
 cloudinary.config({
   cloud_name: 'dgsumh8ih',

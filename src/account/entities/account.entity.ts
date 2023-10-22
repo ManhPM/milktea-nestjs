@@ -1,5 +1,5 @@
-import { Staff } from 'src/staff/entities/staff.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Staff } from '../../staff/entities/staff.entity';
+import { User } from '../../user/entities/user.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

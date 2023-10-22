@@ -5,9 +5,9 @@ import { Repository } from 'typeorm';
 import { ShippingCompany } from './entities/shipping_company.entity';
 import { CreateShippingCompanyDto } from './dto/create-shipping_company.dto';
 import { GetFeeShip } from './dto/getFeeShip.dto';
-import { Shop } from 'src/shop/entities/shop.entity';
-import { calDistance } from 'src/common/lib';
-import { MessageService } from 'src/common/lib';
+import { Shop } from '../shop/entities/shop.entity';
+import { calDistance } from '../common/lib';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class ShippingCompanyService {

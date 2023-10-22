@@ -11,7 +11,7 @@ import {
 import { InvoiceProductService } from './invoice_product.service';
 import { CreateInvoiceProductDto } from './dto/create-invoice_product.dto';
 import { UpdateInvoiceProductDto } from './dto/update-invoice_product.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('invoice-product')
 export class InvoiceProductController {

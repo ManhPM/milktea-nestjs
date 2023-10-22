@@ -13,11 +13,11 @@ import {
 import { ImportService } from './import.service';
 import { CreateImportDto } from './dto/create-import.dto';
 import { UpdateImportDto } from './dto/update-import.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
-import { CreateImportIngredientDto } from 'src/import_ingredient/dto/create-import_ingredient.dto';
-import { UpdateImportIngredientDto } from 'src/import_ingredient/dto/update-import_ingredient.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { CreateImportIngredientDto } from '../import_ingredient/dto/create-import_ingredient.dto';
+import { UpdateImportIngredientDto } from '../import_ingredient/dto/update-import_ingredient.dto';
 
 @Controller('import')
 export class ImportController {

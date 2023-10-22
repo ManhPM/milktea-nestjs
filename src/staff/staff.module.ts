@@ -12,12 +12,12 @@ import { StaffService } from './staff.service';
 import { StaffController } from './staff.controller';
 import { Staff } from './entities/staff.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Account } from 'src/account/entities/account.entity';
-import { CheckExistStaff } from 'src/common/middlewares/middlewares';
-import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/user/entities/user.entity';
-import { MessageService } from 'src/common/lib';
-import { Verify } from 'src/verify/entities/verify.entity';
+import { Account } from '../account/entities/account.entity';
+import { CheckExistStaff } from '../common/middlewares/middlewares';
+import { AuthService } from '../auth/auth.service';
+import { User } from '../user/entities/user.entity';
+import { MessageService } from '../common/lib';
+import { Verify } from '../verify/entities/verify.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Staff, Account, User, Verify])],

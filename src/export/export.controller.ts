@@ -13,11 +13,11 @@ import {
 import { ExportService } from './export.service';
 import { CreateExportDto } from './dto/create-export.dto';
 import { UpdateExportDto } from './dto/update-export.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
-import { CreateExportIngredientDto } from 'src/export_ingredient/dto/create-export_ingredient.dto';
-import { UpdateExportIngredientDto } from 'src/export_ingredient/dto/update-export_ingredient.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { CreateExportIngredientDto } from '../export_ingredient/dto/create-export_ingredient.dto';
+import { UpdateExportIngredientDto } from '../export_ingredient/dto/update-export_ingredient.dto';
 
 @Controller('export')
 export class ExportController {

@@ -1,4 +1,4 @@
-import { ExportService } from './../../export/export.service';
+import { ExportService } from '../../export/export.service';
 import {
   HttpException,
   HttpStatus,
@@ -6,14 +6,14 @@ import {
   NestMiddleware,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from 'src/auth/auth.service';
-import { ImportService } from 'src/import/import.service';
-import { IngredientService } from 'src/ingredient/ingredient.service';
-import { InvoiceService } from 'src/invoice/invoice.service';
-import { ShippingCompanyService } from 'src/shipping_company/shipping_company.service';
-import { StaffService } from 'src/staff/staff.service';
-import { TypeService } from 'src/type/type.service';
-import { ProductService } from 'src/product/product.service';
+import { AuthService } from '../../auth/auth.service';
+import { ImportService } from '../../import/import.service';
+import { IngredientService } from '../../ingredient/ingredient.service';
+import { InvoiceService } from '../../invoice/invoice.service';
+import { ShippingCompanyService } from '../../shipping_company/shipping_company.service';
+import { StaffService } from '../../staff/staff.service';
+import { TypeService } from '../../type/type.service';
+import { ProductService } from '../../product/product.service';
 import {
   isBit,
   isNumberic,

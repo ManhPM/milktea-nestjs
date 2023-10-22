@@ -10,16 +10,16 @@ import { UpdateExportDto } from './dto/update-export.dto';
 import { Between, DataSource, Like, Repository, getConnection } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Export } from './entities/export.entity';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
-import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
-import { CreateExportIngredientDto } from 'src/export_ingredient/dto/create-export_ingredient.dto';
-import { UpdateExportIngredientDto } from 'src/export_ingredient/dto/update-export_ingredient.dto';
+import { Ingredient } from '../ingredient/entities/ingredient.entity';
+import { ExportIngredient } from '../export_ingredient/entities/export_ingredient.entity';
+import { CreateExportIngredientDto } from '../export_ingredient/dto/create-export_ingredient.dto';
+import { UpdateExportIngredientDto } from '../export_ingredient/dto/update-export_ingredient.dto';
 import {
   MessageService,
   isDateGreaterThanNow,
   isValidDate,
-} from 'src/common/lib';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
+} from '../common/lib';
+import { Recipe } from '../recipe/entities/recipe.entity';
 
 @Injectable()
 export class ExportService {
@@ -39,7 +39,9 @@ export class ExportService {
   async findAll(@Query() query): Promise<any> {
     try {
       const fromDate = query.fromdate;
-      const toDate = query.todate;
+      const toDate = new Date(query.todate);
+      toDate.setDate(toDate.getDate() + 1);
+      toDate.setMinutes(toDate.getMinutes() - 1);
       const status = query.status;
       let res = [];
       if (fromDate && toDate) {

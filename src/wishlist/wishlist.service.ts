@@ -3,9 +3,9 @@ import { UpdateWishlistDto } from './dto/update-wishlist.dto';
 import { Wishlist } from './entities/wishlist.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { MessageService } from 'src/common/lib';
+import { User } from '../user/entities/user.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class WishlistService {

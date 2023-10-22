@@ -1,7 +1,7 @@
-import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
-import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { Staff } from 'src/staff/entities/staff.entity';
-import { User } from 'src/user/entities/user.entity';
+import { InvoiceProduct } from '../../invoice_product/entities/invoice_product.entity';
+import { ShippingCompany } from '../../shipping_company/entities/shipping_company.entity';
+import { Staff } from '../../staff/entities/staff.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

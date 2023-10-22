@@ -5,9 +5,9 @@ import { RecipeIngredient } from './entities/recipe_ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { DeleteRecipeIngredientDto } from './dto/delete-recipe_ingredient.dto';
-import { MessageService } from 'src/common/lib';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
+import { MessageService } from '../common/lib';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { Ingredient } from '../ingredient/entities/ingredient.entity';
 
 @Injectable()
 export class RecipeIngredientService {

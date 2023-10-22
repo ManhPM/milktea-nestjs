@@ -24,15 +24,15 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
-import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Shop } from 'src/shop/entities/shop.entity';
-import { Product } from 'src/product/entities/product.entity';
-import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { MessageService } from 'src/common/lib';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { InvoiceProduct } from '../invoice_product/entities/invoice_product.entity';
+import { CartProduct } from '../cart_product/entities/cart_product.entity';
+import { Ingredient } from '../ingredient/entities/ingredient.entity';
+import { User } from '../user/entities/user.entity';
+import { Shop } from '../shop/entities/shop.entity';
+import { Product } from '../product/entities/product.entity';
+import { ShippingCompany } from '../shipping_company/entities/shipping_company.entity';
+import { MessageService } from '../common/lib';
+import { Recipe } from '../recipe/entities/recipe.entity';
 
 @Injectable()
 export class InvoiceService {
@@ -358,7 +358,9 @@ export class InvoiceService {
   async findAll(@Query() query, @Request() req): Promise<any> {
     const status = query.status;
     const fromDate = query.fromdate;
-    const toDate = query.todate;
+    const toDate = new Date(query.todate);
+    toDate.setDate(toDate.getDate() + 1);
+    toDate.setMinutes(toDate.getMinutes() - 1);
     let res = [];
     let total = 0;
     try {

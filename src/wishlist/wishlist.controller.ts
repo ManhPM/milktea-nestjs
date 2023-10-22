@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('wishlist')
 export class WishlistController {

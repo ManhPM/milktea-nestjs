@@ -1,5 +1,5 @@
-import { Export } from 'src/export/entities/export.entity';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
+import { Export } from '../../export/entities/export.entity';
+import { Ingredient } from '../../ingredient/entities/ingredient.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

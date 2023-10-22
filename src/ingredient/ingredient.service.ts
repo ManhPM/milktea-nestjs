@@ -5,7 +5,7 @@ import { Ingredient } from './entities/ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FilterIngredientDto } from './dto/filter-ingredient.dto';
-import { MessageService } from 'src/common/lib';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class IngredientService {

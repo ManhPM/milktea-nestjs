@@ -4,9 +4,9 @@ import { DeleteRecipeTypeDto } from './dto/delete-recipe_type.dto';
 import { RecipeType } from './entities/recipe_type.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { Type } from 'src/type/entities/type.entity';
-import { MessageService } from 'src/common/lib';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { Type } from '../type/entities/type.entity';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class RecipeTypeService {

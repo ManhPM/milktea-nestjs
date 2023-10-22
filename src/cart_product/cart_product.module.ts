@@ -8,17 +8,17 @@ import { CartProductService } from './cart_product.service';
 import { CartProductController } from './cart_product.controller';
 import { CartProduct } from './entities/cart_product.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Product } from 'src/product/entities/product.entity';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { CheckExistProduct } from 'src/common/middlewares/middlewares';
-import { ProductService } from 'src/product/product.service';
+import { Product } from '../product/entities/product.entity';
+import { ProductRecipe } from '../product_recipe/entities/product_recipe.entity';
+import { User } from '../user/entities/user.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { CheckExistProduct } from '../common/middlewares/middlewares';
+import { ProductService } from '../product/product.service';
 import {
   validateCreateCartProduct,
   validateUpdateCartProduct,
-} from 'src/common/middlewares/validate';
-import { MessageService } from 'src/common/lib';
+} from '../common/middlewares/validate';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [

@@ -3,14 +3,14 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Account } from 'src/account/entities/account.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Account } from '../account/entities/account.entity';
+import { User } from '../user/entities/user.entity';
 import { LessThan, Like, Repository } from 'typeorm';
-import { CreateAccountDto } from 'src/account/dto/create-account.dto.js';
-import { UpdateAccountDto } from 'src/account/dto/update-account.dto';
-import { MessageService, convertPhoneNumber, isNumberic } from 'src/common/lib';
-import { Verify } from 'src/verify/entities/verify.entity';
-import { ChangePassword } from 'src/user/dto/changepassword.dto';
+import { CreateAccountDto } from '../account/dto/create-account.dto.js';
+import { UpdateAccountDto } from '../account/dto/update-account.dto';
+import { MessageService, convertPhoneNumber, isNumberic } from '../common/lib';
+import { Verify } from '../verify/entities/verify.entity';
+import { ChangePassword } from '../user/dto/changepassword.dto';
 
 @Injectable()
 export class AuthService {

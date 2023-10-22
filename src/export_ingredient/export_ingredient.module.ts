@@ -3,7 +3,7 @@ import { ExportIngredientService } from './export_ingredient.service';
 import { ExportIngredientController } from './export_ingredient.controller';
 import { ExportIngredient } from './entities/export_ingredient.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MessageService } from 'src/common/lib';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ExportIngredient])],

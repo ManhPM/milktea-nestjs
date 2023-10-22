@@ -8,20 +8,20 @@ import { RecipeService } from './recipe.service';
 import { RecipeController } from './recipe.controller';
 import { Recipe } from './entities/recipe.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
-import { Type } from 'src/type/entities/type.entity';
+import { ProductRecipe } from '../product_recipe/entities/product_recipe.entity';
+import { RecipeType } from '../recipe_type/entities/recipe_type.entity';
+import { Type } from '../type/entities/type.entity';
 import {
   CheckExistRecipe,
   CheckExistType,
-} from 'src/common/middlewares/middlewares';
-import { TypeService } from 'src/type/type.service';
+} from '../common/middlewares/middlewares';
+import { TypeService } from '../type/type.service';
 import {
   validateCreateRecipe,
   validateUpdateRecipe,
-} from 'src/common/middlewares/validate';
-import { MessageService } from 'src/common/lib';
-import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+} from '../common/middlewares/validate';
+import { MessageService } from '../common/lib';
+import { Wishlist } from '../wishlist/entities/wishlist.entity';
 
 @Module({
   imports: [

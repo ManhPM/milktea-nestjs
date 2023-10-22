@@ -1,5 +1,5 @@
-import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
-import { Staff } from 'src/staff/entities/staff.entity';
+import { ExportIngredient } from '../../export_ingredient/entities/export_ingredient.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 import {
   Column,
   CreateDateColumn,

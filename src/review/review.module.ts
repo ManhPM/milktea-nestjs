@@ -8,28 +8,28 @@ import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
 import { Review } from './entities/review.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { Invoice } from 'src/invoice/entities/invoice.entity';
-import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
+import { User } from '../user/entities/user.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { Invoice } from '../invoice/entities/invoice.entity';
+import { InvoiceProduct } from '../invoice_product/entities/invoice_product.entity';
 import {
   CheckCreateReview,
   CheckExistRecipe,
-} from 'src/common/middlewares/middlewares';
-import { RecipeService } from 'src/recipe/recipe.service';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
-import { Type } from 'src/type/entities/type.entity';
-import { validateCreateReview } from 'src/common/middlewares/validate';
-import { InvoiceService } from 'src/invoice/invoice.service';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
-import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
-import { Shop } from 'src/shop/entities/shop.entity';
-import { Product } from 'src/product/entities/product.entity';
-import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { ProductService } from 'src/product/product.service';
-import { MessageService } from 'src/common/lib';
-import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+} from '../common/middlewares/middlewares';
+import { RecipeService } from '../recipe/recipe.service';
+import { ProductRecipe } from '../product_recipe/entities/product_recipe.entity';
+import { RecipeType } from '../recipe_type/entities/recipe_type.entity';
+import { Type } from '../type/entities/type.entity';
+import { validateCreateReview } from '../common/middlewares/validate';
+import { InvoiceService } from '../invoice/invoice.service';
+import { Ingredient } from '../ingredient/entities/ingredient.entity';
+import { CartProduct } from '../cart_product/entities/cart_product.entity';
+import { Shop } from '../shop/entities/shop.entity';
+import { Product } from '../product/entities/product.entity';
+import { ShippingCompany } from '../shipping_company/entities/shipping_company.entity';
+import { ProductService } from '../product/product.service';
+import { MessageService } from '../common/lib';
+import { Wishlist } from '../wishlist/entities/wishlist.entity';
 
 @Module({
   imports: [

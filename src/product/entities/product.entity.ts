@@ -1,7 +1,7 @@
-import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
-import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
+import { CartProduct } from '../../cart_product/entities/cart_product.entity';
+import { InvoiceProduct } from '../../invoice_product/entities/invoice_product.entity';
+import { ProductRecipe } from '../../product_recipe/entities/product_recipe.entity';
+import { Recipe } from '../../recipe/entities/recipe.entity';
 import {
   Column,
   Entity,

@@ -11,9 +11,9 @@ import {
 import { ExportIngredientService } from './export_ingredient.service';
 import { CreateExportIngredientDto } from './dto/create-export_ingredient.dto';
 import { UpdateExportIngredientDto } from './dto/update-export_ingredient.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('export-ingredient')
 export class ExportIngredientController {

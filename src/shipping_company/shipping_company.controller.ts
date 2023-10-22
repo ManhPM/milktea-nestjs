@@ -14,9 +14,9 @@ import {
 import { ShippingCompanyService } from './shipping_company.service';
 import { CreateShippingCompanyDto } from './dto/create-shipping_company.dto';
 import { UpdateShippingCompanyDto } from './dto/update-shipping_company.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { GetFeeShip } from './dto/getFeeShip.dto';
 
 @Controller('shipping-company')

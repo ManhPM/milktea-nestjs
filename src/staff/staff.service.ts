@@ -5,8 +5,8 @@ import { UpdateStaffDto } from './dto/update-staff.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Staff } from './entities/staff.entity';
 import { DataSource, Like, Not, Repository, getConnection } from 'typeorm';
-import { Account } from 'src/account/entities/account.entity';
-import { MessageService } from 'src/common/lib';
+import { Account } from '../account/entities/account.entity';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class StaffService {

@@ -1,7 +1,7 @@
-import { Account } from 'src/account/entities/account.entity';
-import { Export } from 'src/export/entities/export.entity';
-import { Import } from 'src/import/entities/import.entity';
-import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { Account } from '../../account/entities/account.entity';
+import { Export } from '../../export/entities/export.entity';
+import { Import } from '../../import/entities/import.entity';
+import { Invoice } from '../../invoice/entities/invoice.entity';
 import {
   Column,
   CreateDateColumn,

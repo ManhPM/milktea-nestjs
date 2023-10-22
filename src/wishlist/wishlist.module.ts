@@ -8,14 +8,14 @@ import { WishlistService } from './wishlist.service';
 import { WishlistController } from './wishlist.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Wishlist } from './entities/wishlist.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { CheckExistRecipe } from 'src/common/middlewares/middlewares';
-import { RecipeService } from 'src/recipe/recipe.service';
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
-import { Type } from 'src/type/entities/type.entity';
-import { MessageService } from 'src/common/lib';
+import { User } from '../user/entities/user.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { CheckExistRecipe } from '../common/middlewares/middlewares';
+import { RecipeService } from '../recipe/recipe.service';
+import { ProductRecipe } from '../product_recipe/entities/product_recipe.entity';
+import { RecipeType } from '../recipe_type/entities/recipe_type.entity';
+import { Type } from '../type/entities/type.entity';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [

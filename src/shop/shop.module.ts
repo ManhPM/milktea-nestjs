@@ -8,8 +8,8 @@ import { ShopService } from './shop.service';
 import { ShopController } from './shop.controller';
 import { Shop } from './entities/shop.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { validateUpdateShop } from 'src/common/middlewares/validate';
-import { MessageService } from 'src/common/lib';
+import { validateUpdateShop } from '../common/middlewares/validate';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Shop])],

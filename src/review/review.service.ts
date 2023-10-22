@@ -3,11 +3,11 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { InvoiceProduct } from 'src/invoice_product/entities/invoice_product.entity';
-import { Invoice } from 'src/invoice/entities/invoice.entity';
-import { MessageService } from 'src/common/lib';
+import { User } from '../user/entities/user.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
+import { InvoiceProduct } from '../invoice_product/entities/invoice_product.entity';
+import { Invoice } from '../invoice/entities/invoice.entity';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class ReviewService {

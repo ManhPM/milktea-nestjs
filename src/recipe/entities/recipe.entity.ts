@@ -1,9 +1,9 @@
-import { ProductRecipe } from 'src/product_recipe/entities/product_recipe.entity';
-import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
-import { RecipeType } from 'src/recipe_type/entities/recipe_type.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { Type } from 'src/type/entities/type.entity';
-import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+import { ProductRecipe } from '../../product_recipe/entities/product_recipe.entity';
+import { RecipeIngredient } from '../../recipe_ingredient/entities/recipe_ingredient.entity';
+import { RecipeType } from '../../recipe_type/entities/recipe_type.entity';
+import { Review } from '../../review/entities/review.entity';
+import { Type } from '../../type/entities/type.entity';
+import { Wishlist } from '../../wishlist/entities/wishlist.entity';
 import {
   Column,
   Entity,

@@ -8,25 +8,25 @@ import { ExportService } from './export.service';
 import { ExportController } from './export.controller';
 import { Export } from './entities/export.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Ingredient } from 'src/ingredient/entities/ingredient.entity';
-import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
-import { CheckExistExport } from 'src/common/middlewares/middlewares';
+import { Ingredient } from '../ingredient/entities/ingredient.entity';
+import { ExportIngredient } from '../export_ingredient/entities/export_ingredient.entity';
+import { CheckExistExport } from '../common/middlewares/middlewares';
 import {
   validateCompleteImportExport,
   validateCreateExportIngredient,
   validateDeleteExportIngredient,
   validateFromDateToDate,
-} from 'src/common/middlewares/validate';
-import { Import } from 'src/import/entities/import.entity';
-import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
-import { ImportService } from 'src/import/import.service';
-import { ImportIngredientService } from 'src/import_ingredient/import_ingredient.service';
-import { IngredientService } from 'src/ingredient/ingredient.service';
-import { MessageService } from 'src/common/lib';
-import { ShippingCompanyService } from 'src/shipping_company/shipping_company.service';
-import { ShippingCompany } from 'src/shipping_company/entities/shipping_company.entity';
-import { Shop } from 'src/shop/entities/shop.entity';
-import { Recipe } from 'src/recipe/entities/recipe.entity';
+} from '../common/middlewares/validate';
+import { Import } from '../import/entities/import.entity';
+import { ImportIngredient } from '../import_ingredient/entities/import_ingredient.entity';
+import { ImportService } from '../import/import.service';
+import { ImportIngredientService } from '../import_ingredient/import_ingredient.service';
+import { IngredientService } from '../ingredient/ingredient.service';
+import { MessageService } from '../common/lib';
+import { ShippingCompanyService } from '../shipping_company/shipping_company.service';
+import { ShippingCompany } from '../shipping_company/entities/shipping_company.entity';
+import { Shop } from '../shop/entities/shop.entity';
+import { Recipe } from '../recipe/entities/recipe.entity';
 
 @Module({
   imports: [

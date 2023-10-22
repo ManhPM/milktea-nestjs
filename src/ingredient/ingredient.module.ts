@@ -11,9 +11,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   CheckCreateIngredient,
   CheckExistIngredient,
-} from 'src/common/middlewares/middlewares';
-import { validateCreateIngredient } from 'src/common/middlewares/validate';
-import { MessageService } from 'src/common/lib';
+} from '../common/middlewares/middlewares';
+import { validateCreateIngredient } from '../common/middlewares/validate';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Ingredient])],

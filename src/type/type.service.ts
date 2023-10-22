@@ -4,7 +4,7 @@ import { UpdateTypeDto } from './dto/update-type.dto';
 import { Type } from './entities/type.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MessageService } from 'src/common/lib';
+import { MessageService } from '../common/lib';
 
 @Injectable()
 export class TypeService {

@@ -1,6 +1,6 @@
-import { ExportIngredient } from 'src/export_ingredient/entities/export_ingredient.entity';
-import { ImportIngredient } from 'src/import_ingredient/entities/import_ingredient.entity';
-import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
+import { ExportIngredient } from '../../export_ingredient/entities/export_ingredient.entity';
+import { ImportIngredient } from '../../import_ingredient/entities/import_ingredient.entity';
+import { RecipeIngredient } from '../../recipe_ingredient/entities/recipe_ingredient.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

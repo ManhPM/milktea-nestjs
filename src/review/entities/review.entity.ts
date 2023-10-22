@@ -1,5 +1,5 @@
-import { Recipe } from 'src/recipe/entities/recipe.entity';
-import { User } from 'src/user/entities/user.entity';
+import { Recipe } from '../../recipe/entities/recipe.entity';
+import { User } from '../../user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,

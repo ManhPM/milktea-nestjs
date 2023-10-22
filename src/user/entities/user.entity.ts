@@ -1,8 +1,8 @@
-import { Account } from 'src/account/entities/account.entity';
-import { CartProduct } from 'src/cart_product/entities/cart_product.entity';
-import { Invoice } from 'src/invoice/entities/invoice.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
+import { Account } from '../../account/entities/account.entity';
+import { CartProduct } from '../../cart_product/entities/cart_product.entity';
+import { Invoice } from '../../invoice/entities/invoice.entity';
+import { Review } from '../../review/entities/review.entity';
+import { Wishlist } from '../../wishlist/entities/wishlist.entity';
 import {
   Column,
   Entity,

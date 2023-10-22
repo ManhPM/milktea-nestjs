@@ -11,8 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   CheckCreateType,
   CheckExistType,
-} from 'src/common/middlewares/middlewares';
-import { MessageService } from 'src/common/lib';
+} from '../common/middlewares/middlewares';
+import { MessageService } from '../common/lib';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Type])],

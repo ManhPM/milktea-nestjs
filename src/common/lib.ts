@@ -11,7 +11,7 @@ export class MessageService {
   async getMessage(messageCode: any) {
     try {
       const workbook = new Excel.Workbook();
-      await workbook.xlsx.readFile('src/assets/message.xlsx');
+      await workbook.xlsx.readFile('message.xlsx');
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
       let language = 'VN';
@@ -42,6 +42,7 @@ export class MessageService {
         return message;
       }
     } catch (error) {
+      console.log(error);
       if (error.response.messageCode) {
         const message = await this.getMessage(error.response.messageCode);
         throw new HttpException(
