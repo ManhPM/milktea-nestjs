@@ -29,7 +29,7 @@ import { ProductRecipeModule } from './product_recipe/product_recipe.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ScheduleModule } from '@nestjs/schedule';
 import { VerifyModule } from './verify/verify.module';
-import { dataSourceOptions } from 'db/data-source';
+import { dataSourceOptions } from '../db/data-source';
 
 const SECRET = 'SECRETMILKTEANESTJS';
 
