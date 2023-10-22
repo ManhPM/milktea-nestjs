@@ -24,8 +24,8 @@ export class RecipeIngredientService {
     try {
       const check = await this.recipeIngredientRepository.findOne({
         where: {
-          ingredient: Like('%' + item.ingredientId + '%'),
-          recipe: Like('%' + item.recipeId + '%'),
+          ingredient: Like(item.ingredientId),
+          recipe: Like(item.recipeId),
         },
       });
       if (check) {
@@ -103,8 +103,8 @@ export class RecipeIngredientService {
     try {
       const recipeIngredient = await this.recipeIngredientRepository.findOne({
         where: {
-          recipe: Like('%' + item.recipeId + '%'),
-          ingredient: Like('%' + item.ingredientId + '%'),
+          recipe: Like(item.recipeId),
+          ingredient: Like(item.ingredientId),
         },
       });
       await this.recipeIngredientRepository.update(recipeIngredient.id, {
@@ -142,8 +142,8 @@ export class RecipeIngredientService {
     try {
       const check = await this.recipeIngredientRepository.findOne({
         where: {
-          ingredient: Like('%' + item.ingredientId + '%'),
-          recipe: Like('%' + item.recipeId + '%'),
+          ingredient: Like(item.ingredientId),
+          recipe: Like(item.recipeId),
         },
       });
       if (!check) {

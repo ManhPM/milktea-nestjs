@@ -23,8 +23,8 @@ export class RecipeTypeService {
     try {
       const check = await this.recipeTypeRepository.findOne({
         where: {
-          type: Like('%' + item.typeId + '%'),
-          recipe: Like('%' + item.recipeId + '%'),
+          type: Like(item.typeId),
+          recipe: Like(item.recipeId),
         },
       });
       if (check) {
@@ -106,7 +106,7 @@ export class RecipeTypeService {
     try {
       const res = await this.recipeTypeRepository.find({
         where: {
-          type: Like('%' + id + '%'),
+          type: Like(id),
         },
         relations: ['recipe'],
       });
@@ -150,8 +150,8 @@ export class RecipeTypeService {
     try {
       const check = await this.recipeTypeRepository.findOne({
         where: {
-          type: Like('%' + item.typeId + '%'),
-          recipe: Like('%' + item.recipeId + '%'),
+          type: Like(item.typeId),
+          recipe: Like(item.recipeId),
         },
       });
       console.log(check);

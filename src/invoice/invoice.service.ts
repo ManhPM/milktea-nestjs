@@ -366,7 +366,7 @@ export class InvoiceService {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
                 status,
-                user: Like('%' + req.user.id + '%'),
+                user: Like(req.user.id),
                 date: Between(fromDate, toDate),
               },
               order: {
@@ -380,7 +380,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user.id + '%'),
+                user: Like(req.user.id),
                 status,
               },
               order: {
@@ -396,7 +396,7 @@ export class InvoiceService {
           if (fromDate && toDate) {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user.id + '%'),
+                user: Like(req.user.id),
                 date: Between(fromDate, toDate),
               },
               order: {
@@ -410,7 +410,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               where: {
-                user: Like('%' + req.user.id + '%'),
+                user: Like(req.user.id),
               },
               order: {
                 date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
@@ -944,7 +944,7 @@ export class InvoiceService {
             .getRepository(Invoice)
             .findOne({
               where: {
-                user: Like('%' + req.user.id + '%'),
+                user: Like(req.user.id),
                 status: Not(In([3, 4])),
               },
             });
@@ -953,7 +953,7 @@ export class InvoiceService {
               .getRepository(CartProduct)
               .find({
                 where: {
-                  user: Like('%' + req.user.id + '%'),
+                  user: Like(req.user.id),
                 },
                 relations: [
                   'user',
@@ -1069,7 +1069,6 @@ export class InvoiceService {
                     product: product,
                     isReviewed: 0,
                   });
-                total += shop[0].upSizePrice * cartProduct.quantity;
               } else {
                 await transactionalEntityManager
                   .getRepository(InvoiceProduct)
@@ -1082,13 +1081,14 @@ export class InvoiceService {
                     isReviewed: 0,
                   });
               }
-              if (cartProduct.size != 0) {
-                total += shop[0].upSizePrice * cartProduct.quantity;
-              }
               await transactionalEntityManager
                 .getRepository(CartProduct)
                 .delete(cartProduct.id);
+              if (cartProduct.size != 0) {
+                total += shop[0].upSizePrice * cartProduct.quantity;
+              }
             }
+            console.log(total);
             await transactionalEntityManager
               .getRepository(Invoice)
               .update(invoice.id, { total: total });
@@ -1142,7 +1142,7 @@ export class InvoiceService {
             .getRepository(InvoiceProduct)
             .find({
               where: {
-                invoice: Like('%' + id + '%'),
+                invoice: Like(id),
               },
               relations: [
                 'product.product_recipes.recipe.recipe_ingredients.ingredient',
@@ -1263,7 +1263,7 @@ export class InvoiceService {
                 .getRepository(InvoiceProduct)
                 .find({
                   where: {
-                    invoice: Like('%' + id + '%'),
+                    invoice: Like(id),
                   },
                   relations: [
                     'product.product_recipes.recipe.recipe_ingredients.ingredient',
@@ -1503,7 +1503,7 @@ export class InvoiceService {
         for (const unPaidInvoice of unPaidInvoices) {
           const invoiceProducts = await this.invoiceProductRepository.find({
             where: {
-              invoice: Like('%' + unPaidInvoice.id + '%'),
+              invoice: Like(unPaidInvoice.id),
             },
           });
           for (const invoiceProduct of invoiceProducts) {

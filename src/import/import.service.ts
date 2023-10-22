@@ -117,7 +117,7 @@ export class ImportService {
       const ingredients = await this.ingredientRepository.find({});
       const importedIngredients = await this.importIngredientRepository.find({
         where: {
-          import: Like('%' + id + '%'),
+          import: Like(id),
         },
       });
       const nonImportedIngredients = ingredients.filter(
@@ -220,7 +220,7 @@ export class ImportService {
             .getRepository(ImportIngredient)
             .find({
               where: {
-                import: Like('%' + id + '%'),
+                import: Like(id),
               },
               relations: ['ingredient'],
             });
@@ -392,8 +392,8 @@ export class ImportService {
       });
       const importIngredient = await this.importIngredientRepository.findOne({
         where: {
-          import: Like('%' + importInvoice.id + '%'),
-          ingredient: Like('%' + ingredient.id + '%'),
+          import: Like(importInvoice.id),
+          ingredient: Like(ingredient.id),
         },
       });
       if (importIngredient) {

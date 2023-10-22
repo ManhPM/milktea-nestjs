@@ -202,7 +202,7 @@ export class AuthService {
     try {
       const account = await this.accountRepository.findOne({
         where: {
-          phone: Like('%' + req.user.phone + '%'),
+          phone: Like(req.user.phone),
         },
       });
       if (!(await bcrypt.compare(item.oldPassword, account.password))) {
@@ -261,7 +261,7 @@ export class AuthService {
     try {
       const account = await this.accountRepository.findOne({
         where: {
-          phone: Like('%' + item.phone + '%'),
+          phone: Like(item.phone),
         },
       });
       const salt = bcrypt.genSaltSync(10);

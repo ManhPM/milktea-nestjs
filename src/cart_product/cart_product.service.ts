@@ -157,7 +157,7 @@ export class CartProductService {
             .getRepository(CartProduct)
             .findOne({
               where: {
-                product: Like('%' + id + '%'),
+                product: Like(id),
                 user: user,
               },
             });
@@ -211,7 +211,7 @@ export class CartProductService {
     try {
       const res = await this.cartProductRepository.find({
         where: {
-          user: Like('%' + req.user.id + '%'),
+          user: Like(req.user.id),
         },
         relations: ['product.product_recipes.recipe'],
       });
@@ -365,8 +365,8 @@ export class CartProductService {
     try {
       const item = await this.cartProductRepository.findOne({
         where: {
-          user: Like('%' + req.user.id + '%'),
-          product: Like('%' + id + '%'),
+          user: Like(req.user.id),
+          product: Like(id),
         },
         relations: ['user', 'product'],
       });

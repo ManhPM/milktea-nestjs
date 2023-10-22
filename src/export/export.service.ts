@@ -176,7 +176,7 @@ export class ExportService {
       const ingredients = await this.ingredientRepository.find({});
       const exportedIngredients = await this.exportIngredientRepository.find({
         where: {
-          export: Like('%' + id + '%'),
+          export: Like(id),
         },
       });
       const nonExportedIngredients = ingredients.filter(
@@ -280,8 +280,8 @@ export class ExportService {
       });
       const exportIngredient = await this.exportIngredientRepository.findOne({
         where: {
-          export: Like('%' + exportInvoice.id + '%'),
-          ingredient: Like('%' + ingredient.id + '%'),
+          export: Like(exportInvoice.id),
+          ingredient: Like(ingredient.id),
         },
       });
       if (exportIngredient) {
@@ -377,7 +377,7 @@ export class ExportService {
             .getRepository(ExportIngredient)
             .find({
               where: {
-                export: Like('%' + id + '%'),
+                export: Like(id),
               },
               relations: ['ingredient'],
             });

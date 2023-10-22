@@ -41,8 +41,8 @@ export class ReviewService {
       });
       const invoiceProducts = await this.invoiceProductRepository.findOne({
         where: {
-          invoice: Like('%' + createReviewDto.invoiceId + '%'),
-          product: Like('%' + createReviewDto.productId + '%'),
+          invoice: Like(createReviewDto.invoiceId),
+          product: Like(createReviewDto.productId),
         },
         relations: ['product.product_recipes.recipe'],
       });
@@ -110,7 +110,7 @@ export class ReviewService {
     try {
       const [res, total] = await this.reviewRepository.findAndCount({
         where: {
-          recipe: Like('%' + id + '%'),
+          recipe: Like(id),
         },
         relations: ['user', 'recipe'],
         order: {
@@ -157,7 +157,7 @@ export class ReviewService {
       const invoiceProduct = await this.invoiceProductRepository.findOne({
         where: {
           invoice: invoice,
-          product: Like('%' + id + '%'),
+          product: Like(id),
           isReviewed: 0,
         },
       });
