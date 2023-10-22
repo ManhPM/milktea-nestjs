@@ -133,6 +133,7 @@ export class RecipeService {
         data: res,
       };
     } catch (error) {
+      console.log(error, 'Đây là error');
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
