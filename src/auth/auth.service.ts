@@ -420,6 +420,30 @@ export class AuthService {
 
   async checkCreatePhone(phone: string): Promise<any> {
     try {
+      if (!phone) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!isNumberic(phone)) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR1',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (phone.length != 10) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       const account = await this.accountRepository.findOne({
         where: { phone },
       });
