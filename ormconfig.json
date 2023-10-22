@@ -6,10 +6,10 @@
   "password": "15092001",
   "timezone": "Asia/Ho_Chi_Minh",
   "database": "milktea-nestjs",
-  "entities": ["../dist/**/entities/*.entity{.ts,.js}"],
-  "migrations": ["../dist/migrations/*.ts", "dist/migrations/*{.ts,.js}"],
-  "seeds": ["../dist/database/seeds/*{.ts,.js}"],
-  "factories": ["../dist/factories/**/*{.ts,.js}"],
+  "entities": ["../src/**/entities/*.entity{.ts,.js}"],
+  "migrations": ["../src/migrations/*.ts", "dist/migrations/*{.ts,.js}"],
+  "seeds": ["../src/database/seeds/*{.ts,.js}"],
+  "factories": ["../src/factories/**/*{.ts,.js}"],
   "cli": {
     "migrationsDir": "./src/migrations"
   },
