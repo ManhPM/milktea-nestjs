@@ -63,6 +63,11 @@ export class AuthController {
     }
   }
 
+  @Get('check-phone')
+  async checkPhone(@Body('phone') phone: string) {
+    return await this.authService.checkCreatePhone(phone);
+  }
+
   @Get('refresh-token')
   async refreshToken(
     @Request() req,

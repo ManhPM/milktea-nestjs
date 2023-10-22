@@ -418,6 +418,46 @@ export class AuthService {
     }
   }
 
+  async checkCreatePhone(phone: string): Promise<any> {
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { phone },
+      });
+      if (account) {
+        throw new HttpException(
+          {
+            messageCode: 'PHONE_ISEXIST_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      return {
+        message: 'OK',
+      };
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
   async checkExistPhone(phone: string): Promise<any> {
     try {
       return await this.accountRepository.findOne({
