@@ -9,8 +9,8 @@ export const dataSourceOptions: DataSourceOptions = {
   username: dev ? 'root' : 'uy3tjedf7fsdcssc',
   password: dev ? '15092001' : 't7khjsfkB5Hi2m2sgvuh',
   database: dev ? 'milktea-nestjs' : 'brtzudg8yfixwo1kmee0',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/db/migrations/*.js'],
+  entities: ['../dist/**/*.entity.js'],
+  migrations: ['../dist/db/migrations/*.js'],
   synchronize: false,
   timezone: 'Asia/Ho_Chi_Minh',
 };
