@@ -3,6 +3,7 @@ import * as Excel from 'exceljs';
 import { Injectable, Scope, Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
+import * as path from 'path';
 
 @Injectable({ scope: Scope.REQUEST })
 export class MessageService {
@@ -11,7 +12,7 @@ export class MessageService {
   async getMessage(messageCode: any) {
     try {
       const workbook = new Excel.Workbook();
-      await workbook.xlsx.readFile('message.xlsx');
+      await workbook.xlsx.readFile('src/common/message.xlsx');
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
       let language = 'VN';

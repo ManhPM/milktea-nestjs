@@ -1,5 +1,5 @@
 import { DataSourceOptions, DataSource } from 'typeorm';
-const dev = false;
+const dev = true;
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
   host: dev
@@ -9,8 +9,8 @@ export const dataSourceOptions: DataSourceOptions = {
   username: dev ? 'root' : 'uy3tjedf7fsdcssc',
   password: dev ? '15092001' : 't7khjsfkB5Hi2m2sgvuh',
   database: dev ? 'milktea-nestjs' : 'brtzudg8yfixwo1kmee0',
-  entities: ['../src/**/*.entity.js'],
-  migrations: ['../src/db/migrations/*.js'],
+  entities: ['**/*.entity.js'],
+  migrations: ['dist/db/migrations/*.js'],
   synchronize: false,
   timezone: 'Asia/Ho_Chi_Minh',
 };

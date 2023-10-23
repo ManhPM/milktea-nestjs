@@ -663,10 +663,55 @@ export class InvoiceService {
       const topToppings = Object.values(toppingCounts);
 
       const totalImport = await this.dataSource.query(
-        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM import GROUP BY month ORDER BY month`,
+        `SELECT 
+    COALESCE(SUM(CASE WHEN MONTH(date) = 1 THEN total ELSE 0 END), 0) AS '1',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 2 THEN total ELSE 0 END), 0) AS '2',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 3 THEN total ELSE 0 END), 0) AS '3',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 4 THEN total ELSE 0 END), 0) AS '4',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 5 THEN total ELSE 0 END), 0) AS '5',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 6 THEN total ELSE 0 END), 0) AS '6',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 7 THEN total ELSE 0 END), 0) AS '7',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 8 THEN total ELSE 0 END), 0) AS '8',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 9 THEN total ELSE 0 END), 0) AS '9',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 10 THEN total ELSE 0 END), 0) AS '10',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 11 THEN total ELSE 0 END), 0) AS '11',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 12 THEN total ELSE 0 END), 0) AS '12'
+FROM import
+WHERE YEAR(date) = YEAR(CURDATE())`,
+      );
+      const totalRevenue = await this.dataSource.query(
+        `SELECT 
+    COALESCE(SUM(CASE WHEN MONTH(date) = 1 THEN total ELSE 0 END), 0) AS '1',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 2 THEN total ELSE 0 END), 0) AS '2',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 3 THEN total ELSE 0 END), 0) AS '3',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 4 THEN total ELSE 0 END), 0) AS '4',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 5 THEN total ELSE 0 END), 0) AS '5',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 6 THEN total ELSE 0 END), 0) AS '6',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 7 THEN total ELSE 0 END), 0) AS '7',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 8 THEN total ELSE 0 END), 0) AS '8',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 9 THEN total ELSE 0 END), 0) AS '9',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 10 THEN total ELSE 0 END), 0) AS '10',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 11 THEN total ELSE 0 END), 0) AS '11',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 12 THEN total ELSE 0 END), 0) AS '12'
+FROM invoice
+WHERE YEAR(date) = YEAR(CURDATE())`,
       );
       const totalExport = await this.dataSource.query(
-        `SELECT EXTRACT(MONTH FROM date) AS month, SUM(total) AS total FROM export GROUP BY month ORDER BY month`,
+        `SELECT 
+    COALESCE(SUM(CASE WHEN MONTH(date) = 1 THEN total ELSE 0 END), 0) AS '1',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 2 THEN total ELSE 0 END), 0) AS '2',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 3 THEN total ELSE 0 END), 0) AS '3',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 4 THEN total ELSE 0 END), 0) AS '4',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 5 THEN total ELSE 0 END), 0) AS '5',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 6 THEN total ELSE 0 END), 0) AS '6',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 7 THEN total ELSE 0 END), 0) AS '7',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 8 THEN total ELSE 0 END), 0) AS '8',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 9 THEN total ELSE 0 END), 0) AS '9',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 10 THEN total ELSE 0 END), 0) AS '10',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 11 THEN total ELSE 0 END), 0) AS '11',
+    COALESCE(SUM(CASE WHEN MONTH(date) = 12 THEN total ELSE 0 END), 0) AS '12'
+FROM export
+WHERE YEAR(date) = YEAR(CURDATE());`,
       );
       const importExportIngredients = await this.dataSource.query(
         `SELECT I.*, (SELECT SUM(quantity) FROM import_ingredient WHERE ingredientId = I.id) as total_import, (SELECT IFNULL(SUM(quantity), 0) FROM export_ingredient WHERE ingredientId = I.id) as total_export FROM ingredient as I`,
@@ -674,8 +719,9 @@ export class InvoiceService {
       return {
         totalExport: totalExport,
         totalImport: totalImport,
+        totalRevenue: totalRevenue,
         importExportIngredients: importExportIngredients,
-        percentCusReOrder: Number(count[0].percent),
+        percentCusReOrder: count[0] ? Number(count[0].percent) : null,
         topNames: topNames,
         topToppings: topToppings,
         revenue: revenue,

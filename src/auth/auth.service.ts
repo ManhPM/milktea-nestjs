@@ -491,6 +491,7 @@ export class AuthService {
         where: { phone },
       });
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
