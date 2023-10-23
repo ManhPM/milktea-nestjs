@@ -19,16 +19,15 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies['token'];
-    if (!token) {
-      const message = await this.messageService.getMessage('UNAUTHORIZED');
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
     try {
+      if (!token) {
+        throw new HttpException(
+          {
+            messageCode: 'UNAUTHORIZED',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET,
       });
@@ -81,7 +80,7 @@ export class AuthGuard implements CanActivate {
           {
             message: message,
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.UNAUTHORIZED,
         );
       } else {
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');

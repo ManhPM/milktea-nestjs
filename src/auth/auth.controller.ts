@@ -138,78 +138,99 @@ export class AuthController {
     @Body('password') loginPassword: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const account = await this.authService.findOne(`${phone}`);
-    if (!(await bcrypt.compare(loginPassword, account.password))) {
-      const message = await this.messageService.getMessage('AUTH_ERROR');
-      throw new HttpException(
-        {
-          message: message,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (account.role != 0) {
-      if (account.staff.length) {
-        if (!account.staff[0].isActive) {
-          const message = await this.messageService.getMessage('AUTH_ERROR1');
-          throw new HttpException(
-            {
-              message: message,
-            },
-            HttpStatus.BAD_REQUEST,
-          );
+    try {
+      const account = await this.authService.findOne(`${phone}`);
+      if (!(await bcrypt.compare(loginPassword, account.password))) {
+        throw new HttpException(
+          {
+            messageCode: 'AUTH_ERROR',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      if (account.role != 0) {
+        if (account.staff.length) {
+          if (!account.staff[0].isActive) {
+            throw new HttpException(
+              {
+                messageCode: 'AUTH_ERROR1',
+              },
+              HttpStatus.UNAUTHORIZED,
+            );
+          }
         }
       }
-    }
 
-    const token = await this.jwtService.signAsync({ account });
-    const userInfo = {
-      phone: '',
-      accountId: 1,
-      userId: 1,
-      role: 0,
-      name: '',
-      address: '',
-      photo: '',
-    };
-    userInfo.phone = account.phone;
-    userInfo.accountId = account.id;
-    userInfo.role = account.role;
-    if (account.role == 0) {
-      userInfo.userId = account.user[0].id;
-      userInfo.name = account.user[0].name;
-      userInfo.address = account.user[0].address;
-      userInfo.photo = account.user[0].photo;
-    } else {
-      userInfo.userId = account.staff[0].id;
-      userInfo.name = account.staff[0].name;
-      userInfo.address = account.staff[0].address;
+      const token = await this.jwtService.signAsync({ account });
+      const userInfo = {
+        phone: '',
+        accountId: 1,
+        userId: 1,
+        role: 0,
+        name: '',
+        address: '',
+        photo: '',
+      };
+      userInfo.phone = account.phone;
+      userInfo.accountId = account.id;
+      userInfo.role = account.role;
+      if (account.role == 0) {
+        userInfo.userId = account.user[0].id;
+        userInfo.name = account.user[0].name;
+        userInfo.address = account.user[0].address;
+        userInfo.photo = account.user[0].photo;
+      } else {
+        userInfo.userId = account.staff[0].id;
+        userInfo.name = account.staff[0].name;
+        userInfo.address = account.staff[0].address;
+      }
+      const refreshToken = await this.jwtService.signAsync({ account });
+      const dateToken = new Date();
+      dateToken.setHours(dateToken.getHours() + 7);
+      dateToken.setDate(dateToken.getDate() + 7);
+      const dateRefreshToken = new Date();
+      dateRefreshToken.setHours(dateRefreshToken.getHours() + 7);
+      dateRefreshToken.setDate(dateRefreshToken.getDate() + 14);
+      response
+        .cookie('token', token, {
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          expires: dateToken,
+        })
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          expires: dateRefreshToken,
+        });
+      const message = await this.messageService.getMessage('LOGIN_SUCCESS');
+      return {
+        userInfo: userInfo,
+        message: message,
+      };
+    } catch (error) {
+      let message;
+      if (error.response.messageCode) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
-    const refreshToken = await this.jwtService.signAsync({ account });
-    const dateToken = new Date();
-    dateToken.setHours(dateToken.getHours() + 7);
-    dateToken.setDate(dateToken.getDate() + 7);
-    const dateRefreshToken = new Date();
-    dateRefreshToken.setHours(dateRefreshToken.getHours() + 7);
-    dateRefreshToken.setDate(dateRefreshToken.getDate() + 14);
-    response
-      .cookie('token', token, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-        expires: dateToken,
-      })
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-        expires: dateRefreshToken,
-      });
-    const message = await this.messageService.getMessage('LOGIN_SUCCESS');
-    return {
-      userInfo: userInfo,
-      message: message,
-    };
   }
 
   @UseGuards(AuthGuard)

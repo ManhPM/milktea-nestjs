@@ -92,11 +92,6 @@ export class StaffService {
     try {
       const res = await this.staffRepository.find({
         relations: ['account'],
-        where: {
-          account: {
-            role: Not(2),
-          },
-        },
         select: {
           account: {
             phone: true,
