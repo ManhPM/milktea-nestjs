@@ -1,6 +1,6 @@
 export class CreateImportIngredientDto {
-  price: number;
-  quantity: number;
-  importId: number;
-  ingredientId: number;
+  price: string;
+  quantity: string;
+  importId: string;
+  ingredientId: string;
 }

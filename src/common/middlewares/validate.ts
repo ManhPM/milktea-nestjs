@@ -622,9 +622,9 @@ export class validateCreateImportIngredient implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const importId = req.body.importId;
-      const ingredientId = req.body.ingredientId;
-      const quantity = req.body.quantity;
-      const price = req.body.price;
+      const ingredientId = req.body.ingredientId.split(',');
+      const quantity = req.body.quantity.split(',');
+      const price = req.body.price.split(',');
       if (!price) {
         throw new HttpException(
           {
@@ -657,48 +657,51 @@ export class validateCreateImportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!isNumberic(price)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PRICE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+      for (let i = 0; i < ingredientId.length; i++) {
+        if (!isNumberic(price[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PRICE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isNumberic(quantity[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_QUANTITY_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isPositiveNum(price[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PRICE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isPositiveNum(quantity[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_QUANTITY_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        const ingredient = await this.service2.checkExist(ingredientId[i]);
+        if (!ingredient) {
+          throw new HttpException(
+            {
+              messageCode: 'INGREDIENT_NOTFOUND',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
-      if (!isNumberic(quantity)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_QUANTITY_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isPositiveNum(price)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PRICE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isPositiveNum(quantity)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_QUANTITY_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      const ingredient = await this.service2.checkExist(ingredientId);
       const checkImport = await this.service1.checkExist(importId);
-      if (!ingredient) {
-        throw new HttpException(
-          {
-            messageCode: 'INGREDIENT_NOTFOUND',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+
       if (!checkImport) {
         throw new HttpException(
           {
@@ -717,6 +720,7 @@ export class validateCreateImportIngredient implements NestMiddleware {
       }
       next();
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
@@ -815,9 +819,9 @@ export class validateCreateExportIngredient implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const exportId = req.body.exportId;
-      const ingredientId = req.body.ingredientId;
-      const quantity = req.body.quantity;
-      const price = req.body.price;
+      const ingredientId = req.body.ingredientId.split(',');
+      const quantity = req.body.quantity.split(',');
+      const price = req.body.price.split(',');
       if (!price) {
         throw new HttpException(
           {
@@ -850,49 +854,58 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (!isNumberic(price)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PRICE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+      for (let i = 0; i < ingredientId.length; i++) {
+        if (!isNumberic(price[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PRICE_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isNumberic(quantity[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_QUANTITY_ERROR1',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isPositiveNum(price[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_PRICE_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (!isPositiveNum(quantity[i])) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_QUANTITY_ERROR2',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        const ingredient = await this.service2.checkExist(ingredientId[i]);
+        if (!ingredient) {
+          throw new HttpException(
+            {
+              messageCode: 'INGREDIENT_NOTFOUND',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (ingredient.quantity < quantity[i]) {
+          throw new HttpException(
+            {
+              messageCode: 'INPUT_QUANTITY_ERROR3',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
-      if (!isNumberic(quantity)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_QUANTITY_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isPositiveNum(price)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PRICE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isPositiveNum(quantity)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_QUANTITY_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      const ingredient = await this.service2.checkExist(ingredientId);
       const checkExport = await this.service1.checkExist(exportId);
-
-      if (!ingredient) {
-        throw new HttpException(
-          {
-            messageCode: 'INGREDIENT_NOTFOUND',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
       if (!checkExport) {
         throw new HttpException(
           {
@@ -909,16 +922,9 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (ingredient.quantity < quantity) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_QUANTITY_ERROR3',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
       next();
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

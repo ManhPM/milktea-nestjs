@@ -278,62 +278,74 @@ export class ExportService {
   }
 
   async createIngredientExport(item: CreateExportIngredientDto) {
-    try {
-      const exportInvoice = await this.exportRepository.findOne({
-        where: {
-          id: item.exportId,
-        },
-      });
-      const ingredient = await this.ingredientRepository.findOne({
-        where: {
-          id: item.ingredientId,
-        },
-      });
-      const exportIngredient = await this.exportIngredientRepository.findOne({
-        where: {
-          export: Like(exportInvoice.id),
-          ingredient: Like(ingredient.id),
-        },
-      });
-      if (exportIngredient) {
-        throw new HttpException(
-          {
-            messageCode: 'IMPORT_EXPORT_INGREDIENT_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
+    return await this.dataSource.transaction(async (manager) => {
+      try {
+        const ingredientArray = item.ingredientId.split(',');
+        const priceArray = item.price.split(',');
+        const quantityArray = item.quantity.split(',');
+        for (let i = 0; i < ingredientArray.length; i++) {
+          const exportInvoice = await manager.getRepository(Export).findOne({
+            where: {
+              id: Number(item.exportId),
+            },
+          });
+          const ingredient = await manager.getRepository(Ingredient).findOne({
+            where: {
+              id: Number(ingredientArray[i]),
+            },
+          });
+          const exportIngredient = await manager
+            .getRepository(ExportIngredient)
+            .findOne({
+              where: {
+                export: Like(exportInvoice.id),
+                ingredient: Like(ingredient.id),
+              },
+            });
+          if (exportIngredient) {
+            throw new HttpException(
+              {
+                messageCode: 'IMPORT_EXPORT_INGREDIENT_ERROR',
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+          await manager.getRepository(ExportIngredient).save({
+            price: Number(priceArray[i]),
+            quantity: Number(quantityArray[i]),
+            export: exportInvoice,
+            ingredient: ingredient,
+          });
+        }
+        const message = await this.messageService.getMessage('CREATE_SUCCESS');
+        return {
+          message: message,
+        };
+      } catch (error) {
+        let message;
+        if (error.response.messageCode) {
+          message = await this.messageService.getMessage(
+            error.response.messageCode,
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        } else {
+          message = await this.messageService.getMessage(
+            'INTERNAL_SERVER_ERROR',
+          );
+          throw new HttpException(
+            {
+              message: message,
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
       }
-      await this.exportIngredientRepository.save({
-        ...item,
-        export: exportInvoice,
-        ingredient: ingredient,
-      });
-      const message = await this.messageService.getMessage('CREATE_SUCCESS');
-      return {
-        message: message,
-      };
-    } catch (error) {
-      let message;
-      if (error.response.messageCode) {
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
+    });
   }
 
   async deleteIngredientExport(item: UpdateExportIngredientDto) {
