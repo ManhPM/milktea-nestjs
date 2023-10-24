@@ -76,7 +76,9 @@ export class MessageService {
       const filePath = path.join(__dirname, 'src/common/message.xlsx');
       console.log(__dirname);
       console.log(filePath);
-      await workbook.xlsx.readFile('vercel/path0/src/common/message.xlsx');
+      await workbook.xlsx.readFile(
+        '/var/task/src/common/src/common/message.xlsx',
+      );
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
       let language = 'VN';
