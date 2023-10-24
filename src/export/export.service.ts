@@ -232,6 +232,7 @@ export class ExportService {
         throw new HttpException(
           {
             messageCode: 'EXPORT_ISEXIST_ERROR',
+            data: check,
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -251,20 +252,11 @@ export class ExportService {
         if ((error.response.messageCode = 'EXPORT_ISEXIST_ERROR')) {
           throw new HttpException(
             {
-              data: error.response.id,
+              data: error.response.data,
             },
             HttpStatus.OK,
           );
         }
-        message = await this.messageService.getMessage(
-          error.response.messageCode,
-        );
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
       } else {
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
