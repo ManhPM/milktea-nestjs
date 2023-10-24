@@ -73,7 +73,7 @@ export class MessageService {
   async getMessage(messageCode: any) {
     try {
       const workbook = new Excel.Workbook();
-      console.log(__dirname + 'message.xlsx');
+      console.log(__dirname + '/message.xlsx');
       await workbook.xlsx.readFile(__dirname + 'message.xlsx');
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
