@@ -7,74 +7,14 @@ import * as path from 'path';
 
 // DEV
 
-@Injectable({ scope: Scope.REQUEST })
-export class MessageService {
-  constructor(@Inject(REQUEST) private readonly request: Request) {}
-
-  async getMessage(messageCode: any) {
-    try {
-      const workbook = new Excel.Workbook();
-      await workbook.xlsx.readFile('src/common/message.xlsx');
-      const worksheet = workbook.getWorksheet('Sheet1');
-      let message;
-      let language = 'VN';
-      if (this.request.query.language) {
-        language = this.request.query.language as string;
-      }
-      for (let i = 2; i <= worksheet.rowCount; i++) {
-        const firstRow = worksheet.getRow(1);
-        const row = worksheet.getRow(i);
-        for (let i = 2; i <= worksheet.columnCount; i++) {
-          if (
-            firstRow.getCell(i).value == language &&
-            row.getCell(1).value == messageCode
-          ) {
-            message = row.getCell(i).value;
-            break;
-          }
-        }
-      }
-      if (!message) {
-        throw new HttpException(
-          {
-            messageCode: 'MESSAGE_NOTFOUND',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        return message;
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.response.messageCode) {
-        const message = await this.getMessage(error.response.messageCode);
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else {
-        const message = await this.getMessage('INTERNAL_SERVER_ERROR');
-        throw new HttpException(
-          {
-            message: message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
-  }
-}
-
-//PRODUCTION
 // @Injectable({ scope: Scope.REQUEST })
 // export class MessageService {
 //   constructor(@Inject(REQUEST) private readonly request: Request) {}
+
 //   async getMessage(messageCode: any) {
 //     try {
 //       const workbook = new Excel.Workbook();
-//       await workbook.xlsx.readFile('vercel/path0/src/common/message.xlsx');
+//       await workbook.xlsx.readFile('src/common/message.xlsx');
 //       const worksheet = workbook.getWorksheet('Sheet1');
 //       let message;
 //       let language = 'VN';
@@ -126,6 +66,68 @@ export class MessageService {
 //     }
 //   }
 // }
+
+@Injectable({ scope: Scope.REQUEST })
+export class MessageService {
+  constructor(@Inject(REQUEST) private readonly request: Request) {}
+  async getMessage(messageCode: any) {
+    try {
+      const workbook = new Excel.Workbook();
+      const filePath = path.join(__dirname, 'src/common/message.xlsx');
+      console.log(__dirname);
+      console.log(filePath);
+      await workbook.xlsx.readFile('vercel/path0/src/common/message.xlsx');
+      const worksheet = workbook.getWorksheet('Sheet1');
+      let message;
+      let language = 'VN';
+      if (this.request.query.language) {
+        language = this.request.query.language as string;
+      }
+      for (let i = 2; i <= worksheet.rowCount; i++) {
+        const firstRow = worksheet.getRow(1);
+        const row = worksheet.getRow(i);
+        for (let i = 2; i <= worksheet.columnCount; i++) {
+          if (
+            firstRow.getCell(i).value == language &&
+            row.getCell(1).value == messageCode
+          ) {
+            message = row.getCell(i).value;
+            break;
+          }
+        }
+      }
+      if (!message) {
+        throw new HttpException(
+          {
+            messageCode: 'MESSAGE_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        return message;
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response.messageCode) {
+        const message = await this.getMessage(error.response.messageCode);
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        const message = await this.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
 
 export function convertPhoneNumber(phoneNumber: any) {
   if (phoneNumber.startsWith('0')) {
