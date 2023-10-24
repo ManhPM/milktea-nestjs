@@ -129,7 +129,7 @@ export class ExportService {
         total: null,
         description: null,
         staff: {},
-        ingredients: [
+        export_ingredients: [
           {
             quantity: 0,
           },
@@ -143,8 +143,9 @@ export class ExportService {
         data.description = res.description;
         data.staff = res.staff;
         for (let i = 0; i < res.export_ingredients.length; i++) {
-          data.ingredients[i] = res.export_ingredients[i].ingredient;
-          data.ingredients[i].quantity = res.export_ingredients[i].quantity;
+          data.export_ingredients[i] = res.export_ingredients[i].ingredient;
+          data.export_ingredients[i].quantity =
+            res.export_ingredients[i].quantity;
         }
         return data;
       }

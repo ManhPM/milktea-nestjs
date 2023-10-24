@@ -170,7 +170,7 @@ export class ImportService {
         total: null,
         description: null,
         staff: {},
-        ingredients: [
+        import_ingredients: [
           {
             quantity: 0,
           },
@@ -184,8 +184,9 @@ export class ImportService {
         data.description = res.description;
         data.staff = res.staff;
         for (let i = 0; i < res.import_ingredients.length; i++) {
-          data.ingredients[i] = res.import_ingredients[i].ingredient;
-          data.ingredients[i].quantity = res.import_ingredients[i].quantity;
+          data.import_ingredients[i] = res.import_ingredients[i].ingredient;
+          data.import_ingredients[i].quantity =
+            res.import_ingredients[i].quantity;
         }
         return data;
       }
