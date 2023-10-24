@@ -314,12 +314,13 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      await this.importRepository.save({
+      const invoice = await this.importRepository.save({
         ...createImportDto,
         staff: req.user.id,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
+        data: invoice,
         message: message,
       };
     } catch (error) {

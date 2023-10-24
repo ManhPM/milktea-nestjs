@@ -236,12 +236,13 @@ export class ExportService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      await this.exportRepository.save({
+      const invoice = await this.exportRepository.save({
         ...item,
         staff: req.user.id,
       });
       const message = await this.messageService.getMessage('CREATE_SUCCESS');
       return {
+        data: invoice,
         message: message,
       };
     } catch (error) {
