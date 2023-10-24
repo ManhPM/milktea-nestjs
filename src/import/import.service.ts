@@ -187,9 +187,13 @@ export class ImportService {
           data.ingredients[i] = res.import_ingredients[i].ingredient;
           data.ingredients[i].quantity = res.import_ingredients[i].quantity;
         }
-        return data;
+        return {
+          data: data,
+        };
       }
-      return null;
+      return {
+        data: res,
+      };
     } catch (error) {
       let message;
       if (error.response.messageCode) {

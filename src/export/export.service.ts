@@ -135,7 +135,7 @@ export class ExportService {
           },
         ],
       };
-      if (res[0]) {
+      if (res.export_ingredients.length) {
         data.id = res.id;
         data.date = res.date;
         data.isCompleted = res.isCompleted;
@@ -146,9 +146,13 @@ export class ExportService {
           data.ingredients[i] = res.export_ingredients[i].ingredient;
           data.ingredients[i].quantity = res.export_ingredients[i].quantity;
         }
-        return data;
+        return {
+          data: data,
+        };
       }
-      return null;
+      return {
+        data: res,
+      };
     } catch (error) {
       let message;
       if (error.response.messageCode) {
