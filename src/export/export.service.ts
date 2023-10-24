@@ -248,6 +248,14 @@ export class ExportService {
     } catch (error) {
       let message;
       if (error.response.messageCode) {
+        if ((error.response.messageCode = 'EXPORT_ISEXIST_ERROR')) {
+          throw new HttpException(
+            {
+              data: error.response.id,
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
