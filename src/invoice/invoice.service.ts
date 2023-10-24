@@ -1138,7 +1138,6 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
                 total += shop[0].upSizePrice * cartProduct.quantity;
               }
             }
-            console.log(total);
             await transactionalEntityManager
               .getRepository(Invoice)
               .update(invoice.id, { total: total });
