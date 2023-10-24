@@ -135,7 +135,7 @@ export class ExportService {
           },
         ],
       };
-      if (res) {
+      if (res[0]) {
         data.id = res.id;
         data.date = res.date;
         data.isCompleted = res.isCompleted;
