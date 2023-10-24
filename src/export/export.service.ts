@@ -146,13 +146,9 @@ export class ExportService {
           data.ingredients[i] = res.export_ingredients[i].ingredient;
           data.ingredients[i].quantity = res.export_ingredients[i].quantity;
         }
-        return {
-          data: data,
-        };
+        return data;
       }
-      return {
-        data: res,
-      };
+      return res;
     } catch (error) {
       let message;
       if (error.response.messageCode) {

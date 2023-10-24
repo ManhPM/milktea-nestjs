@@ -187,13 +187,9 @@ export class ImportService {
           data.ingredients[i] = res.import_ingredients[i].ingredient;
           data.ingredients[i].quantity = res.import_ingredients[i].quantity;
         }
-        return {
-          data: data,
-        };
+        return data;
       }
-      return {
-        data: res,
-      };
+      return res;
     } catch (error) {
       let message;
       if (error.response.messageCode) {
