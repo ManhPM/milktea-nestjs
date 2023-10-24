@@ -463,7 +463,7 @@ export class InvoiceService {
                 date: Between(fromDate, toDate),
               },
               order: {
-                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
@@ -473,7 +473,7 @@ export class InvoiceService {
           } else {
             [res, total] = await this.invoiceRepository.findAndCount({
               order: {
-                date: 'ASC', // hoặc "DESC" để sắp xếp giảm dần
+                date: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
               },
               relations: [
                 'invoice_products.product.product_recipes.recipe',
