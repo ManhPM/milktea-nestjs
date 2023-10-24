@@ -332,7 +332,7 @@ export class ImportService {
             {
               data: error.response.id,
             },
-            HttpStatus.BAD_REQUEST,
+            HttpStatus.OK,
           );
         }
         message = await this.messageService.getMessage(
