@@ -16,6 +16,18 @@ BÁO CÁO:
 
 https://docs.google.com/document/d/1k8QCYMzrz3WlH4cxTUoxRedjOxk3Oe6-QIEPw4IVwuE/edit?usp=sharing
 
+TÀI LIỆU HƯỚNG DẪN SỬ DỤNG:
+
+https://docs.google.com/document/d/1wJwPyu2Us0QxCDHJIDX21BrC49tvWzCdlkTK6W7SoUk/edit?usp=sharing
+
+TEST CASE:
+
+https://docs.google.com/spreadsheets/d/1tMte5QThmwU-8qXG2c9QlWj3ydtE4pMao4kgpgM_fOI/edit?usp=sharing
+
+PROJECT-PLAN:
+
+https://docs.google.com/spreadsheets/d/1BMLYKkBAnpHdh4ODUiIFNhhcRryYN1vw1MJG-dJOIIc/edit?usp=sharing
+
 SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
 
 ## VNPAY
