@@ -135,7 +135,7 @@ export class ExportService {
           },
         ],
       };
-      if (res[0]) {
+      if (res.export_ingredients[0]) {
         data.id = res.id;
         data.date = res.date;
         data.isCompleted = res.isCompleted;
@@ -151,6 +151,7 @@ export class ExportService {
       }
       return res;
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

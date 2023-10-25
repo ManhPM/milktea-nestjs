@@ -410,7 +410,7 @@ export class validateForgotPassword implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (newPassword.lengh < 6 || repeatPassword.length < 6) {
+      if (newPassword.length < 6 || repeatPassword.length < 6) {
         throw new HttpException(
           {
             messageCode: 'INPUT_PASSWORD_ERROR1',
@@ -1732,24 +1732,6 @@ export class validateUpdateShop implements NestMiddleware {
           );
         }
       }
-      if (isActive) {
-        if (!isNumberic(isActive)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STATUS_SHOP_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (!isBit(isActive)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STATUS_SHOP_ERROR1',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
       if (latitude) {
         if (!isLatitude(latitude)) {
           throw new HttpException(
@@ -1808,128 +1790,11 @@ export class validateCreateStaff implements NestMiddleware {
     try {
       const name = req.body.name;
       const phone = req.body.phone;
-      const address = req.body.address;
       const password = req.body.password;
-      const gender = req.body.gender;
-      const birthday = req.body.birthday;
-      const hiredate = req.body.hiredate;
-      const role = req.body.role;
       if (!name) {
         throw new HttpException(
           {
             messageCode: 'INPUT_STAFF_NAME_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!address) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_ADDRESS_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!gender) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_GENDER_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (gender !== 'Mam' && gender !== 'Nữ') {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_GENDER_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!role) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_ROLE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!isNumberic(role)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_ROLE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!birthday) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_BIRTHDAY_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!hiredate) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_HIREDATE_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isValidDate(birthday)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_BIRTHDAY_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isValidDate(hiredate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_HIREDATE_ERROR1',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isDateGreaterThanNow(birthday)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_BIRTHDAY_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isDateGreaterThanNow(hiredate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_HIREDATE_ERROR2',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (isLessThan15Years(birthday, hiredate)) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_STAFF_HIREDATE_ERROR3',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (!password) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PASSWORD_ERROR',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (password.length < 6) {
-        throw new HttpException(
-          {
-            messageCode: 'INPUT_PASSWORD_ERROR1',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -1950,10 +1815,26 @@ export class validateCreateStaff implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       }
-      if (phone.lengh != 10) {
+      if (phone.length != 10) {
         throw new HttpException(
           {
             messageCode: 'INPUT_PHONE_ERROR2',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!password) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (password.length < 6) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_PASSWORD_ERROR1',
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -2004,76 +1885,6 @@ export class validateUpdateStaff implements NestMiddleware {
     try {
       const phone = req.body.phone;
       const password = req.body.password;
-      const gender = req.body.gender;
-      const birthday = req.body.birthday;
-      const hiredate = req.body.hiredate;
-      const role = req.body.role;
-      if (gender) {
-        if (gender !== 'Mam' && gender !== 'Nữ') {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_GENDER_ERROR1',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-      if (role) {
-        if (!isNumberic(role)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_ROLE_ERROR1',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-      if (birthday) {
-        if (isValidDate(birthday)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_BIRTHDAY_ERROR1',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (isDateGreaterThanNow(birthday)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_BIRTHDAY_ERROR2',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-      if (hiredate) {
-        if (isValidDate(hiredate)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_HIREDATE_ERROR1',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (isDateGreaterThanNow(hiredate)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_HIREDATE_ERROR2',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-      if (birthday && hiredate) {
-        if (isLessThan15Years(birthday, hiredate)) {
-          throw new HttpException(
-            {
-              messageCode: 'INPUT_STAFF_HIREDATE_ERROR3',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
       if (password) {
         if (password.length < 6) {
           throw new HttpException(
@@ -2093,7 +1904,7 @@ export class validateUpdateStaff implements NestMiddleware {
             HttpStatus.BAD_REQUEST,
           );
         }
-        if (phone.lengh != 10) {
+        if (phone.length != 10) {
           throw new HttpException(
             {
               messageCode: 'INPUT_PHONE_ERROR2',
@@ -2171,6 +1982,7 @@ export class validateCompleteImportExport implements NestMiddleware {
       }
       next();
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

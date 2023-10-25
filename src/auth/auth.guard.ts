@@ -53,19 +53,11 @@ export class AuthGuard implements CanActivate {
           id: 0,
           name: '',
           phone: '',
-          address: '',
-          gender: '',
-          birthday: '',
-          hireDate: '',
           accountId: 0,
         };
         data.id = payload.account.staff[0].id;
         data.name = payload.account.staff[0].name;
         data.phone = payload.account.phone;
-        data.address = payload.account.staff[0].address;
-        data.gender = payload.account.staff[0].gender;
-        data.birthday = payload.account.staff[0].birthday;
-        data.hireDate = payload.account.staff[0].hiredate;
         data.accountId = payload.account.id;
         request['user'] = data;
         request['role'] = Object(payload.account.role);

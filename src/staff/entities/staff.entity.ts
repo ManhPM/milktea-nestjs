@@ -4,7 +4,6 @@ import { Import } from '../../import/entities/import.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -18,18 +17,6 @@ export class Staff {
 
   @Column()
   name: string;
-
-  @Column()
-  address: string;
-
-  @Column()
-  gender: string;
-
-  @Column()
-  birthday: Date;
-
-  @Column()
-  hiredate: Date;
 
   @Column()
   isActive: number;

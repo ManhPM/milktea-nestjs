@@ -176,7 +176,7 @@ export class ImportService {
           },
         ],
       };
-      if (res[0]) {
+      if (res.import_ingredients[0]) {
         data.id = res.id;
         data.date = res.date;
         data.isCompleted = res.isCompleted;

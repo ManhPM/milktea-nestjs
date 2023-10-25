@@ -82,14 +82,32 @@ export class ShopService {
 
   async update(item: UpdateShopDto) {
     try {
+      const shop = await this.shopRepository.findOne({
+        where: {
+          id: 1,
+        },
+      });
+      console.log(item);
+      const date = new Date();
+      date.setHours(date.getHours() + 7);
       await this.shopRepository.update(1, {
-        ...item,
+        address: item.address ? item.address : shop.address,
+        image: item.image ? item.image : shop.image,
+        isActive:
+          item.isActive === 0 || item.isActive === 1
+            ? item.isActive
+            : shop.isActive,
+        longitude: item.longitude ? item.longitude : shop.longitude,
+        latitude: item.latitude ? item.latitude : shop.latitude,
+        upSizePrice: item.upSizePrice ? item.upSizePrice : shop.upSizePrice,
+        updateAt: date,
       });
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

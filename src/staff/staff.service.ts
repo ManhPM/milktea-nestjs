@@ -24,6 +24,7 @@ export class StaffService {
       const hashPassword = await bcrypt.hash(item.password, salt);
       item.password = hashPassword;
       item.isActive = 1;
+      item.role = 1;
       const account = await this.accountRepository.save({
         ...item,
       });
@@ -36,6 +37,7 @@ export class StaffService {
         message: message,
       };
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
@@ -98,9 +100,6 @@ export class StaffService {
             role: true,
           },
         },
-        order: {
-          hiredate: 'DESC', // hoặc "DESC" để sắp xếp giảm dần
-        },
       });
       if (res[0]) {
         const data = [
@@ -108,11 +107,7 @@ export class StaffService {
             id: 0,
             name: '',
             phone: '',
-            address: '',
-            gender: '',
             role: 0,
-            birthday: null,
-            hiredate: null,
             isActive: 0,
           },
         ];
@@ -120,12 +115,8 @@ export class StaffService {
           data[i] = {
             id: res[i].id,
             name: res[i].name,
-            address: res[i].address,
             phone: res[i].account.phone,
             role: res[i].account.role,
-            gender: res[i].gender,
-            birthday: res[i].birthday,
-            hiredate: res[i].hiredate,
             isActive: res[i].isActive,
           };
         }
@@ -211,10 +202,6 @@ export class StaffService {
             });
           await transactionalEntityManager.update(Staff, id, {
             name: item.name,
-            address: item.address,
-            gender: item.gender,
-            birthday: item.birthday,
-            hiredate: item.hiredate,
             isActive: item.isActive,
             account: staff.account,
           });
