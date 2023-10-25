@@ -14,7 +14,7 @@ https://docs.google.com/spreadsheets/d/1W-AG_GDhjYkgfNK9sbuovd0QQ-QaPJV9m_gH5RmJ
 
 BÁO CÁO:
 
-https://docs.google.com/document/d/1r0fGxuw0TSDRFXDSszGWwFGfAoPrXsEFJL4m83-9nbA/edit?fbclid=IwAR3Jb0ZYU0cKfDXKWKnVzuufkGXqeS2RTNbGbh_J3YWU9DdVi2yxTe8y07g
+https://docs.google.com/document/d/1k8QCYMzrz3WlH4cxTUoxRedjOxk3Oe6-QIEPw4IVwuE/edit?usp=sharing
 
 SET sql_mode=(SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''));
 
