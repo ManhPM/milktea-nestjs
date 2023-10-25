@@ -116,7 +116,7 @@ export class RecipeService {
         res = await this.recipeRepository.find({
           where: {
             type: Not(5),
-            name: Like(keyword),
+            name: Like('%' + keyword + '%'),
             isActive: Not(0),
           },
           relations: ['type'],
