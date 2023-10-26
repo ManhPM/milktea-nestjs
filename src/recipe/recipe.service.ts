@@ -80,7 +80,7 @@ export class RecipeService {
         where: {
           id: id,
         },
-        relations: ['recipe_ingredients.ingredient'],
+        relations: ['recipe_ingredients.ingredient', 'type'],
       });
       if (res) {
         const data = {
@@ -91,6 +91,7 @@ export class RecipeService {
           isActive: res.isActive,
           price: res.price,
           discount: res.discount,
+          type: res.type.id,
           ingredients: [],
         };
         for (let i = 0; i < res.recipe_ingredients.length; i++) {
