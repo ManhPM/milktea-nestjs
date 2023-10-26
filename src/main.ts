@@ -9,17 +9,14 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use((cookieParserConfig as any)());
   app.setGlobalPrefix('api/v1');
-  // app.use((req, res, next) => {
-  //   res.header('Access-Control-Allow-Origin', '*');
-  //   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  //   res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
-  //   next();
+  // app.enableCors({
+  //   origin: 'https://tea-z.vercel.app/',
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //   allowedHeaders: '*',
+  //   credentials: true,
   // });
   app.enableCors({
-    origin: 'https://tea-z.vercel.app/',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: '*',
-    credentials: true,
+    origin: 'https://tea-z.vercel.app', // URL của ứng dụng React
   });
   await app.listen(4000);
 }
