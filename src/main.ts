@@ -11,10 +11,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.enableCors({
     origin: process.env.ENV === 'dev' ? true : 'https://tea-z.vercel.app',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: '*',
     credentials: true,
-    preflightContinue: true,
   });
   await app.listen(4000);
 }
