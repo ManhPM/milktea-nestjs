@@ -12,8 +12,8 @@ export class MessageService {
     try {
       const workbook = new Excel.Workbook();
       const filePath = path.join(__dirname, 'message.xlsx');
-      // await workbook.xlsx.readFile('src/common/message.xlsx');
-      await workbook.xlsx.readFile(filePath);
+      await workbook.xlsx.readFile('src/common/message.xlsx');
+      // await workbook.xlsx.readFile(filePath);
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
       let language = 'VN';
