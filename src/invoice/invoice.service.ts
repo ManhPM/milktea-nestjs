@@ -914,32 +914,31 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
 
   async getCurrentInvoice(@Request() req) {
     try {
-      const res = await this.invoiceRepository
-        .createQueryBuilder('invoice')
-        .leftJoinAndSelect('invoice.user', 'user')
-        .leftJoinAndSelect('invoice.staff', 'staff')
-        .leftJoinAndSelect('invoice.invoice_products', 'invoice_products')
-        .leftJoinAndSelect('invoice_products.product', 'product')
-        .leftJoinAndSelect('product.product_recipes', 'product_recipes')
-        .leftJoinAndSelect('product_recipes.recipe', 'recipe')
-        .leftJoinAndSelect('user.account', 'account')
-        .select([
-          'invoice',
-          'user',
-          'account',
-          'account.phone',
-          'invoice_products',
-          'product',
-          'product_recipes',
-          'recipe',
-        ])
-        .where('invoice.status < :status', { status: 3 })
-        .andWhere('invoice.user.id = :user', { user: req.user.id })
-        .getOne();
-
+      const res = await this.invoiceRepository.findOne({
+        where: {
+          status: LessThan(3),
+          user: {
+            id: req.user.id,
+          },
+        },
+        relations: [
+          'shippingCompany',
+          'user.account',
+          'invoice_products.product.product_recipes.recipe',
+        ],
+      });
       if (res) {
         const data = {
-          invoice: {},
+          invoice: {
+            id: 0,
+            total: 0,
+            shippingFee: 0,
+            date: '',
+            status: 0,
+            paymentMethod: '',
+            isPaid: 1,
+            shippingCompany: {},
+          },
           user: {
             phone: '',
             name: '',
@@ -965,7 +964,14 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
         data.user.address = res.user.address;
         data.user.phone = res.user.account.phone;
         delete res.user;
-        data.invoice = res;
+        data.invoice.shippingCompany = res.shippingCompany;
+        data.invoice.id = res.id;
+        data.invoice.total = res.total;
+        data.invoice.shippingFee = res.shippingFee;
+        data.invoice.date = res.date.toString();
+        data.invoice.status = res.status;
+        data.invoice.isPaid = res.isPaid;
+        data.invoice.paymentMethod = res.paymentMethod;
         for (let i = 0; i < res.invoice_products.length; i++) {
           for (let i = 0; i < res.invoice_products.length; i++) {
             data.products[i] = {
@@ -999,9 +1005,10 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
         };
       }
       return {
-        data: null,
+        data: res,
       };
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
