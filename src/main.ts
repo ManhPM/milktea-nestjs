@@ -4,17 +4,18 @@ import cookieParserConfig = require('cookie-parser');
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: 'https://tea-z.vercel.app',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      allowedHeaders: 'Content-Type, Accept',
+      credentials: true,
+    },
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.use((cookieParserConfig as any)());
   app.setGlobalPrefix('api/v1');
-  app.enableCors({
-    origin: process.env.ENV === 'dev' ? true : 'https://tea-z.vercel.app/',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, Accept',
-    credentials: true,
-  });
   await app.listen(4000);
 }
 bootstrap();
