@@ -163,35 +163,9 @@ export class ImportService {
         },
         relations: ['staff', 'import_ingredients.ingredient'],
       });
-      const data = {
-        id: null,
-        date: null,
-        isCompleted: null,
-        total: null,
-        description: null,
-        staff: {},
-        import_ingredients: [
-          {
-            quantity: 0,
-          },
-        ],
-      };
-      if (res.import_ingredients[0]) {
-        data.id = res.id;
-        data.date = res.date;
-        data.isCompleted = res.isCompleted;
-        data.total = res.total;
-        data.description = res.description;
-        data.staff = res.staff;
-        for (let i = 0; i < res.import_ingredients.length; i++) {
-          data.import_ingredients[i] = res.import_ingredients[i].ingredient;
-          data.import_ingredients[i].quantity =
-            res.import_ingredients[i].quantity;
-        }
-        return data;
-      }
       return res;
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

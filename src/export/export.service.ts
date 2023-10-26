@@ -122,33 +122,6 @@ export class ExportService {
         },
         relations: ['staff', 'export_ingredients.ingredient'],
       });
-      const data = {
-        id: null,
-        date: null,
-        isCompleted: null,
-        total: null,
-        description: null,
-        staff: {},
-        export_ingredients: [
-          {
-            quantity: 0,
-          },
-        ],
-      };
-      if (res.export_ingredients[0]) {
-        data.id = res.id;
-        data.date = res.date;
-        data.isCompleted = res.isCompleted;
-        data.total = res.total;
-        data.description = res.description;
-        data.staff = res.staff;
-        for (let i = 0; i < res.export_ingredients.length; i++) {
-          data.export_ingredients[i] = res.export_ingredients[i].ingredient;
-          data.export_ingredients[i].quantity =
-            res.export_ingredients[i].quantity;
-        }
-        return data;
-      }
       return res;
     } catch (error) {
       console.log(error);
