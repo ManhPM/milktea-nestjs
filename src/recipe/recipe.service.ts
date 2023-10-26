@@ -95,6 +95,8 @@ export class RecipeService {
         };
         for (let i = 0; i < res.recipe_ingredients.length; i++) {
           data.ingredients[i] = res.recipe_ingredients[i].ingredient;
+          data.ingredients[i].remainQuantity =
+            res.recipe_ingredients[i].ingredient.quantity;
           data.ingredients[i].quantity = res.recipe_ingredients[i].quantity;
         }
         return {
