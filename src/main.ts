@@ -16,7 +16,7 @@ async function bootstrap() {
   //   next();
   // });
   app.enableCors({
-    origin: process.env.ENV === 'dev' ? true : 'https://tea-z.vercel.app/',
+    origin: 'https://tea-z.vercel.app/',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: '*',
     credentials: true,
