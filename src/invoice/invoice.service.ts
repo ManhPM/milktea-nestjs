@@ -1340,19 +1340,14 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
             }
           }
           if (req.role != 0) {
-            if (!invoice)
-              if (invoice.status == 0) {
-                await transactionalEntityManager
-                  .getRepository(Invoice)
-                  .update(id, {
-                    status: 4,
-                  });
-              }
-            if (
-              invoice.status != 0 &&
-              invoice.status != 4 &&
-              invoice.status != 3
-            ) {
+            if (invoice.status == 0) {
+              await transactionalEntityManager
+                .getRepository(Invoice)
+                .update(id, {
+                  status: 4,
+                });
+            }
+            if (invoice.status != 4 && invoice.status != 3) {
               const invoiceProducts = await transactionalEntityManager
                 .getRepository(InvoiceProduct)
                 .find({
