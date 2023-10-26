@@ -131,7 +131,7 @@ export class AuthController {
     }
     return null;
   }
-
+  
   @Post('login')
   async login(
     @Body('phone') phone: string,
