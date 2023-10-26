@@ -22,16 +22,26 @@ export class RecipeIngredientService {
   ) {}
   async create(item: CreateRecipeIngredientDto) {
     try {
-      const check = await this.recipeIngredientRepository.findOne({
-        where: {
-          ingredient: Like(item.ingredientId),
-          recipe: Like(item.recipeId),
-        },
-      });
-      if (check) {
+      if (!item.ingredientId) {
         throw new HttpException(
           {
-            messageCode: 'IS_EXIST_ERROR',
+            messageCode: 'INPUT_INGREDIENT_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!item.recipeId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_RECIPE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!item.quantity) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_QUANTITY_ERROR',
           },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
@@ -61,6 +71,17 @@ export class RecipeIngredientService {
           },
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
+      }
+      const check = await this.recipeIngredientRepository.findOne({
+        where: {
+          ingredient: Like(item.ingredientId),
+          recipe: Like(item.recipeId),
+        },
+      });
+      if (check) {
+        await this.recipeIngredientRepository.update(check.id, {
+          quantity: item.quantity + check.quantity,
+        });
       }
       await this.recipeIngredientRepository.save({
         ingredient,
