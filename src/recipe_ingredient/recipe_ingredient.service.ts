@@ -122,19 +122,52 @@ export class RecipeIngredientService {
 
   async update(item: UpdateRecipeIngredientDto) {
     try {
+      if (!item.ingredientId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_INGREDIENT_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!item.recipeId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_RECIPE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!item.quantity) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_QUANTITY_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       const recipeIngredient = await this.recipeIngredientRepository.findOne({
         where: {
           recipe: Like(item.recipeId),
           ingredient: Like(item.ingredientId),
         },
       });
-      await this.recipeIngredientRepository.update(recipeIngredient.id, {
-        quantity: item.quantity,
-      });
-      const message = await this.messageService.getMessage('UPDATE_SUCCESS');
-      return {
-        message: message,
-      };
+      if (recipeIngredient) {
+        await this.recipeIngredientRepository.update(recipeIngredient.id, {
+          quantity: item.quantity,
+        });
+        const message = await this.messageService.getMessage('UPDATE_SUCCESS');
+        return {
+          message: message,
+        };
+      } else {
+        throw new HttpException(
+          {
+            messageCode: 'IS_NOT_EXIST_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     } catch (error) {
       let message;
       if (error.response.messageCode) {
@@ -161,6 +194,22 @@ export class RecipeIngredientService {
 
   async remove(item: DeleteRecipeIngredientDto) {
     try {
+      if (!item.ingredientId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_INGREDIENT_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!item.recipeId) {
+        throw new HttpException(
+          {
+            messageCode: 'INPUT_RECIPE_ERROR',
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       const check = await this.recipeIngredientRepository.findOne({
         where: {
           ingredient: Like(item.ingredientId),
