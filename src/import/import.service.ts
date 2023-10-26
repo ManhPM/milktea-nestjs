@@ -121,11 +121,13 @@ export class ImportService {
         where: {
           import: Like(id),
         },
+        relations: ['ingredient'],
       });
       const nonImportedIngredients = ingredients.filter(
         (ingredient) =>
           !importedIngredients.some(
-            (importedIngredient) => importedIngredient.id === ingredient.id,
+            (importedIngredient) =>
+              importedIngredient.ingredient.id == ingredient.id,
           ),
       );
       return {
@@ -220,7 +222,6 @@ export class ImportService {
               },
               relations: ['recipe_ingredients.ingredient'],
             });
-
           if (recipes[0]) {
             for (const recipe of recipes) {
               let canActive = 1;
@@ -241,6 +242,7 @@ export class ImportService {
               }
             }
           }
+          console.log(totalAmount);
           await transactionalEntityManager.update(Import, id, {
             total: totalAmount,
             isCompleted: 1,

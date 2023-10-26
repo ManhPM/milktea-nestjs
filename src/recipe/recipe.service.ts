@@ -80,11 +80,32 @@ export class RecipeService {
         where: {
           id: id,
         },
+        relations: ['recipe_ingredients.ingredient'],
       });
+      if (res) {
+        const data = {
+          id: res.id,
+          name: res.name,
+          info: res.info,
+          image: res.image,
+          isActive: res.isActive,
+          price: res.price,
+          discount: res.discount,
+          ingredients: [],
+        };
+        for (let i = 0; i < res.recipe_ingredients.length; i++) {
+          data.ingredients[i] = res.recipe_ingredients[i].ingredient;
+          data.ingredients[i].quantity = res.recipe_ingredients[i].quantity;
+        }
+        return {
+          data: data,
+        };
+      }
       return {
         data: res,
       };
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

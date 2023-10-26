@@ -177,6 +177,7 @@ export class CheckExistImport implements NestMiddleware {
       }
       next();
     } catch (error) {
+      console.log(error);
       let message;
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(

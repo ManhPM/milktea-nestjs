@@ -15,7 +15,6 @@ export class MessageService {
       await workbook.xlsx.readFile('src/common/message.xlsx');
       // await workbook.xlsx.readFile(filePath);
       const worksheet = workbook.getWorksheet('Sheet1');
-      console.log(messageCode);
       let message;
       let language = 'VN';
       if (this.request.query.language) {
