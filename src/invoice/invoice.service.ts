@@ -500,6 +500,7 @@ export class InvoiceService {
             status: 0,
             address: '',
             phone: '',
+            description: '',
             products: [
               {
                 quantity: 0,
@@ -527,6 +528,7 @@ export class InvoiceService {
             status: res[k].status,
             address: res[k].address,
             phone: res[k].phone,
+            description: res[k].description,
             products: [],
           };
           for (let g = 0; g < res[k].invoice_products.length; g++) {
@@ -936,6 +938,7 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
             date: '',
             status: 0,
             paymentMethod: '',
+            description: '',
             isPaid: 1,
             shippingCompany: {},
           },
@@ -971,6 +974,7 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
         data.invoice.date = res.date.toString();
         data.invoice.status = res.status;
         data.invoice.isPaid = res.isPaid;
+        data.invoice.description = res.description;
         data.invoice.paymentMethod = res.paymentMethod;
         for (let i = 0; i < res.invoice_products.length; i++) {
           for (let i = 0; i < res.invoice_products.length; i++) {

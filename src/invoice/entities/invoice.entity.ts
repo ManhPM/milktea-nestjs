@@ -32,6 +32,9 @@ export class Invoice {
   paymentMethod: string;
 
   @Column()
+  description: string;
+
+  @Column()
   isPaid: number;
 
   @ManyToOne(() => User, (item) => item.invoices)
