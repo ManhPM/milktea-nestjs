@@ -27,6 +27,7 @@ import { ShippingCompanyService } from '../shipping_company/shipping_company.ser
 import { ShippingCompany } from '../shipping_company/entities/shipping_company.entity';
 import { Shop } from '../shop/entities/shop.entity';
 import { Recipe } from '../recipe/entities/recipe.entity';
+import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { Recipe } from '../recipe/entities/recipe.entity';
       ShippingCompany,
       Shop,
       Recipe,
+      RecipeIngredient,
     ]),
   ],
   controllers: [ImportController],

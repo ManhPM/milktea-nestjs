@@ -3,15 +3,18 @@ import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { UpdateIngredientDto } from './dto/update-ingredient.dto';
 import { Ingredient } from './entities/ingredient.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Like, Not, Repository } from 'typeorm';
 import { FilterIngredientDto } from './dto/filter-ingredient.dto';
 import { MessageService } from '../common/lib';
+import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
 
 @Injectable()
 export class IngredientService {
   constructor(
     @InjectRepository(Ingredient)
     readonly ingredientRepository: Repository<Ingredient>,
+    @InjectRepository(RecipeIngredient)
+    readonly recipeIngredientRepository: Repository<RecipeIngredient>,
     private readonly messageService: MessageService,
   ) {}
 
@@ -120,13 +123,47 @@ export class IngredientService {
 
   async remove(id: number) {
     try {
-      await this.ingredientRepository.update(id, {
-        isActive: 0,
+      const check = await await this.recipeIngredientRepository.findOne({
+        where: {
+          ingredient: Like(id),
+          recipe: {
+            isActive: Not(0),
+          },
+        },
+        relations: ['recipe'],
       });
-      const message = await this.messageService.getMessage('DELETE_SUCCESS');
-      return {
-        message: message,
-      };
+      if (check) {
+        throw new HttpException(
+          {
+            messageCode: 'DELETE_INGREDIENT_ERROR',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const ingredient = await this.ingredientRepository.findOne({
+        where: {
+          id: id,
+        },
+      });
+      if (ingredient.isActive == 1) {
+        await this.ingredientRepository.update(id, {
+          isActive: 0,
+        });
+        const message = await this.messageService.getMessage('DELETE_SUCCESS');
+        return {
+          message: message,
+        };
+      } else {
+        await this.ingredientRepository.update(id, {
+          isActive: 1,
+        });
+        const message = await this.messageService.getMessage(
+          'UNDELETE_INGREDIENT_SUCCESS',
+        );
+        return {
+          message: message,
+        };
+      }
     } catch (error) {
       let message;
       if (error.response.messageCode) {
