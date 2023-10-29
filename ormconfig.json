@@ -4,7 +4,6 @@
   "port": 3306,
   "username": "root",
   "password": "15092001",
-  "timezone": "Asia/Ho_Chi_Minh",
   "database": "milktea-nestjs",
   "entities": ["../src/**/entities/*.entity{.ts,.js}"],
   "migrations": ["../src/migrations/*.ts", "dist/migrations/*{.ts,.js}"],
