@@ -141,7 +141,6 @@ export class RecipeService {
           where: {
             type: Not(5),
             name: Like('%' + keyword + '%'),
-            isActive: Not(0),
           },
           relations: ['type'],
         });
@@ -182,19 +181,32 @@ export class RecipeService {
 
   async getRecipeByType(id: number, @Request() req) {
     try {
-      const res = await this.recipeRepository.find({
+      const res1 = await this.recipeRepository.find({
         where: {
           type: Like(id),
-          isActive: Not(0),
+          isActive: Like(1),
         },
       });
+      const res2 = await this.recipeRepository.find({
+        where: {
+          type: Like(id),
+          isActive: Like(2),
+        },
+      });
+      const res0 = await this.recipeRepository.find({
+        where: {
+          type: Like(id),
+          isActive: Like(0),
+        },
+      });
+      const res = [...res1, ...res2, ...res0];
       const wishlist = await this.wishlistRepository.find({
         where: {
           user: Like(req.query.id),
         },
         relations: ['recipe'],
       });
-      if (wishlist[0]) {
+      if (wishlist[0] && res[0]) {
         let wishlistIds;
         if (wishlist[0]) {
           wishlistIds = wishlist.map((item) => item.recipe.id);
@@ -491,15 +503,7 @@ export class RecipeService {
         },
       });
       if (recipe) {
-        if (recipe.isActive == 2) {
-          throw new HttpException(
-            {
-              messageCode: 'DELETE_ERROR',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-        if (recipe.isActive == 1) {
+        if (recipe.isActive != 0) {
           await this.recipeRepository.update(id, {
             isActive: 0,
           });
@@ -509,9 +513,6 @@ export class RecipeService {
             message: message,
           };
         } else {
-          await this.recipeRepository.update(id, {
-            isActive: 1,
-          });
           const message = await this.messageService.getMessage(
             'UNDELETE_RECIPE_SUCCESS',
           );

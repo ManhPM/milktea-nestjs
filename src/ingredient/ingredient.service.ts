@@ -192,19 +192,46 @@ export class IngredientService {
     try {
       const name = query.name;
       let res = [];
-      let total = 0;
       if (name) {
-        [res, total] = await this.ingredientRepository.findAndCount({
+        const res1 = await this.ingredientRepository.find({
           where: {
             name,
+            isActive: 1,
           },
         });
+        const res2 = await this.ingredientRepository.find({
+          where: {
+            name,
+            isActive: 2,
+          },
+        });
+        const res0 = await this.ingredientRepository.find({
+          where: {
+            name,
+            isActive: 0,
+          },
+        });
+        res = [...res1, ...res2, ...res0];
       } else {
-        [res, total] = await this.ingredientRepository.findAndCount({});
+        const res1 = await this.ingredientRepository.find({
+          where: {
+            isActive: 1,
+          },
+        });
+        const res2 = await this.ingredientRepository.find({
+          where: {
+            isActive: 2,
+          },
+        });
+        const res0 = await this.ingredientRepository.find({
+          where: {
+            isActive: 0,
+          },
+        });
+        res = [...res1, ...res2, ...res0];
       }
       return {
         data: res,
-        total,
       };
     } catch (error) {
       let message;
