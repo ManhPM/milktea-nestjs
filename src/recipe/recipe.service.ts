@@ -485,13 +485,48 @@ export class RecipeService {
 
   async remove(id: number) {
     try {
-      await this.recipeRepository.update(id, {
-        isActive: 0,
+      const recipe = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
       });
-      const message = await this.messageService.getMessage('DELETE_SUCCESS');
-      return {
-        message: message,
-      };
+      if (recipe) {
+        if (recipe.isActive == 2) {
+          throw new HttpException(
+            {
+              messageCode: 'DELETE_ERROR',
+            },
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        if (recipe.isActive == 1) {
+          await this.recipeRepository.update(id, {
+            isActive: 0,
+          });
+          const message =
+            await this.messageService.getMessage('DELETE_SUCCESS');
+          return {
+            message: message,
+          };
+        } else {
+          await this.recipeRepository.update(id, {
+            isActive: 1,
+          });
+          const message = await this.messageService.getMessage(
+            'UNDELETE_RECIPE_SUCCESS',
+          );
+          return {
+            message: message,
+          };
+        }
+      } else {
+        throw new HttpException(
+          {
+            messageCode: 'RECIPE_NOTFOUND',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     } catch (error) {
       let message;
       if (error.response.messageCode) {
