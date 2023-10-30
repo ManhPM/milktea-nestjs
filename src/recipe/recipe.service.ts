@@ -464,9 +464,31 @@ export class RecipeService {
 
   async update(id: number, updateRecipeDto: UpdateRecipeDto) {
     try {
-      await this.recipeRepository.update(id, {
-        ...updateRecipeDto,
+      const type = await this.typeRepository.findOne({
+        where: {
+          id: updateRecipeDto.typeId,
+        },
       });
+      const recipe = await this.recipeRepository.findOne({
+        where: {
+          id: id,
+        },
+        relations: ['type'],
+      });
+      await this.recipeRepository.update(id, {
+        name: updateRecipeDto.name ? updateRecipeDto.name : recipe.name,
+        info: updateRecipeDto.info ? updateRecipeDto.info : recipe.info,
+        image: updateRecipeDto.image ? updateRecipeDto.image : recipe.image,
+        price: updateRecipeDto.price ? updateRecipeDto.price : recipe.price,
+        discount: updateRecipeDto.discount
+          ? updateRecipeDto.discount
+          : recipe.discount,
+      });
+      if (type) {
+        await this.recipeRepository.update(id, {
+          type: type,
+        });
+      }
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,
