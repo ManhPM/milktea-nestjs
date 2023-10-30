@@ -513,6 +513,9 @@ export class RecipeService {
             message: message,
           };
         } else {
+          await this.recipeRepository.update(id, {
+            isActive: 1,
+          });
           const message = await this.messageService.getMessage(
             'UNDELETE_RECIPE_SUCCESS',
           );
