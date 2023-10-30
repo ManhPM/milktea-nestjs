@@ -598,7 +598,9 @@ export class InvoiceService {
 
   async thongKe(@Query() query): Promise<any> {
     const fromDate = query.fromdate;
-    const toDate = query.todate;
+    const toDate = new Date(query.todate);
+    toDate.setDate(toDate.getDate() + 1);
+    toDate.setMinutes(toDate.getMinutes() - 1);
     let invoices = [];
     let revenue = 0;
     let countRecipes = 0;
@@ -1077,7 +1079,7 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
             for (const cartProduct of cartProducts) {
               let isFail = 0;
               for (const productRecipe of cartProduct.product.product_recipes) {
-                if (productRecipe.recipe.isActive == 0) { 
+                if (productRecipe.recipe.isActive == 0) {
                   isFail = 1;
                   await transactionalEntityManager
                     .getRepository(CartProduct)
