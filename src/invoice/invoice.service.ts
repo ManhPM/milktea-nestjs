@@ -600,7 +600,6 @@ export class InvoiceService {
     const fromDate = query.fromdate;
     const toDate = new Date(query.todate);
     toDate.setDate(toDate.getDate() + 1);
-    toDate.setMinutes(toDate.getMinutes() - 1);
     let invoices = [];
     let revenue = 0;
     let countRecipes = 0;
@@ -717,8 +716,13 @@ WHERE YEAR(date) = YEAR(CURDATE())`,
 FROM export
 WHERE YEAR(date) = YEAR(CURDATE());`,
       );
+      const date = new Date(toDate);
+      const year = date.getFullYear();
+      const month = ('0' + (date.getMonth() + 1)).slice(-2);
+      const day = ('0' + date.getDate()).slice(-2);
+      const formattedDate = `${year}-${month}-${day}`;
       const importExportIngredients = await this.dataSource.query(
-        `SELECT I.*, (SELECT SUM(quantity) FROM import_ingredient WHERE ingredientId = I.id) as total_import, (SELECT IFNULL(SUM(quantity), 0) FROM export_ingredient WHERE ingredientId = I.id) as total_export FROM ingredient as I`,
+        `SELECT I.*, (SELECT IFNULL(SUM(quantity), 0) FROM import_ingredient, import WHERE import.id = import_ingredient.importId AND import_ingredient.ingredientId = I.id AND import.date between '${fromDate}' AND '${formattedDate}') as total_import, (SELECT IFNULL(SUM(quantity), 0) FROM export_ingredient, export WHERE export.id = export_ingredient.exportId AND export_ingredient.ingredientId = I.id AND export.date between '${fromDate}' AND '${formattedDate}') as total_export FROM ingredient as I`,
       );
       return {
         totalExport: totalExport[0]
@@ -780,6 +784,7 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
       };
     } catch (error) {
       let message;
+      console.log(error);
       if (error.response.messageCode) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
