@@ -1106,6 +1106,7 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
                       {
                         messageCode: 'QUANTITY_NOTENOUGH_ERROR',
                         id: productRecipe.recipe.id,
+                        cartProductId: cartProduct.id,
                       },
                       HttpStatus.BAD_REQUEST,
                     );
@@ -1223,6 +1224,11 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
             if (error.response.id) {
               await this.recipeRepository.update(error.response.id, {
                 isActive: 2,
+              });
+            }
+            if (error.response.cartProductId) {
+              await this.cartProductRepository.delete({
+                id: error.response.cartProductId,
               });
             }
             throw new HttpException(
