@@ -14,7 +14,7 @@ import {
 } from '../common/middlewares/middlewares';
 import { validateCreateIngredient } from '../common/middlewares/validate';
 import { MessageService } from '../common/lib';
-import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
+import { RecipeIngredient } from '../recipe_ingredient/entities/recipe_ingredient.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Ingredient, RecipeIngredient])],

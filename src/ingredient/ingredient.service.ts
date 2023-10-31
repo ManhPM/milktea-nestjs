@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Not, Repository } from 'typeorm';
 import { FilterIngredientDto } from './dto/filter-ingredient.dto';
 import { MessageService } from '../common/lib';
-import { RecipeIngredient } from 'src/recipe_ingredient/entities/recipe_ingredient.entity';
+import { RecipeIngredient } from '../recipe_ingredient/entities/recipe_ingredient.entity';
 
 @Injectable()
 export class IngredientService {
