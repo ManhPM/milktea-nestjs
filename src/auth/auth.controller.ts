@@ -131,7 +131,7 @@ export class AuthController {
     }
     return null;
   }
-  
+
   @Post('login')
   async login(
     @Body('phone') phone: string,
@@ -279,7 +279,11 @@ export class AuthController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('0')
   @Patch('profile')
-  async update(@Request() req, @Body() item: UpdateAccountDto): Promise<any> {
-    return this.authService.update(req, item);
+  async update(
+    @Request() req,
+    @Body() item: UpdateAccountDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<any> {
+    return this.authService.update(req, item, response);
   }
 }

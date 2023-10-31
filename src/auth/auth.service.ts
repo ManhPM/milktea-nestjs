@@ -1,6 +1,12 @@
 import { MailerService } from '@nestjs-modules/mailer';
 // import * as twilioConfig from 'twilio';
-import { HttpException, Injectable, HttpStatus, Request } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  HttpStatus,
+  Request,
+  Res,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Account } from '../account/entities/account.entity';
@@ -11,6 +17,7 @@ import { UpdateAccountDto } from '../account/dto/update-account.dto';
 import { MessageService, convertPhoneNumber, isNumberic } from '../common/lib';
 import { Verify } from '../verify/entities/verify.entity';
 import { ChangePassword } from '../user/dto/changepassword.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -19,108 +26,11 @@ export class AuthService {
     @InjectRepository(User) readonly userRepository: Repository<User>,
     @InjectRepository(Verify) readonly verifyRepository: Repository<Verify>,
     private readonly mailerService: MailerService,
+    private jwtService: JwtService,
     private readonly messageService: MessageService,
   ) {}
 
-  async sendSms(phoneNumber: string) {
-    // try {
-    //   if (!phoneNumber) {
-    //     throw new HttpException(
-    //       {
-    //         messageCode: 'INPUT_PHONE_ERROR',
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    //   if (!isNumberic(phoneNumber)) {
-    //     throw new HttpException(
-    //       {
-    //         messageCode: 'INPUT_PHONE_ERROR1',
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    //   if (phoneNumber.length != 10) {
-    //     throw new HttpException(
-    //       {
-    //         messageCode: 'INPUT_PHONE_ERROR2',
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    //   const phone = await this.accountRepository.findOne({
-    //     where: {
-    //       phone: phoneNumber,
-    //     },
-    //   });
-    //   if (phone) {
-    //     throw new HttpException(
-    //       {
-    //         messageCode: 'PHONE_ISEXIST_ERROR',
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    //   const date = new Date();
-    //   date.setHours(date.getHours() + 7);
-    //   const phoneVerify = await this.verifyRepository.findOne({
-    //     where: {
-    //       phone: phoneNumber,
-    //       expireAt: LessThan(date),
-    //     },
-    //   });
-    //   if (phoneVerify) {
-    //     throw new HttpException(
-    //       {
-    //         messageCode: 'SMS_SEND_ERROR',
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   }
-    //   date.setMinutes(date.getMinutes() + 5);
-    //   const randomID = Math.floor(100000 + Math.random() * 900000);
-    //   await this.verifyRepository.save({
-    //     phone: phoneNumber,
-    //     verifyID: randomID.toString(),
-    //     expireAt: date,
-    //   });
-    //   const convertPhone = convertPhoneNumber(phoneNumber);
-    //   const client = twilioConfig(
-    //     process.env.ACCOUNTSID,
-    //     process.env.AUTHTOKEN,
-    //   );
-    //   await client.messages.create({
-    //     body: `Mã xác minh của bạn là ${randomID}`,
-    //     to: convertPhone,
-    //     from: `${process.env.PHONE}`,
-    //   });
-    //   const message = await this.messageService.getMessage('SMS_SEND_SUCCESS');
-    //   return {
-    //     message: message,
-    //   };
-    // } catch (error) {
-    //   let message = '';
-    //   if (error.response.messageCode) {
-    //     message = await this.messageService.getMessage(
-    //       error.response.messageCode,
-    //     );
-    //     throw new HttpException(
-    //       {
-    //         message: message,
-    //       },
-    //       HttpStatus.BAD_REQUEST,
-    //     );
-    //   } else {
-    //     message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
-    //     throw new HttpException(
-    //       {
-    //         message: message,
-    //       },
-    //       HttpStatus.INTERNAL_SERVER_ERROR,
-    //     );
-    //   }
-    // }
-  }
+  async sendSms(phoneNumber: string) {}
 
   async verify(phoneNumber: string, verifyID: string) {
     try {
@@ -346,7 +256,11 @@ export class AuthService {
     }
   }
 
-  async update(@Request() req, updateAccountDto: UpdateAccountDto) {
+  async update(
+    @Request() req,
+    updateAccountDto: UpdateAccountDto,
+    @Res() response,
+  ) {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -355,13 +269,30 @@ export class AuthService {
         relations: ['account'],
       });
       await this.accountRepository.update(user.account.id, {
-        phone: updateAccountDto.phone,
+        phone: updateAccountDto.phone
+          ? updateAccountDto.phone
+          : user.account.phone,
       });
       await this.userRepository.update(user.id, {
-        address: updateAccountDto.address,
-        name: updateAccountDto.name,
-        photo: updateAccountDto.photo,
+        address: updateAccountDto.address
+          ? updateAccountDto.address
+          : user.address,
+        name: updateAccountDto.name ? updateAccountDto.name : user.name,
+        photo: updateAccountDto.photo ? updateAccountDto.photo : user.photo,
       });
+      if (updateAccountDto.phone) {
+        const account = await this.findOne(`${updateAccountDto.phone}`);
+        const token = await this.jwtService.signAsync({ account });
+        const dateToken = new Date();
+        dateToken.setHours(dateToken.getHours() + 7);
+        dateToken.setDate(dateToken.getDate() + 7);
+        response.cookie('token', token, {
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          expires: dateToken,
+        });
+      }
       const message = await this.messageService.getMessage('UPDATE_SUCCESS');
       return {
         message: message,

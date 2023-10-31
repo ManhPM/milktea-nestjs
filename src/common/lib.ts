@@ -12,11 +12,11 @@ export class MessageService {
     try {
       const workbook = new Excel.Workbook();
       const filePath = path.join(__dirname, 'message.xlsx');
-      // await workbook.xlsx.readFile('src/common/message.xlsx');
-      await workbook.xlsx.readFile(filePath);
+      await workbook.xlsx.readFile('src/common/message.xlsx');
+      // await workbook.xlsx.readFile(filePath);
       const worksheet = workbook.getWorksheet('Sheet1');
       let message;
-      let language = 'VN';
+      let language = 'VI';
       if (this.request.query.language) {
         language = this.request.query.language as string;
       }
@@ -44,7 +44,6 @@ export class MessageService {
         return message;
       }
     } catch (error) {
-      console.log(error);
       if (error.response.messageCode) {
         const message = await this.getMessage(error.response.messageCode);
         throw new HttpException(

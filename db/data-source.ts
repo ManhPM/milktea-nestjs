@@ -1,5 +1,5 @@
 import { DataSourceOptions, DataSource } from 'typeorm';
-const dev = false;
+const dev = true;
 export const dataSourceOptions: DataSourceOptions = {
   type: 'mysql',
   host: dev
