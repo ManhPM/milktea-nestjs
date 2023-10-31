@@ -76,7 +76,7 @@ export class validateLogin implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -87,6 +87,7 @@ export class validateLogin implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -195,7 +196,7 @@ export class validateRegister implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -206,6 +207,7 @@ export class validateRegister implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -253,7 +255,7 @@ export class validateUpdateUser implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -264,6 +266,7 @@ export class validateUpdateUser implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -331,7 +334,7 @@ export class validateChangePassword implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -342,6 +345,7 @@ export class validateChangePassword implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -429,7 +433,7 @@ export class validateForgotPassword implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -440,6 +444,7 @@ export class validateForgotPassword implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -519,7 +524,7 @@ export class validateCreateCartProduct implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -530,6 +535,7 @@ export class validateCreateCartProduct implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -588,7 +594,7 @@ export class validateUpdateCartProduct implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -599,6 +605,7 @@ export class validateUpdateCartProduct implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -722,7 +729,7 @@ export class validateCreateImportIngredient implements NestMiddleware {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -733,6 +740,7 @@ export class validateCreateImportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -786,7 +794,7 @@ export class validateDeleteImportIngredient implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -797,6 +805,7 @@ export class validateDeleteImportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -926,7 +935,7 @@ export class validateCreateExportIngredient implements NestMiddleware {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -937,6 +946,7 @@ export class validateCreateExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1005,7 +1015,7 @@ export class validateDeleteExportIngredient implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1016,6 +1026,7 @@ export class validateDeleteExportIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1063,7 +1074,7 @@ export class validateCreateIngredient implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1074,6 +1085,7 @@ export class validateCreateIngredient implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1151,7 +1163,7 @@ export class validateCheckOut implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1162,6 +1174,7 @@ export class validateCheckOut implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1239,7 +1252,7 @@ export class validateCheckOut1 implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1250,6 +1263,7 @@ export class validateCheckOut1 implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1322,7 +1336,7 @@ export class validateFromDateToDate implements NestMiddleware {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1333,6 +1347,7 @@ export class validateFromDateToDate implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1408,7 +1423,7 @@ export class validateCreateRecipe implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1419,6 +1434,7 @@ export class validateCreateRecipe implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1480,7 +1496,7 @@ export class validateUpdateRecipe implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1491,6 +1507,7 @@ export class validateUpdateRecipe implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1576,7 +1593,7 @@ export class validateCreateReview implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1587,6 +1604,7 @@ export class validateCreateReview implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1632,7 +1650,7 @@ export class validateCreateShippingCompany implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1643,6 +1661,7 @@ export class validateCreateShippingCompany implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1682,7 +1701,7 @@ export class validateUpdateShippingCompany implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1693,6 +1712,7 @@ export class validateUpdateShippingCompany implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1755,7 +1775,7 @@ export class validateUpdateShop implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1766,6 +1786,7 @@ export class validateUpdateShop implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1851,7 +1872,7 @@ export class validateCreateStaff implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1862,6 +1883,7 @@ export class validateCreateStaff implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1925,7 +1947,7 @@ export class validateUpdateStaff implements NestMiddleware {
       next();
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1936,6 +1958,7 @@ export class validateUpdateStaff implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -1984,7 +2007,7 @@ export class validateCompleteImportExport implements NestMiddleware {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -1995,6 +2018,7 @@ export class validateCompleteImportExport implements NestMiddleware {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {

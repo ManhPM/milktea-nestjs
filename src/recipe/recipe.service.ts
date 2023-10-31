@@ -52,7 +52,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -63,6 +63,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -110,7 +111,7 @@ export class RecipeService {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -121,6 +122,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -157,7 +159,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -168,6 +170,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -233,7 +236,7 @@ export class RecipeService {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -244,6 +247,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -282,7 +286,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -293,6 +297,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -330,7 +335,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -341,6 +346,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -366,7 +372,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -377,6 +383,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -411,7 +418,7 @@ export class RecipeService {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -422,6 +429,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -440,7 +448,7 @@ export class RecipeService {
       });
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -451,6 +459,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -495,7 +504,7 @@ export class RecipeService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -506,6 +515,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -555,7 +565,7 @@ export class RecipeService {
       }
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -566,6 +576,7 @@ export class RecipeService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {

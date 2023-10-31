@@ -114,16 +114,28 @@ export class CartProductService {
             message: message,
           };
         } catch (error) {
-          console.log(error);
-          const message = await this.messageService.getMessage(
-            'INTERNAL_SERVER_ERROR',
-          );
-          throw new HttpException(
-            {
-              message: message,
-            },
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
+          let message;
+          if (error.response) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
         }
       },
     );
@@ -153,6 +165,7 @@ export class CartProductService {
                 productString: productString,
               },
             });
+
           const currentProduct = await transactionalEntityManager
             .getRepository(CartProduct)
             .findOne({
@@ -169,7 +182,6 @@ export class CartProductService {
                 product: product,
               },
             });
-          console.log(cartProduct, currentProduct);
           if (cartProduct) {
             await transactionalEntityManager
               .getRepository(CartProduct)
@@ -193,15 +205,28 @@ export class CartProductService {
             message: message,
           };
         } catch (error) {
-          const message = await this.messageService.getMessage(
-            'INTERNAL_SERVER_ERROR',
-          );
-          throw new HttpException(
-            {
-              message: message,
-            },
-            HttpStatus.INTERNAL_SERVER_ERROR,
-          );
+          let message;
+          if (error.response) {
+            message = await this.messageService.getMessage(
+              error.response.messageCode,
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.BAD_REQUEST,
+            );
+          } else {
+            message = await this.messageService.getMessage(
+              'INTERNAL_SERVER_ERROR',
+            );
+            throw new HttpException(
+              {
+                message: message,
+              },
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+          }
         }
       },
     );
@@ -304,7 +329,7 @@ export class CartProductService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -315,6 +340,7 @@ export class CartProductService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -335,7 +361,7 @@ export class CartProductService {
       });
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -346,6 +372,7 @@ export class CartProductService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -387,7 +414,7 @@ export class CartProductService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -398,6 +425,7 @@ export class CartProductService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {

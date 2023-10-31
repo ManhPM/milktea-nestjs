@@ -30,7 +30,7 @@ export class ShippingCompanyService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -41,6 +41,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -62,7 +63,7 @@ export class ShippingCompanyService {
       });
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -73,6 +74,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -95,7 +97,7 @@ export class ShippingCompanyService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -106,6 +108,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -128,7 +131,7 @@ export class ShippingCompanyService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -139,6 +142,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -157,7 +161,7 @@ export class ShippingCompanyService {
       });
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -168,6 +172,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -191,7 +196,7 @@ export class ShippingCompanyService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -202,6 +207,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -225,7 +231,7 @@ export class ShippingCompanyService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -236,6 +242,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -285,7 +292,7 @@ export class ShippingCompanyService {
       }
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -296,6 +303,7 @@ export class ShippingCompanyService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {

@@ -44,7 +44,7 @@ export class MessageService {
         return message;
       }
     } catch (error) {
-      if (error.response.messageCode) {
+      if (error.response) {
         const message = await this.getMessage(error.response.messageCode);
         throw new HttpException(
           {

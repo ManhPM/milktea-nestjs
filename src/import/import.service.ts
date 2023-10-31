@@ -92,7 +92,7 @@ export class ImportService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -103,6 +103,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -135,7 +136,7 @@ export class ImportService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -146,6 +147,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -169,7 +171,7 @@ export class ImportService {
     } catch (error) {
       console.log(error);
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -180,6 +182,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -303,7 +306,7 @@ export class ImportService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         if ((error.response.messageCode = 'IMPORT_ISEXIST_ERROR')) {
           throw new HttpException(
             {
@@ -313,6 +316,7 @@ export class ImportService {
           );
         }
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -336,7 +340,7 @@ export class ImportService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -347,6 +351,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -405,7 +410,7 @@ export class ImportService {
       } catch (error) {
         console.log(error);
         let message;
-        if (error.response.messageCode) {
+        if (error.response) {
           message = await this.messageService.getMessage(
             error.response.messageCode,
           );
@@ -452,7 +457,7 @@ export class ImportService {
       };
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -463,6 +468,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
@@ -497,7 +503,7 @@ export class ImportService {
         message: message,
       };
     } catch (error) {
-      if (error.response.messageCode) {
+      if (error.response) {
         const message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -528,7 +534,7 @@ export class ImportService {
       });
     } catch (error) {
       let message;
-      if (error.response.messageCode) {
+      if (error.response) {
         message = await this.messageService.getMessage(
           error.response.messageCode,
         );
@@ -539,6 +545,7 @@ export class ImportService {
           HttpStatus.BAD_REQUEST,
         );
       } else {
+        console.log(error);
         message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
         throw new HttpException(
           {
