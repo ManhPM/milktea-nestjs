@@ -1102,14 +1102,10 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
                       },
                     });
                   if (decreQuantity > ingredient.quantity) {
-                    await transactionalEntityManager
-                      .getRepository(Recipe)
-                      .update(recipeIngredient.recipe.id, {
-                        isActive: 2,
-                      });
                     throw new HttpException(
                       {
                         messageCode: 'QUANTITY_NOTENOUGH_ERROR',
+                        id: productRecipe.recipe.id,
                       },
                       HttpStatus.BAD_REQUEST,
                     );
@@ -1224,6 +1220,11 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
             message = await this.messageService.getMessage(
               error.response.messageCode,
             );
+            if (error.response.id) {
+              await this.recipeRepository.update(error.response.id, {
+                isActive: 2,
+              });
+            }
             throw new HttpException(
               {
                 message: message,
