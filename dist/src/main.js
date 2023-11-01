@@ -14,7 +14,7 @@ async function bootstrap() {
         credentials: true,
     });
     app.use(function (request, response, next) {
-        response.setHeader('Access-Control-Allow-Origin', 'https://tea-z-navy.vercel.app/');
+        response.header('Access-Control-Allow-Origin', 'https://tea-z-navy.vercel.app/');
         next();
     });
     await app.listen(4000);
