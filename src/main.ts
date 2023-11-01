@@ -11,9 +11,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    req.header('Access-Control-Allow-Origin', '*');
+    req.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    req.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
     next();
   });
 
