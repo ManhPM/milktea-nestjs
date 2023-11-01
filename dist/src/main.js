@@ -10,12 +10,12 @@ async function bootstrap() {
     app.use(cookieParserConfig());
     app.setGlobalPrefix('api/v1');
     app.enableCors({
-        origin: ['https://tea-z-navy.vercel.app'],
+        origin: ['http://tea-z-navy.vercel.app'],
         methods: ['POST', 'PUT', 'DELETE', 'GET'],
         credentials: true,
     });
     app.use(function (request, response, next) {
-        response.setHeader('Access-Control-Allow-Origin', 'https://tea-z-navy.vercel.app');
+        response.setHeader('Access-Control-Allow-Origin', 'http://tea-z-navy.vercel.app');
         next();
     });
     await app.listen(4000);
