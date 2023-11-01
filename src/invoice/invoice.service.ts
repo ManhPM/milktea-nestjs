@@ -383,6 +383,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           } else {
@@ -397,6 +398,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           }
@@ -413,6 +415,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           } else {
@@ -426,6 +429,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           }
@@ -444,6 +448,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           } else {
@@ -457,6 +462,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           }
@@ -472,6 +478,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           } else {
@@ -482,6 +489,7 @@ export class InvoiceService {
               relations: [
                 'invoice_products.product.product_recipes.recipe',
                 'user.account',
+                'shippingCompany',
               ],
             });
           }
@@ -505,6 +513,8 @@ export class InvoiceService {
             address: '',
             phone: '',
             description: '',
+            isPaid: 0,
+            shippingCompany: {},
             products: [
               {
                 quantity: 0,
@@ -533,6 +543,8 @@ export class InvoiceService {
             address: res[k].address,
             phone: res[k].phone,
             description: res[k].description,
+            isPaid: res[k].isPaid,
+            shippingCompany: res[k].shippingCompany,
             products: [],
           };
           for (let g = 0; g < res[k].invoice_products.length; g++) {
