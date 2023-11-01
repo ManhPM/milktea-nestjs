@@ -14,6 +14,10 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+  // app.use(function (request: Request, response: Response, next: NextFunction) {
+  //   response.setHeader('Access-Control-Allow-Origin', '*');
+  //   next();
+  // });
   await app.listen(4000);
 }
 bootstrap();
