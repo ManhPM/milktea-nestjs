@@ -513,6 +513,7 @@ export class InvoiceService {
             address: '',
             phone: '',
             description: '',
+            paymentMethod: '',
             isPaid: 0,
             shippingCompany: {},
             products: [
@@ -543,6 +544,7 @@ export class InvoiceService {
             address: res[k].address,
             phone: res[k].phone,
             description: res[k].description,
+            paymentMethod: res[k].paymentMethod,
             isPaid: res[k].isPaid,
             shippingCompany: res[k].shippingCompany,
             products: [],
