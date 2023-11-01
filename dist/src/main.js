@@ -13,6 +13,10 @@ async function bootstrap() {
         origin: process.env.ENV === 'dev' ? true : 'https://tea-z-navy.vercel.app/',
         credentials: true,
     });
+    app.use(function (request, response, next) {
+        response.setHeader('Access-Control-Allow-Origin', 'https://tea-z-navy.vercel.app/');
+        next();
+    });
     await app.listen(4000);
 }
 bootstrap();
