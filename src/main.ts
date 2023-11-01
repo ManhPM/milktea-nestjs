@@ -10,14 +10,10 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.use((cookieParserConfig as any)());
   app.setGlobalPrefix('api/v1');
-  const options = {
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
+  app.enableCors({
+    origin: true,
     credentials: true,
-  };
-  app.enableCors(options);
+  });
   await app.listen(4000);
 }
 bootstrap();
