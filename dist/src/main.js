@@ -12,6 +12,7 @@ async function bootstrap() {
     app.enableCors({
         origin: ['http://tea-z-navy.vercel.app'],
         methods: ['POST', 'PUT', 'DELETE', 'GET'],
+        allowedHeaders: 'Access-Control-Allow-Origin',
         credentials: true,
     });
     app.use(function (request, response, next) {
