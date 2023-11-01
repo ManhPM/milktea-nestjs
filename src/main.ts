@@ -12,6 +12,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
   app.enableCors({
     origin: ['https://tea-z-navy.vercel.app'],
+    methods: ['POST', 'PUT', 'DELETE', 'GET'],
     credentials: true,
   });
   app.use(function (request: Request, response: Response, next: NextFunction) {
