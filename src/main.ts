@@ -13,6 +13,8 @@ async function bootstrap() {
   app.enableCors({
     origin: ['https://tea-z-navy.vercel.app'],
     methods: ['GET', 'POST', 'HEAD', 'PATCH', 'PUT', 'DELETE'],
+    allowedHeaders:
+      'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Observe',
     credentials: true,
   });
   await app.listen(4000);
