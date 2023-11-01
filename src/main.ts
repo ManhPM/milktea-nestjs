@@ -11,13 +11,13 @@ async function bootstrap() {
   app.use((cookieParserConfig as any)());
   app.setGlobalPrefix('api/v1');
   app.enableCors({
-    origin: process.env.ENV === 'dev' ? true : 'https://tea-z-navy.vercel.app/',
+    origin: ['https://tea-z-navy.vercel.app'],
     credentials: true,
   });
   app.use(function (request: Request, response: Response, next: NextFunction) {
-    response.header(
+    response.setHeader(
       'Access-Control-Allow-Origin',
-      'https://tea-z-navy.vercel.app/',
+      'https://tea-z-navy.vercel.app',
     );
     next();
   });
