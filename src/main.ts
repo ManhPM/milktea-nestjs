@@ -15,10 +15,11 @@ async function bootstrap() {
     credentials: true,
   });
   app.use(function (request: Request, response: Response, next: NextFunction) {
-    response.setHeader(
+    response.header(
       'Access-Control-Allow-Origin',
       'https://tea-z-navy.vercel.app/',
     );
+    response.header('Access-Control-Allow-Headers', 'X-Requested-With');
     next();
   });
   await app.listen(4000);
