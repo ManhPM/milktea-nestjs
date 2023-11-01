@@ -1090,13 +1090,16 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
               );
             }
             for (const cartProduct of cartProducts) {
-              let isFail = 0;
               for (const productRecipe of cartProduct.product.product_recipes) {
                 if (productRecipe.recipe.isActive == 0) {
-                  isFail = 1;
-                  await transactionalEntityManager
-                    .getRepository(CartProduct)
-                    .delete(cartProduct.id);
+                  throw new HttpException(
+                    {
+                      messageCode: 'CHECKOUT_ERROR',
+                      name: cartProduct.product.product_recipes[0].recipe.name,
+                      cartProductId: cartProduct.id,
+                    },
+                    HttpStatus.BAD_REQUEST,
+                  );
                 }
                 for (const recipeIngredient of productRecipe.recipe
                   .recipe_ingredients) {
@@ -1115,19 +1118,13 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
                         messageCode: 'QUANTITY_NOTENOUGH_ERROR',
                         id: productRecipe.recipe.id,
                         cartProductId: cartProduct.id,
+                        name: cartProduct.product.product_recipes[0].recipe
+                          .name,
                       },
                       HttpStatus.BAD_REQUEST,
                     );
                   }
                 }
-              }
-              if (isFail) {
-                throw new HttpException(
-                  {
-                    messageCode: 'CHECKOUT_ERROR',
-                  },
-                  HttpStatus.BAD_REQUEST,
-                );
               }
             }
             const shippingCompany = await transactionalEntityManager
@@ -1238,6 +1235,16 @@ WHERE YEAR(date) = YEAR(CURDATE());`,
               await this.cartProductRepository.delete({
                 id: error.response.cartProductId,
               });
+            }
+            if (error.response.name) {
+              const message2 =
+                await this.messageService.getMessage('DELETE_FROM_CART');
+              throw new HttpException(
+                {
+                  message: message + `(${error.response.name}). ${message2}`,
+                },
+                HttpStatus.BAD_REQUEST,
+              );
             }
             throw new HttpException(
               {
