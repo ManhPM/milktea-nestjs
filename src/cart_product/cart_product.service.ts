@@ -276,11 +276,7 @@ export class CartProductService {
             name: res[i].product.product_recipes[0].recipe.name,
             discount: res[i].product.product_recipes[0].recipe.discount,
             image: res[i].product.product_recipes[0].recipe.image,
-            price:
-              (res[i].product.product_recipes[0].recipe.price *
-                res[i].product.product_recipes[0].recipe.discount) /
-                100 +
-              res[i].size,
+            price: res[i].product.product_recipes[0].recipe.price + res[i].size,
             isActive: res[i].product.product_recipes[0].recipe.isActive,
             toppings: [],
           };
