@@ -40,8 +40,8 @@ export class RecipeController {
   }
 
   @Get(':id')
-  getDetail(@Param('id') id: string) {
-    return this.recipeService.getDetailRecipe(+id);
+  getDetail(@Param('id') id: string, @Request() req) {
+    return this.recipeService.getDetailRecipe(+id, req);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

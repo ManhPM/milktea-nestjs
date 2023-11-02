@@ -75,7 +75,7 @@ export class RecipeService {
     }
   }
 
-  async getDetailRecipe(id: number): Promise<any> {
+  async getDetailRecipe(id: number, @Request() req): Promise<any> {
     try {
       const res = await this.recipeRepository.findOne({
         where: {
@@ -94,6 +94,7 @@ export class RecipeService {
           discount: res.discount,
           type: res.type.id,
           ingredients: [],
+          isLiked: 0,
         };
         for (let i = 0; i < res.recipe_ingredients.length; i++) {
           data.ingredients[i] = res.recipe_ingredients[i].ingredient;
@@ -101,6 +102,17 @@ export class RecipeService {
             res.recipe_ingredients[i].ingredient.quantity;
           data.ingredients[i].quantity = res.recipe_ingredients[i].quantity;
         }
+        const wishlist = await this.wishlistRepository.find({
+          where: {
+            user: Like(req.query.id),
+          },
+          relations: ['recipe'],
+        });
+        let wishlistIds;
+        if (wishlist[0]) {
+          wishlistIds = wishlist.map((item) => item.recipe.id);
+        }
+        data.isLiked = wishlistIds.includes(data.id) ? 1 : 0;
         return {
           data: data,
         };

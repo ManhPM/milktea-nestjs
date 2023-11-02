@@ -19,7 +19,7 @@ export declare class RecipeService {
     create(createRecipeDto: CreateRecipeDto): Promise<{
         message: any;
     }>;
-    getDetailRecipe(id: number): Promise<any>;
+    getDetailRecipe(id: number, req: any): Promise<any>;
     getAllRecipe(query: FilterRecipeDto): Promise<any>;
     getRecipeByType(id: number, req: any): Promise<{
         data: {

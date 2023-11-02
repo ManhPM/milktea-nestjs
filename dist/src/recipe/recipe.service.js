@@ -73,7 +73,7 @@ let RecipeService = class RecipeService {
             }
         }
     }
-    async getDetailRecipe(id) {
+    async getDetailRecipe(id, req) {
         try {
             const res = await this.recipeRepository.findOne({
                 where: {
@@ -92,6 +92,7 @@ let RecipeService = class RecipeService {
                     discount: res.discount,
                     type: res.type.id,
                     ingredients: [],
+                    isLiked: 0,
                 };
                 for (let i = 0; i < res.recipe_ingredients.length; i++) {
                     data.ingredients[i] = res.recipe_ingredients[i].ingredient;
@@ -99,6 +100,17 @@ let RecipeService = class RecipeService {
                         res.recipe_ingredients[i].ingredient.quantity;
                     data.ingredients[i].quantity = res.recipe_ingredients[i].quantity;
                 }
+                const wishlist = await this.wishlistRepository.find({
+                    where: {
+                        user: (0, typeorm_2.Like)(req.query.id),
+                    },
+                    relations: ['recipe'],
+                });
+                let wishlistIds;
+                if (wishlist[0]) {
+                    wishlistIds = wishlist.map((item) => item.recipe.id);
+                }
+                data.isLiked = wishlistIds.includes(data.id) ? 1 : 0;
                 return {
                     data: data,
                 };
@@ -514,6 +526,12 @@ let RecipeService = class RecipeService {
     }
 };
 exports.RecipeService = RecipeService;
+__decorate([
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], RecipeService.prototype, "getDetailRecipe", null);
 __decorate([
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),

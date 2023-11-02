@@ -34,8 +34,8 @@ let RecipeController = class RecipeController {
     getRecipeByType(id, req) {
         return this.recipeService.getRecipeByType(+id, req);
     }
-    getDetail(id) {
-        return this.recipeService.getDetailRecipe(+id);
+    getDetail(id, req) {
+        return this.recipeService.getDetailRecipe(+id, req);
     }
     getAllIngredientOfRecipe(id) {
         return this.recipeService.getAllIngredientOfRecipe(+id);
@@ -84,8 +84,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], RecipeController.prototype, "getDetail", null);
 __decorate([

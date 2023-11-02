@@ -27,7 +27,7 @@ export declare class RecipeController {
             reviews: import("../review/entities/review.entity").Review[];
         }[];
     }>;
-    getDetail(id: string): Promise<any>;
+    getDetail(id: string, req: any): Promise<any>;
     getAllIngredientOfRecipe(id: string): Promise<{
         data: {}[];
     }>;
