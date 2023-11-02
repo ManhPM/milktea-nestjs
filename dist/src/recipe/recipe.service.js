@@ -100,6 +100,11 @@ let RecipeService = class RecipeService {
                         res.recipe_ingredients[i].ingredient.quantity;
                     data.ingredients[i].quantity = res.recipe_ingredients[i].quantity;
                 }
+                if (!req.query.id) {
+                    return {
+                        data: data,
+                    };
+                }
                 const wishlist = await this.wishlistRepository.find({
                     where: {
                         user: (0, typeorm_2.Like)(req.query.id),
