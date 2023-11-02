@@ -244,7 +244,6 @@ let CartProductService = class CartProductService {
                 ];
                 let totalCart = 0;
                 for (let i = 0; i < res.length; i++) {
-                    let toppingPrice = 0;
                     data[i] = {
                         productId: res[i].product.id,
                         id: res[i].product.product_recipes[0].recipe.id,
@@ -253,16 +252,14 @@ let CartProductService = class CartProductService {
                         name: res[i].product.product_recipes[0].recipe.name,
                         discount: res[i].product.product_recipes[0].recipe.discount,
                         image: res[i].product.product_recipes[0].recipe.image,
-                        price: (res[i].product.product_recipes[0].recipe.price *
-                            res[i].product.product_recipes[0].recipe.discount) /
-                            100 +
-                            res[i].size,
+                        price: 0,
                         isActive: res[i].product.product_recipes[0].recipe.isActive,
                         toppings: [],
                     };
                     if (res[i].size != 0) {
                         totalCart += res[i].quantity * res[i].size;
                     }
+                    let toppingPrice = 0;
                     for (let j = 1; j < res[i].product.product_recipes.length; j++) {
                         data[i].toppings[j - 1] = {
                             id: res[i].product.product_recipes[j].recipe.id,
@@ -279,7 +276,7 @@ let CartProductService = class CartProductService {
                                 100;
                         toppingPrice +=
                             (res[i].product.product_recipes[j].recipe.price *
-                                res[i].product.product_recipes[j].recipe.price) /
+                                res[i].product.product_recipes[j].recipe.discount) /
                                 100;
                     }
                     totalCart +=
@@ -288,9 +285,8 @@ let CartProductService = class CartProductService {
                             res[i].product.product_recipes[0].recipe.discount) /
                             100;
                     data[i].price =
-                        (res[i].product.product_recipes[0].recipe.price *
-                            res[i].product.product_recipes[0].recipe.discount) /
-                            100 +
+                        (res[i].product.product_recipes[0].recipe.discount / 100) *
+                            res[i].product.product_recipes[0].recipe.price +
                             res[i].size +
                             toppingPrice;
                 }
