@@ -28,13 +28,12 @@ export class RecipeService {
   ) {}
   async create(createRecipeDto: CreateRecipeDto) {
     try {
-      createRecipeDto.discount = 0;
       if (!createRecipeDto.image) {
         createRecipeDto.image =
           'https://phuclong.com.vn/uploads/dish/063555c21c4206-trviliphclong.png';
       }
       if (!createRecipeDto.info) {
-        createRecipeDto.info = 'Mặc định';
+        createRecipeDto.info = 'Thông tin sản phẩm';
       }
       createRecipeDto.isActive = 1;
       const type = await this.typeRepository.findOne({

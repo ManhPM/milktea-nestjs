@@ -1972,17 +1972,15 @@ export class validateUpdateStaff implements NestMiddleware {
 }
 
 @Injectable()
-export class validateCompleteImportExport implements NestMiddleware {
+export class validateCompleteImport implements NestMiddleware {
   constructor(
     private service1: ImportService,
-    private service2: ExportService,
     private readonly messageService: MessageService,
   ) {}
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
       const checkImport = await this.service1.findOne(+id);
-      const checkExport = await this.service2.findOne(+id);
       if (checkImport) {
         if (checkImport.isCompleted != 0) {
           throw new HttpException(
@@ -1993,6 +1991,44 @@ export class validateCompleteImportExport implements NestMiddleware {
           );
         }
       }
+      next();
+    } catch (error) {
+      console.log(error);
+      let message;
+      if (error.response) {
+        message = await this.messageService.getMessage(
+          error.response.messageCode,
+        );
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        console.log(error);
+        message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+        throw new HttpException(
+          {
+            message: message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+}
+
+@Injectable()
+export class validateCompleteExport implements NestMiddleware {
+  constructor(
+    private service2: ExportService,
+    private readonly messageService: MessageService,
+  ) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id;
+      const checkExport = await this.service2.findOne(+id);
       if (checkExport) {
         if (checkExport.isCompleted != 0) {
           throw new HttpException(
