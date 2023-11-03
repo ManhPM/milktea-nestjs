@@ -12,7 +12,7 @@ import { Ingredient } from '../ingredient/entities/ingredient.entity';
 import { ExportIngredient } from '../export_ingredient/entities/export_ingredient.entity';
 import { CheckExistExport } from '../common/middlewares/middlewares';
 import {
-  validateCompleteImport,
+  validateCompleteExport,
   validateCreateExportIngredient,
   validateDeleteExportIngredient,
   validateFromDateToDate,
@@ -65,7 +65,7 @@ export class ExportModule implements NestModule {
         { path: 'export/ingredient/:id', method: RequestMethod.ALL },
       );
     consumer
-      .apply(validateCompleteImport)
+      .apply(validateCompleteExport)
       .forRoutes({ path: 'export/complete/:id', method: RequestMethod.GET });
     consumer
       .apply(validateCreateExportIngredient)

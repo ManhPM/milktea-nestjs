@@ -34,7 +34,7 @@ let ImportModule = class ImportModule {
             .exclude('import/ingredient')
             .forRoutes({ path: 'import/:id', method: common_1.RequestMethod.ALL }, { path: 'import/complete/:id', method: common_1.RequestMethod.ALL }, { path: 'import/ingredient/:id', method: common_1.RequestMethod.ALL });
         consumer
-            .apply(validate_1.validateCompleteImportExport)
+            .apply(validate_1.validateCompleteImport)
             .forRoutes({ path: 'import/complete/:id', method: common_1.RequestMethod.GET });
         consumer
             .apply(validate_1.validateCreateImportIngredient)

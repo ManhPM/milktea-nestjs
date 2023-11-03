@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateCompleteImportExport = exports.validateUpdateStaff = exports.validateCreateStaff = exports.validateUpdateShop = exports.validateUpdateShippingCompany = exports.validateCreateShippingCompany = exports.validateCreateReview = exports.validateUpdateRecipe = exports.validateCreateRecipe = exports.validateFromDateToDate = exports.validateCheckOut1 = exports.validateCheckOut = exports.validateCreateIngredient = exports.validateDeleteExportIngredient = exports.validateCreateExportIngredient = exports.validateDeleteImportIngredient = exports.validateCreateImportIngredient = exports.validateUpdateCartProduct = exports.validateCreateCartProduct = exports.validateForgotPassword = exports.validateChangePassword = exports.validateUpdateUser = exports.validateRegister = exports.validateLogin = void 0;
+exports.validateCompleteExport = exports.validateCompleteImport = exports.validateUpdateStaff = exports.validateCreateStaff = exports.validateUpdateShop = exports.validateUpdateShippingCompany = exports.validateCreateShippingCompany = exports.validateCreateReview = exports.validateUpdateRecipe = exports.validateCreateRecipe = exports.validateFromDateToDate = exports.validateCheckOut1 = exports.validateCheckOut = exports.validateCreateIngredient = exports.validateDeleteExportIngredient = exports.validateCreateExportIngredient = exports.validateDeleteImportIngredient = exports.validateCreateImportIngredient = exports.validateUpdateCartProduct = exports.validateCreateCartProduct = exports.validateForgotPassword = exports.validateChangePassword = exports.validateUpdateUser = exports.validateRegister = exports.validateLogin = void 0;
 const export_service_1 = require("../../export/export.service");
 const common_1 = require("@nestjs/common");
 const auth_service_1 = require("../../auth/auth.service");
@@ -1538,17 +1538,15 @@ exports.validateUpdateStaff = validateUpdateStaff = __decorate([
         staff_service_1.StaffService,
         lib_2.MessageService])
 ], validateUpdateStaff);
-let validateCompleteImportExport = class validateCompleteImportExport {
-    constructor(service1, service2, messageService) {
+let validateCompleteImport = class validateCompleteImport {
+    constructor(service1, messageService) {
         this.service1 = service1;
-        this.service2 = service2;
         this.messageService = messageService;
     }
     async use(req, res, next) {
         try {
             const id = req.params.id;
             const checkImport = await this.service1.findOne(+id);
-            const checkExport = await this.service2.findOne(+id);
             if (checkImport) {
                 if (checkImport.isCompleted != 0) {
                     throw new common_1.HttpException({
@@ -1556,6 +1554,42 @@ let validateCompleteImportExport = class validateCompleteImportExport {
                     }, common_1.HttpStatus.BAD_REQUEST);
                 }
             }
+            next();
+        }
+        catch (error) {
+            console.log(error);
+            let message;
+            if (error.response) {
+                message = await this.messageService.getMessage(error.response.messageCode);
+                throw new common_1.HttpException({
+                    message: message,
+                }, common_1.HttpStatus.BAD_REQUEST);
+            }
+            else {
+                console.log(error);
+                message = await this.messageService.getMessage('INTERNAL_SERVER_ERROR');
+                throw new common_1.HttpException({
+                    message: message,
+                }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
+};
+exports.validateCompleteImport = validateCompleteImport;
+exports.validateCompleteImport = validateCompleteImport = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [import_service_1.ImportService,
+        lib_2.MessageService])
+], validateCompleteImport);
+let validateCompleteExport = class validateCompleteExport {
+    constructor(service2, messageService) {
+        this.service2 = service2;
+        this.messageService = messageService;
+    }
+    async use(req, res, next) {
+        try {
+            const id = req.params.id;
+            const checkExport = await this.service2.findOne(+id);
             if (checkExport) {
                 if (checkExport.isCompleted != 0) {
                     throw new common_1.HttpException({
@@ -1584,11 +1618,10 @@ let validateCompleteImportExport = class validateCompleteImportExport {
         }
     }
 };
-exports.validateCompleteImportExport = validateCompleteImportExport;
-exports.validateCompleteImportExport = validateCompleteImportExport = __decorate([
+exports.validateCompleteExport = validateCompleteExport;
+exports.validateCompleteExport = validateCompleteExport = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [import_service_1.ImportService,
-        export_service_1.ExportService,
+    __metadata("design:paramtypes", [export_service_1.ExportService,
         lib_2.MessageService])
-], validateCompleteImportExport);
+], validateCompleteExport);
 //# sourceMappingURL=validate.js.map

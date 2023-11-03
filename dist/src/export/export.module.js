@@ -34,7 +34,7 @@ let ExportModule = class ExportModule {
             .exclude('export/ingredient')
             .forRoutes({ path: 'export/:id', method: common_1.RequestMethod.ALL }, { path: 'export/complete/:id', method: common_1.RequestMethod.ALL }, { path: 'export/ingredient/:id', method: common_1.RequestMethod.ALL });
         consumer
-            .apply(validate_1.validateCompleteImportExport)
+            .apply(validate_1.validateCompleteExport)
             .forRoutes({ path: 'export/complete/:id', method: common_1.RequestMethod.GET });
         consumer
             .apply(validate_1.validateCreateExportIngredient)

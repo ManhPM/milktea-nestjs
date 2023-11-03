@@ -145,10 +145,15 @@ export declare class validateUpdateStaff implements NestMiddleware {
     constructor(service1: AuthService, service2: StaffService, messageService: MessageService);
     use(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
-export declare class validateCompleteImportExport implements NestMiddleware {
+export declare class validateCompleteImport implements NestMiddleware {
     private service1;
+    private readonly messageService;
+    constructor(service1: ImportService, messageService: MessageService);
+    use(req: Request, res: Response, next: NextFunction): Promise<void>;
+}
+export declare class validateCompleteExport implements NestMiddleware {
     private service2;
     private readonly messageService;
-    constructor(service1: ImportService, service2: ExportService, messageService: MessageService);
+    constructor(service2: ExportService, messageService: MessageService);
     use(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
