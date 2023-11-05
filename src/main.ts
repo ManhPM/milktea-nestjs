@@ -10,7 +10,10 @@ async function bootstrap() {
   app.use((cookieParserConfig as any)());
   app.setGlobalPrefix('api/v1');
   app.enableCors({
-    origin: 'https://tea-q5yf3wzs2-th1nh2411.vercel.app',
+    origin: [
+      'https://tea-q5yf3wzs2-th1nh2411.vercel.app',
+      'https://tea-z-navy.vercel.app',
+    ],
     credentials: true,
   });
   await app.listen(4000);
