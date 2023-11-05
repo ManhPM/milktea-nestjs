@@ -13,10 +13,7 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 200,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
@@ -28,10 +25,7 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 201,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
@@ -43,10 +37,7 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 400,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
@@ -58,10 +49,7 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 401,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
@@ -73,10 +61,7 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 403,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
@@ -88,10 +73,19 @@
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
       "status": 500,
       "headers": {
-        "Access-Control-Allow-Origin": [
-          "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
-          "https://tea-z-navy.vercel.app"
-        ],
+        "Access-Control-Allow-Origin": "https://tea-q5yf3wzs2-th1nh2411.vercel.app",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+        "Access-Control-Allow-Credentials": "true"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/main.ts",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      "status": [200, 201, 400, 401, 403, 500],
+      "headers": {
+        "Access-Control-Allow-Origin": "https://tea-z-navy.vercel.app",
         "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
         "Access-Control-Allow-Credentials": "true"
